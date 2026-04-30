@@ -112,7 +112,7 @@ class AudioSource : IAudioSource
 	}
 
 	/// Starts playback. Sets up the node for playing but does NOT connect
-	/// to the bus — connection is handled by SetTargetBus (which may be
+	/// to the bus - connection is handled by SetTargetBus (which may be
 	/// enqueued on the command queue for thread safety).
 	/// Safe to call from the main thread (only writes node fields).
 	public void Play(AudioClip clip)

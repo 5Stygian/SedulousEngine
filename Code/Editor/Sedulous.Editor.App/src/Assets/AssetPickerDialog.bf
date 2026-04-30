@@ -24,7 +24,7 @@ class AssetPickerDialog : Dialog
 	private delegate void(StringView, Guid) mOnSelected ~ delete _;
 	private Button mSelectBtn;
 
-	// Adapters (owned by this dialog, not by views — views are deleted by Dialog)
+	// Adapters (owned by this dialog, not by views - views are deleted by Dialog)
 	private RegistryTreeAdapter mTreeAdapter ~ delete _;
 	private AssetContentAdapter mListAdapter ~ delete _;
 	private AssetContentAdapter mGridAdapter ~ delete _;

@@ -688,7 +688,7 @@ class ModelImporter
 		}
 		else
 		{
-			// No skins — animation-only file (e.g. separate Mixamo animation clips).
+			// No skins - animation-only file (e.g. separate Mixamo animation clips).
 			// Use identity mapping: node index = bone index. The consumer is responsible
 			// for ensuring the skeleton's bone order matches the node order, which is the
 			// common case for standard exports sharing the same rig.

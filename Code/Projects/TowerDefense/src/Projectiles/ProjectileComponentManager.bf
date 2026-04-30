@@ -130,7 +130,7 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 			transform.Scale = .(0.5f, 0.5f, 0.5f);
 			scene.SetLocalTransform(comp.Owner, transform);
 
-			// Check hit — distance to target
+			// Check hit - distance to target
 			if (hasTarget)
 			{
 				let dist = (targetPos - newPos).Length();

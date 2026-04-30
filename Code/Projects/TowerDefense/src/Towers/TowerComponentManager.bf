@@ -102,7 +102,7 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 			}
 		}
 
-		// Need new target — find enemy in range with highest DistanceAlongPath
+		// Need new target - find enemy in range with highest DistanceAlongPath
 		tower.TargetEntity = .Invalid;
 		float bestDistance = -1;
 

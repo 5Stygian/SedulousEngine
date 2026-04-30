@@ -21,7 +21,7 @@ class TowerPlacement
 	public int32 HoverZ;
 	public bool HoverValid;
 
-	// Preview entity — follows the mouse cursor when a tower is selected
+	// Preview entity - follows the mouse cursor when a tower is selected
 	private EntityHandle mPreviewBase = .Invalid;
 	private EntityHandle mPreviewWeapon = .Invalid;
 	private TowerType? mPreviewType;

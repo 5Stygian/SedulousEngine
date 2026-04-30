@@ -28,7 +28,7 @@ class WaveDefinition
 	{
 		let waves = new List<WaveDefinition>();
 
-		// Wave 1: Easy intro — just a few slow UFOs
+		// Wave 1: Easy intro - just a few slow UFOs
 		let w1 = new WaveDefinition(1);
 		w1.Entries.Add(.() { Type = .UfoA, Count = 5, SpawnInterval = 1.5f, DelayBefore = 0 });
 		waves.Add(w1);

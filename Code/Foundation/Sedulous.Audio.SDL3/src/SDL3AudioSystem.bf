@@ -58,7 +58,7 @@ class SDL3AudioSystem : IAudioSystem
 		// Create mixer (owns graph + bus system)
 		mMixer = new SDL3AudioMixer(mDeviceId);
 
-		// Enable threaded mixing — SDL's audio thread drives Mix() via callback
+		// Enable threaded mixing - SDL's audio thread drives Mix() via callback
 		mMixer.EnableCallbackMixing();
 	}
 
@@ -69,7 +69,7 @@ class SDL3AudioSystem : IAudioSystem
 
 	public void Dispose()
 	{
-		// Disable callback first — stops audio thread from accessing anything
+		// Disable callback first - stops audio thread from accessing anything
 		if (mMixer != null)
 			mMixer.DisableCallbackMixing();
 
@@ -126,7 +126,7 @@ class SDL3AudioSystem : IAudioSystem
 		{
 			mMasterVolume = Math.Clamp(value, 0.0f, 1.0f);
 
-			// Bus volume is a simple float write — safe without command queue
+			// Bus volume is a simple float write - safe without command queue
 			if (mMixer?.BusSystem != null)
 				mMixer.BusSystem.Master.Volume = mMasterVolume;
 
@@ -170,7 +170,7 @@ class SDL3AudioSystem : IAudioSystem
 		let source = new AudioSource();
 		source.IsOneShot = true;
 		source.Volume = volume;
-		// Play sets state + node params on main thread (safe — just field writes)
+		// Play sets state + node params on main thread (safe - just field writes)
 		source.Play(clip);
 		// Route enqueues the node connection for the mix thread
 		RouteSourceToBus(source);
@@ -324,7 +324,7 @@ class SDL3AudioSystem : IAudioSystem
 
 	public void Update()
 	{
-		// Update 3D parameters — these write floats to nodes, safe without locking
+		// Update 3D parameters - these write floats to nodes, safe without locking
 		for (let source in mSources)
 		{
 			// Update 3D audio (distance attenuation + stereo panning)
@@ -346,7 +346,7 @@ class SDL3AudioSystem : IAudioSystem
 			// Update playback state
 			source.UpdateState();
 
-			// Clean up finished one-shots — enqueue disconnect, then delete
+			// Clean up finished one-shots - enqueue disconnect, then delete
 			if (source.IsFinished)
 			{
 				mOneShotSources.RemoveAt(i);
@@ -359,11 +359,11 @@ class SDL3AudioSystem : IAudioSystem
 			}
 		}
 
-		// Update streams (feeds file data to SDL — stream has its own SDL_AudioStream)
+		// Update streams (feeds file data to SDL - stream has its own SDL_AudioStream)
 		for (let stream in mStreams)
 			stream.Update();
 
-		// NOTE: Mix() is NOT called here — SDL's audio thread drives it via callback.
+		// NOTE: Mix() is NOT called here - SDL's audio thread drives it via callback.
 	}
 
 	/// Routes a source to its target bus. Enqueues the node connection as a command.

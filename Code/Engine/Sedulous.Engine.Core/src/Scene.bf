@@ -790,7 +790,7 @@ public class Scene : IDisposable
 		}
 
 		// Mark ancestors dirty so UpdateTransforms reaches this subtree.
-		// UpdateTransforms only processes dirty roots — if a child is dirty
+		// UpdateTransforms only processes dirty roots - if a child is dirty
 		// but its root isn't, the child's world matrix never gets recomputed.
 		if (data.Parent.IsAssigned)
 			MarkDirty(data.Parent);

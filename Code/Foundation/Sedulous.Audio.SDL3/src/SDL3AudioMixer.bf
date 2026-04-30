@@ -34,7 +34,7 @@ class SDL3AudioMixer : AudioMixer
 	}
 
 	/// Enables threaded mixing via SDL audio callback.
-	/// After this call, SDL's audio thread drives Mix() — the main thread
+	/// After this call, SDL's audio thread drives Mix() - the main thread
 	/// must not call Mix() directly.
 	public void EnableCallbackMixing()
 	{
@@ -55,7 +55,7 @@ class SDL3AudioMixer : AudioMixer
 			SDL3.SDL_SetAudioStreamGetCallback(mDeviceStream, null, null);
 	}
 
-	/// SDL audio callback — called from SDL's audio thread when the device needs samples.
+	/// SDL audio callback - called from SDL's audio thread when the device needs samples.
 	private static void AudioCallback(void* userdata, SDL_AudioStream* stream, int32 additionalAmount, int32 totalAmount)
 	{
 		let mixer = (SDL3AudioMixer)Internal.UnsafeCastToObject(userdata);

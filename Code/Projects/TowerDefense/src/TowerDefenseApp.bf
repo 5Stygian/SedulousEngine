@@ -152,11 +152,11 @@ class TowerDefenseApp : EngineApplication
 		mCamera.Update(deltaTime, keyboard, mouse);
 		mCamera.ApplyToScene(mScene);
 
-		// Enter to start playing (from main menu — enables all gameplay interaction)
+		// Enter to start playing (from main menu - enables all gameplay interaction)
 		if (keyboard.IsKeyPressed(.Return) && mGameSub.Phase == .MainMenu)
 		{
 			mGameSub.SetPhase(.Playing);
-			Console.WriteLine("[Game] Playing — place towers, then press Space to start wave");
+			Console.WriteLine("[Game] Playing - place towers, then press Space to start wave");
 		}
 
 		// Everything below requires Playing phase
