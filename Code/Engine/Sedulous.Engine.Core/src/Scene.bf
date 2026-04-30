@@ -788,6 +788,12 @@ public class Scene : IDisposable
 			MarkDirty(childHandle);
 			childHandle = mTransforms[(int32)childHandle.Index].NextSibling;
 		}
+
+		// Mark ancestors dirty so UpdateTransforms reaches this subtree.
+		// UpdateTransforms only processes dirty roots — if a child is dirty
+		// but its root isn't, the child's world matrix never gets recomputed.
+		if (data.Parent.IsAssigned)
+			MarkDirty(data.Parent);
 	}
 
 	private void RemoveFromParent(EntityHandle child)
