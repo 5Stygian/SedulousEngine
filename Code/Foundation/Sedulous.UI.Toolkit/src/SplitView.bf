@@ -67,8 +67,8 @@ public class SplitView : ViewGroup
 
 	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
 	{
-		// SplitView fills its parent.
-		MeasuredSize = .(wSpec.Resolve(0), hSpec.Resolve(0));
+		// SplitView fills its parent — request the full available space.
+		MeasuredSize = .(wSpec.Size, hSpec.Size);
 	}
 
 	// === Layout ===
