@@ -82,3 +82,17 @@ struct TooltipAttribute : Attribute
 		Text = text;
 	}
 }
+
+/// Specifies the expected file extension for a ResourceRef field.
+/// Used by the asset picker to filter displayed resources.
+/// Falls back to showing all resources if not specified.
+[AttributeUsage(.Field, .ReflectAttribute)]
+struct ResourceRefTypeAttribute : Attribute
+{
+	public StringView Extension;
+
+	public this(StringView @extension)
+	{
+		Extension = @extension;
+	}
+}

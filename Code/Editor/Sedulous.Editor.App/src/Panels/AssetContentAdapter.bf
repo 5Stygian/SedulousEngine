@@ -39,6 +39,31 @@ class AssetContentAdapter : ListAdapterBase
 	private String mCurrentFolder = new .() ~ delete _;  // Relative path within registry (e.g. "primitives")
 	private String mAbsoluteRoot = new .() ~ delete _;   // Absolute root of active registry
 
+	/// When true, only shows items that have a GUID in the active registry.
+	/// Filesystem items without registry entries are hidden.
+	public bool RegistryOnly;
+
+	/// When set (non-empty), only shows files whose extension matches.
+	/// Folders are always shown regardless of filter.
+	public String ExtensionFilter ~ delete _;
+
+	/// Sets the extension filter. Pass empty/null to clear.
+	public void SetExtensionFilter(StringView filter)
+	{
+		if (filter.Length > 0)
+		{
+			if (ExtensionFilter == null)
+				ExtensionFilter = new String(filter);
+			else
+				ExtensionFilter.Set(filter);
+		}
+		else
+		{
+			delete ExtensionFilter;
+			ExtensionFilter = null;
+		}
+	}
+
 	/// Gets the number of items.
 	public override int32 ItemCount => (int32)mItems.Count;
 
@@ -220,6 +245,21 @@ class AssetContentAdapter : ListAdapterBase
 					item.RegistryId = guid;
 				}
 
+				// RegistryOnly mode: skip files without a registry entry
+				if (RegistryOnly && !item.IsRegistered)
+				{
+					delete item;
+					continue;
+				}
+
+				// Extension filter: skip files that don't match
+				if (ExtensionFilter != null && !item.IsFolder &&
+					!item.Extension.Equals(ExtensionFilter, .OrdinalIgnoreCase))
+				{
+					delete item;
+					continue;
+				}
+
 				mItems.Add(item);
 			}
 		}
@@ -239,6 +279,18 @@ class AssetContentAdapter : ListAdapterBase
 
 			if (!foundOnDisk)
 			{
+				// Extension filter: skip entries that don't match
+				if (ExtensionFilter != null)
+				{
+					let dotIdx2 = entry.name.LastIndexOf('.');
+					if (dotIdx2 >= 0)
+					{
+						let ext = entry.name[dotIdx2...];
+						if (!ext.Equals(ExtensionFilter, true))
+							continue;
+					}
+				}
+
 				let item = new AssetContentItem();
 				item.Name = new String(entry.name);
 				item.Kind = .File;

@@ -108,7 +108,8 @@ class PropertyGridDescriptor : IPropertyDescriptor
 		mGrid.AddProperty(editor);
 	}
 
-	public virtual void ResRef(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter)
+	public virtual void ResRef(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter,
+		StringView extensionFilter = default)
 	{
 		// Base implementation: read-only display. Override in Editor.App for full editor.
 		let @ref = getter();

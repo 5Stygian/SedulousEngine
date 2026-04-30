@@ -17,12 +17,15 @@ class ResourceRefEditor : PropertyEditor
 	private IDialogService mDialogs;
 	private ISerializerProvider mSerializerProvider;
 	private ResourceSystem mResourceSystem;
+	private Sedulous.Editor.Core.EditorContext mEditorContext;
+	private String mExtensionFilter ~ delete _;
 	private Label mPathLabel;
 	private bool mOwnsCallbacks;
 
 	public this(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter,
 		IDialogService dialogs = null, ISerializerProvider serializerProvider = null,
-		ResourceSystem resourceSystem = null,
+		ResourceSystem resourceSystem = null, Sedulous.Editor.Core.EditorContext editorContext = null,
+		StringView extensionFilter = default,
 		bool ownsCallbacks = true, StringView category = default)
 		: base(name, category)
 	{
@@ -31,6 +34,9 @@ class ResourceRefEditor : PropertyEditor
 		mDialogs = dialogs;
 		mSerializerProvider = serializerProvider;
 		mResourceSystem = resourceSystem;
+		mEditorContext = editorContext;
+		if (extensionFilter.Length > 0)
+			mExtensionFilter = new String(extensionFilter);
 		mOwnsCallbacks = ownsCallbacks;
 	}
 
@@ -102,6 +108,27 @@ class ResourceRefEditor : PropertyEditor
 
 	private void OnBrowse()
 	{
+		// Use asset picker dialog when EditorContext is available
+		if (mEditorContext != null)
+		{
+			let ctx = mPathLabel?.Context;
+			if (ctx == null) return;
+
+			let picker = new AssetPickerDialog(mEditorContext, mExtensionFilter ?? "",
+				new (protocolPath, guid) => {
+					var newRef = ResourceRef(guid, protocolPath);
+					BeginEdit();
+					mSetter(newRef);
+					NotifyValueChanged();
+					EndEdit();
+					newRef.Dispose();
+					RefreshPathLabel();
+				});
+			picker.Show(ctx);
+			return;
+		}
+
+		// Fallback: OS file dialog
 		if (mDialogs == null) return;
 
 		mDialogs.ShowOpenFileDialog(

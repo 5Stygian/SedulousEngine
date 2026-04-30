@@ -461,7 +461,7 @@ static class ScenePageBuilder
 			{
 				if (let inspectable = component as IInspectable)
 				{
-					let desc = scope EditorPropertyGridDescriptor(propertyGrid, editorContext?.DialogService, editorContext?.ResourceSystem?.SerializerProvider, editorContext?.ResourceSystem);
+					let desc = scope EditorPropertyGridDescriptor(propertyGrid, editorContext?.DialogService, editorContext?.ResourceSystem?.SerializerProvider, editorContext?.ResourceSystem, editorContext);
 					inspectable.DescribeProperties(desc);
 				}
 			}

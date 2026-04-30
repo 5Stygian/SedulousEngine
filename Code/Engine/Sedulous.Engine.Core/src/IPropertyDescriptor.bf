@@ -37,7 +37,9 @@ interface IPropertyDescriptor
 	void Quat(StringView name, Quaternion* ptr);
 
 	/// Single ResourceRef field. getter reads current value, setter writes new value.
-	void ResRef(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter);
+	/// extensionFilter optionally restricts the asset picker (e.g. ".mesh").
+	void ResRef(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter,
+		StringView extensionFilter = default);
 
 	/// List of ResourceRef fields. countGetter/getter/setter by index.
 	void ResRefList(StringView name, delegate int32() countGetter,

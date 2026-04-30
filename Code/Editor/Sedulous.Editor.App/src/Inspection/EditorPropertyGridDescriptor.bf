@@ -15,20 +15,24 @@ class EditorPropertyGridDescriptor : PropertyGridDescriptor
 	private IDialogService mDialogs;
 	private ISerializerProvider mSerializerProvider;
 	private ResourceSystem mResourceSystem;
+	private EditorContext mEditorContext;
 
 	public this(PropertyGrid grid, IDialogService dialogs, ISerializerProvider serializerProvider = null,
-		ResourceSystem resourceSystem = null) : base(grid)
+		ResourceSystem resourceSystem = null, EditorContext editorContext = null) : base(grid)
 	{
 		mDialogs = dialogs;
 		mSerializerProvider = serializerProvider;
 		mResourceSystem = resourceSystem;
+		mEditorContext = editorContext;
 	}
 
-	public override void ResRef(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter)
+	public override void ResRef(StringView name, delegate ResourceRef() getter, delegate void(ResourceRef) setter,
+		StringView extensionFilter = default)
 	{
 		let editor = new ResourceRefEditor(name, getter, setter,
 			dialogs: mDialogs, serializerProvider: mSerializerProvider,
-			resourceSystem: mResourceSystem,
+			resourceSystem: mResourceSystem, editorContext: mEditorContext,
+			extensionFilter: extensionFilter,
 			ownsCallbacks: true, category: CurrentCategory);
 		mGrid.AddProperty(editor);
 	}
@@ -37,7 +41,8 @@ class EditorPropertyGridDescriptor : PropertyGridDescriptor
 		delegate ResourceRef(int32) getter, delegate void(int32, ResourceRef) setter)
 	{
 		let editor = new ResourceRefListEditor(name, countGetter, getter, setter,
-			dialogs: mDialogs, ownsCallbacks: true, category: CurrentCategory);
+			dialogs: mDialogs, editorContext: mEditorContext,
+			ownsCallbacks: true, category: CurrentCategory);
 		mGrid.AddProperty(editor);
 	}
 }

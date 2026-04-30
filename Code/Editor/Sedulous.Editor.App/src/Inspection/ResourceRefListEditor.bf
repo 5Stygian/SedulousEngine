@@ -16,18 +16,25 @@ class ResourceRefListEditor : PropertyEditor
 	private delegate ResourceRef(int32) mGetter;
 	private delegate void(int32, ResourceRef) mSetter;
 	private IDialogService mDialogs;
+	private Sedulous.Editor.Core.EditorContext mEditorContext;
+	private String mExtensionFilter ~ delete _;
 	private LinearLayout mContainer;
 	private bool mOwnsCallbacks;
 
 	public this(StringView name, delegate int32() countGetter,
 		delegate ResourceRef(int32) getter, delegate void(int32, ResourceRef) setter,
-		IDialogService dialogs = null, bool ownsCallbacks = true, StringView category = default)
+		IDialogService dialogs = null, Sedulous.Editor.Core.EditorContext editorContext = null,
+		StringView extensionFilter = default,
+		bool ownsCallbacks = true, StringView category = default)
 		: base(name, category)
 	{
 		mCountGetter = countGetter;
 		mGetter = getter;
 		mSetter = setter;
 		mDialogs = dialogs;
+		mEditorContext = editorContext;
+		if (extensionFilter.Length > 0)
+			mExtensionFilter = new String(extensionFilter);
 		mOwnsCallbacks = ownsCallbacks;
 	}
 
@@ -103,10 +110,26 @@ class ResourceRefListEditor : PropertyEditor
 			// Browse
 			let browseBtn = new Button();
 			browseBtn.SetText("...");
-			browseBtn.OnClick.Add(new  (btn) =>
+			browseBtn.OnClick.Add(new (btn) =>
 			{
-				if (mDialogs != null)
+				// Use asset picker when EditorContext is available
+				if (mEditorContext != null)
 				{
+					let ctx = mContainer?.Context;
+					if (ctx == null) return;
+
+					let picker = new AssetPickerDialog(mEditorContext, mExtensionFilter ?? "",
+						new (protocolPath, guid) => {
+							var newRef = ResourceRef(guid, protocolPath);
+							mSetter(slot, newRef);
+							newRef.Dispose();
+							RebuildSlots();
+						});
+					picker.Show(ctx);
+				}
+				else if (mDialogs != null)
+				{
+					// Fallback: OS file dialog
 					mDialogs.ShowOpenFileDialog(
 						new (paths) => {
 							if (paths.Length > 0)
