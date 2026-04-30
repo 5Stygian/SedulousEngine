@@ -185,6 +185,14 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 	{
 		mDeltaTime = deltaTime;
 		mTotalTime += deltaTime;
+
+		// Clear last frame's debug draws here, not after RenderScene. PostUpdate
+		// emitters (e.g. LightComponentManager) run unconditionally each frame,
+		// but RenderScene may be skipped when the editor window is minimized or
+		// no viewport is active - clearing on render would let mLineVerts grow
+		// without bound.
+		if (mRenderContext != null && mRenderContext.DebugDraw != null)
+			mRenderContext.DebugDraw.Clear();
 	}
 
 	/// Renders a specific scene to application-provided output targets.
@@ -244,10 +252,9 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		// Save this frame's VP for next frame's motion vectors.
 		mPrevViewProjectionMatrix = mainView.ViewProjectionMatrix;
 
-		// Clear accumulated debug draws - commands have been recorded into the
-		// command buffer at this point, and the per-frame GPU vertex buffers hold
-		// the uploaded data until the GPU consumes it on the next fence wait.
-		mRenderContext.DebugDraw.Clear();
+		// Note: DebugDraw is cleared in BeginFrame, not here. Clearing here would
+		// drop emissions from any subsequent RenderScene calls in the same frame
+		// and would never run when rendering is skipped (minimized window).
 
 		// Transition output to ShaderRead for the application to blit.
 		encoder.TransitionTexture(colorTexture, .RenderTarget, .ShaderRead);
