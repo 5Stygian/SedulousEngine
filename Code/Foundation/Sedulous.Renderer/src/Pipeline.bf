@@ -561,7 +561,7 @@ public class Pipeline : IRenderingPipeline, IDisposable
 			{
 				Label = "Instance Buffer",
 				Size = instanceBufferSize,
-				Usage = .Storage,
+				Usage = .StorageRead,
 				Memory = .CpuToGpu
 			};
 

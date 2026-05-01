@@ -367,7 +367,7 @@ public class ShadowPipeline : IRenderingPipeline, IDisposable
 			{
 				Label = "Shadow Instance Buffer",
 				Size = instanceBufferSize,
-				Usage = .Storage,
+				Usage = .StorageRead,
 				Memory = .CpuToGpu
 			};
 

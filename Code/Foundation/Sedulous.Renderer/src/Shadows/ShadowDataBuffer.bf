@@ -69,7 +69,7 @@ public class ShadowDataBuffer : IDisposable
 			{
 				Label = "Shadow Data Buffer",
 				Size = (uint64)(GPUShadowData.Size * MaxShadows),
-				Usage = .Storage,
+				Usage = .StorageRead,
 				Memory = .CpuToGpu
 			};
 

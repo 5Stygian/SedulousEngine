@@ -76,12 +76,12 @@ public class LightBuffer : IDisposable
 
 		for (int i = 0; i < 2; i++)
 		{
-			// Light data buffer (StructuredBuffer in shader, but we use Storage for flexibility)
+			// Light data buffer (StructuredBuffer in shader — read-only from GPU)
 			BufferDesc lightDesc = .()
 			{
 				Label = "Light Buffer",
 				Size = (uint64)(GPULight.Size * MaxLights),
-				Usage = .Storage,
+				Usage = .StorageRead,
 				Memory = .CpuToGpu
 			};
 

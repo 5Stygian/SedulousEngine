@@ -130,7 +130,7 @@ public class GPUResourceManager : IDisposable
 		// Create vertex buffer
 		var vbUsage = BufferUsage.Vertex | .CopyDst | desc.ExtraVertexUsage;
 		if (desc.IsSkinned)
-			vbUsage |= .Storage;
+			vbUsage |= .StorageRead;  // Compute skinning reads source vertices
 
 		var vbDesc = BufferDesc()
 		{
@@ -416,7 +416,7 @@ public class GPUResourceManager : IDisposable
 		{
 			Label = "Bone Transforms",
 			Size = bufferSize,
-			Usage = .Storage,
+			Usage = .StorageRead,
 			Memory = .CpuToGpu
 		};
 
