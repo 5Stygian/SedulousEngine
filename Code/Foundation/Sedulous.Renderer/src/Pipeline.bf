@@ -46,6 +46,18 @@ public class Pipeline : IRenderingPipeline, IDisposable
 	// Separate from RenderContext.DebugDraw which is global.
 	private DebugDraw mDebugDraw = new .() ~ delete _;
 
+	// Per-pipeline light buffer. Each scene has different lights; the forward
+	// pass reads this pipeline's buffer, not a shared one.
+	private LightBuffer mLightBuffer ~ delete _;
+
+	// Per-pipeline line vertex buffers for debug drawing. Each pipeline uploads
+	// its own merged debug vertices so scenes don't overwrite each other.
+	private IBuffer[MaxFramesInFlight] mLineVertexBuffers;
+
+	// Previous frame's view-projection matrix for motion vectors.
+	// Per-pipeline so each scene tracks its own camera history independently.
+	private Matrix mPrevViewProjectionMatrix = .Identity;
+
 	// ==================== Properties ====================
 
 	/// The shared renderer infrastructure.
@@ -55,6 +67,20 @@ public class Pipeline : IRenderingPipeline, IDisposable
 	/// Use this instead of RenderContext.DebugDraw for draws that should only
 	/// appear in this pipeline's viewport.
 	public DebugDraw DebugDraw => mDebugDraw;
+
+	/// Per-pipeline light buffer. Each scene uploads its own lights here.
+	public LightBuffer LightBuffer => mLightBuffer;
+
+	/// Gets the per-pipeline line vertex buffer for the given frame.
+	public IBuffer GetLineVertexBuffer(int32 frameIndex) => mLineVertexBuffers[frameIndex % MaxFramesInFlight];
+
+	/// Previous frame's view-projection matrix for this pipeline's camera.
+	/// Used by motion vector passes to compute per-pixel screen-space deltas.
+	public Matrix PrevViewProjectionMatrix
+	{
+		get => mPrevViewProjectionMatrix;
+		set => mPrevViewProjectionMatrix = value;
+	}
 
 	/// The render graph.
 	public RenderGraph RenderGraph => mRenderGraph;
@@ -96,6 +122,28 @@ public class Pipeline : IRenderingPipeline, IDisposable
 
 		// Render graph
 		mRenderGraph = new RenderGraph(renderContext.Device, .() { FrameBufferCount = MaxFramesInFlight });
+
+		// Per-pipeline light buffer
+		mLightBuffer = new LightBuffer();
+		if (mLightBuffer.Initialize(renderContext.Device) case .Err)
+			return .Err;
+
+		// Per-pipeline line vertex buffers for debug drawing
+		let device = renderContext.Device;
+		for (int i = 0; i < MaxFramesInFlight; i++)
+		{
+			BufferDesc lineDesc = .()
+			{
+				Label = "Pipeline DebugLine Vertices",
+				Size = (uint64)(Debug.DebugDrawSystem.MaxLineVertices * Sedulous.DebugFont.DebugVertex.SizeInBytes),
+				Usage = .Vertex,
+				Memory = .CpuToGpu
+			};
+			if (device.CreateBuffer(lineDesc) case .Ok(let buf))
+				mLineVertexBuffers[i] = buf;
+			else
+				return .Err;
+		}
 
 		// Create per-frame resources (buffers + bind groups)
 		if (CreatePerFrameResources() case .Err)
@@ -190,6 +238,16 @@ public class Pipeline : IRenderingPipeline, IDisposable
 			}
 		}
 
+		// Release per-pipeline line vertex buffers
+		if (device != null)
+		{
+			for (int i = 0; i < MaxFramesInFlight; i++)
+			{
+				if (mLineVertexBuffers[i] != null)
+					device.DestroyBuffer(ref mLineVertexBuffers[i]);
+			}
+		}
+
 		mRenderContext = null;
 	}
 
@@ -218,11 +276,11 @@ public class Pipeline : IRenderingPipeline, IDisposable
 			// offset so passes can bind the frame group with the right dynamic offset.
 			frame.CurrentSceneOffset = WriteSceneUniforms(frame, view);
 
-			// Upload light data
+			// Upload light data to this pipeline's own light buffer
 			if (view.RenderData != null)
-				mRenderContext.LightBuffer.Upload(view.RenderData, frameIndex);
+				mLightBuffer.Upload(view.RenderData, frameIndex);
 
-			// Rebuild frame bind group (includes light buffer)
+			// Rebuild frame bind group (includes this pipeline's light buffer)
 			RebuildFrameBindGroup(frame, frameIndex);
 		}
 
@@ -551,15 +609,14 @@ public class Pipeline : IRenderingPipeline, IDisposable
 		if (frame.FrameBindGroup != null)
 			device.DestroyBindGroup(ref frame.FrameBindGroup);
 
-		let lightBuffer = mRenderContext.LightBuffer;
-		let lightBuf = lightBuffer.GetLightBuffer(frameIndex);
-		let lightParamsBuf = lightBuffer.GetLightParamsBuffer(frameIndex);
+		let lightBuf = mLightBuffer.GetLightBuffer(frameIndex);
+		let lightParamsBuf = mLightBuffer.GetLightParamsBuffer(frameIndex);
 
 		if (lightBuf == null || lightParamsBuf == null)
 			return;
 
 		// Light buffer size: at least 1 light worth (Vulkan requires non-zero)
-		let lightBufferSize = (uint64)(Math.Max(lightBuffer.LightCount, 1) * GPULight.Size);
+		let lightBufferSize = (uint64)(Math.Max(mLightBuffer.LightCount, 1) * GPULight.Size);
 
 		// Scene UBO is bound at offset 0 with size = one slot - the dynamic offset
 		// at SetBindGroup time selects which slot in the ring buffer to read.

@@ -60,11 +60,10 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 	// Per-view extraction (one RenderView per frame view: main + shadow casters)
 	private RenderViewPool mViewPool = new .() ~ delete _;
 
-	// Per-frame list of shadow render jobs (cleared each frame in SetupShadows).
+	// Per-frame list of shadow render jobs (cleared in BeginRendering, accumulated
+	// across RenderScene calls so multiple scenes share the atlas).
 	private List<ShadowPipeline.ShadowJob> mShadowDraws = new .() ~ delete _;
 
-	/// Previous frame's main-view ViewProjectionMatrix, used for motion vectors.
-	private Matrix mPrevViewProjectionMatrix = .Identity;
 	/// Current frame index during RenderScene (set by caller, used by shadow methods).
 	private int32 mFrameIndex;
 
@@ -197,7 +196,63 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 			kv.value.DebugDraw.Clear();
 	}
 
+	/// Resets shared per-frame state. Must be called once per frame before any
+	/// RenderScene calls. Resets the frame allocator, view pool, shadow atlas,
+	/// and shadow pipeline ring buffers. Clears the shadow atlas so all
+	/// subsequent RenderScene calls can use Load without special-casing.
+	public void BeginRendering(ICommandEncoder encoder, int32 frameIndex)
+	{
+		mFrameIndex = frameIndex;
+
+		// Reset the view pool first - drops references to last frame's arena entries
+		// before BeginFrame() rewinds the frame allocator.
+		mViewPool.BeginFrame();
+		mRenderContext.BeginFrame();
+		mShadowDraws.Clear();
+		mShadowPipeline.BeginFrame(frameIndex);
+
+		// Clear the shadow atlas once at frame start. Individual RenderScene calls
+		// then use Load for their shadow jobs. If no scenes render shadows this
+		// frame, the atlas stays cleared (depth=1.0 = fully lit) and the forward
+		// shader can safely sample it.
+		ClearShadowAtlas(encoder);
+	}
+
+	/// Clears the shadow atlas depth texture and transitions it to ShaderRead.
+	private void ClearShadowAtlas(ICommandEncoder encoder)
+	{
+		let shadowSystem = mRenderContext.ShadowSystem;
+		if (shadowSystem == null) return;
+
+		let atlas = shadowSystem.Atlas.Texture;
+		let atlasView = shadowSystem.Atlas.TextureView;
+		if (atlas == null || atlasView == null) return;
+
+		DepthStencilAttachment depthAttachment = .()
+		{
+			View = atlasView,
+			DepthLoadOp = .Clear,
+			DepthStoreOp = .Store,
+			DepthClearValue = 1.0f
+		};
+		RenderPassDesc clearDesc = .() { DepthStencilAttachment = depthAttachment };
+		let clearPass = encoder.BeginRenderPass(clearDesc);
+		clearPass?.End();
+
+		// Transition to ShaderRead so forward passes can sample it even if no
+		// shadows are rendered this frame.
+		encoder.TransitionTexture(atlas, .DepthStencilWrite, .ShaderRead);
+	}
+
+	/// Ends a rendering frame. Called after all RenderScene calls for the frame.
+	public void EndRendering()
+	{
+		// Currently a no-op. Exists for symmetry and future use (e.g., frame
+		// statistics, validation that BeginRendering was called).
+	}
+
 	/// Renders a specific scene to application-provided output targets.
+	/// Must be called between BeginRendering/EndRendering.
 	///
 	/// Contract:
 	///   - Each scene has its own Pipeline (created in OnSceneCreated).
@@ -221,11 +276,6 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		if (w != pipeline.OutputWidth || h != pipeline.OutputHeight)
 			pipeline.OnResize(w, h);
 
-		// Reset the view pool first - drops references to last frame's arena entries
-		// before BeginFrame() rewinds the frame allocator.
-		mViewPool.BeginFrame();
-		mRenderContext.BeginFrame();
-
 		// Acquire and populate the main view from the scene's active camera.
 		let mainView = mViewPool.Acquire();
 		mainView.FrameIndex = frameIndex;
@@ -234,29 +284,26 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		mainView.Width = w;
 		mainView.Height = h;
 		using (Profiler.Begin("SceneExtraction"))
-			ExtractMainView(mainView, scene, camera);
+			ExtractMainView(mainView, scene, pipeline, camera);
 
 		// Allocate shadow maps for shadow-casting lights from the main view.
+		// Shadow draws accumulate across scenes sharing the atlas.
+		let shadowStart = mShadowDraws.Count;
 		using (Profiler.Begin("ShadowSetup"))
 			SetupShadows(mainView);
 
-		// Reset per-frame ring buffer offsets.
+		// Reset per-pipeline ring buffer offsets.
 		pipeline.BeginFrame(frameIndex);
-		mShadowPipeline.BeginFrame(frameIndex);
 
-		// Render shadow views first (main forward pass samples the atlas).
+		// Render only this scene's shadow views (not other scenes' accumulated jobs).
 		using (Profiler.Begin("ShadowRender"))
-			RenderShadows(encoder, frameIndex);
+			RenderShadowRange(encoder, frameIndex, pipeline, shadowStart, mShadowDraws.Count);
 
 		// Render to the application-provided output target.
 		pipeline.Render(encoder, mainView, colorTexture, colorTarget, frameIndex);
 
-		// Save this frame's VP for next frame's motion vectors.
-		mPrevViewProjectionMatrix = mainView.ViewProjectionMatrix;
-
-		// Note: DebugDraw is cleared in BeginFrame, not here. Clearing here would
-		// drop emissions from any subsequent RenderScene calls in the same frame
-		// and would never run when rendering is skipped (minimized window).
+		// Save this frame's VP to the pipeline for next frame's motion vectors.
+		pipeline.PrevViewProjectionMatrix = mainView.ViewProjectionMatrix;
 
 		// Transition output to ShaderRead for the application to blit.
 		encoder.TransitionTexture(colorTexture, .RenderTarget, .ShaderRead);
@@ -265,7 +312,7 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 	// ==================== Extraction ====================
 
 	/// Populates the main view from the active camera (or override) and extracts render data into it.
-	private void ExtractMainView(RenderView view, Scene scene, CameraOverride? cameraOverride = null)
+	private void ExtractMainView(RenderView view, Scene scene, Pipeline pipeline, CameraOverride? cameraOverride = null)
 	{
 		Matrix viewMatrix = .Identity;
 		Matrix projMatrix = .Identity;
@@ -304,7 +351,7 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		view.ViewMatrix = viewMatrix;
 		view.ProjectionMatrix = projMatrix;
 		view.ViewProjectionMatrix = viewMatrix * projMatrix;
-		view.PrevViewProjectionMatrix = mPrevViewProjectionMatrix;
+		view.PrevViewProjectionMatrix = pipeline.PrevViewProjectionMatrix;
 		view.CameraPosition = cameraPos;
 		view.NearPlane = nearPlane;
 		view.FarPlane = farPlane;
@@ -348,8 +395,6 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 	/// per-shadow RenderViews, extracts each, and uploads shadow data to the GPU.
 	private void SetupShadows(RenderView mainView)
 	{
-		mShadowDraws.Clear();
-
 		let shadowSystem = mRenderContext.ShadowSystem;
 		if (shadowSystem == null) return;
 
@@ -634,29 +679,25 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		}
 	}
 
-	/// Renders all queued shadow views into the atlas in a single graph cycle.
-	/// Called between BeginFrame and the main pipeline.Render. The graph imports
-	/// the atlas with finalState = ShaderRead, so it's left ready for sampling.
-	private void RenderShadows(ICommandEncoder encoder, int32 frameIndex)
+	/// Renders a range of shadow jobs into the atlas. Each scene renders only its
+	/// own shadow jobs (startIndex..endIndex) so scenes don't re-render each
+	/// other's shadows. The atlas was cleared in BeginRendering, so all jobs
+	/// use Load.
+	private void RenderShadowRange(ICommandEncoder encoder, int32 frameIndex, Pipeline pipeline, int startIndex, int endIndex)
 	{
+		if (startIndex >= endIndex)
+			return;
+
 		let shadowSystem = mRenderContext.ShadowSystem;
 		if (shadowSystem == null) return;
 
 		let atlas = shadowSystem.Atlas.Texture;
 		if (atlas == null) return;
 
-		if (mShadowDraws.Count == 0)
-		{
-			// No shadow casters - the atlas was never rendered to, so it's still
-			// in UNDEFINED layout. Transition to ShaderRead so the forward shader
-			// can safely sample it (reads all-ones depth = fully lit).
-			encoder.TransitionTexture(atlas, .Undefined, .ShaderRead);
-			return;
-		}
-
 		let atlasView = shadowSystem.Atlas.TextureView;
-		Span<ShadowPipeline.ShadowJob> jobs = .(&mShadowDraws[0], mShadowDraws.Count);
-		mShadowPipeline.RenderAll(encoder, jobs, atlas, atlasView, frameIndex);
+		let count = endIndex - startIndex;
+		Span<ShadowPipeline.ShadowJob> jobs = .(&mShadowDraws[startIndex], count);
+		mShadowPipeline.RenderAll(encoder, jobs, atlas, atlasView, frameIndex, pipeline.LightBuffer);
 	}
 
 	// ==================== Scene Injection ====================

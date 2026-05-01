@@ -30,9 +30,6 @@ public class RenderContext : IDisposable
 	private IBindGroup mDefaultMaterialBindGroup;
 	private MaterialInstance mDefaultMaterialInstanceRef;
 
-	// Lighting
-	private LightBuffer mLightBuffer ~ delete _;
-
 	// Pipeline state cache
 	private PipelineStateCache mPipelineStateCache ~ delete _;
 
@@ -105,9 +102,6 @@ public class RenderContext : IDisposable
 
 	/// Default draw call bind group (identity transform).
 	public IBindGroup DefaultDrawCallBindGroup => mDefaultDrawCallBindGroup;
-
-	/// Light buffer for uploading and accessing light data.
-	public LightBuffer LightBuffer => mLightBuffer;
 
 	/// Pipeline state cache (creates GPU pipelines on demand from material config).
 	public PipelineStateCache PipelineStateCache => mPipelineStateCache;
@@ -221,11 +215,6 @@ public class RenderContext : IDisposable
 		// GPU resource manager
 		mGPUResources = new GPUResourceManager();
 		if (mGPUResources.Initialize(device, queue) case .Err)
-			return .Err;
-
-		// Light buffer
-		mLightBuffer = new LightBuffer();
-		if (mLightBuffer.Initialize(device) case .Err)
 			return .Err;
 
 		// Material system

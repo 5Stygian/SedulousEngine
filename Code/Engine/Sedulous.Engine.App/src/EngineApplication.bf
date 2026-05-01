@@ -427,6 +427,8 @@ abstract class EngineApplication : IDisposable
 		// Scene rendering (ISceneRenderer - implemented by RenderSubsystem)
 		if (mSceneRenderer != null)
 		{
+			mSceneRenderer.BeginRendering(encoder, mFrameIndex);
+
 			let sceneSub = mContext.GetSubsystem<Sedulous.Engine.SceneSubsystem>();
 			if (sceneSub != null)
 			{
@@ -437,6 +439,8 @@ abstract class EngineApplication : IDisposable
 					break; // Render only the first/active scene for now
 				}
 			}
+
+			mSceneRenderer.EndRendering();
 		}
 
 		// Acquire swapchain image

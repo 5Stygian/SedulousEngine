@@ -7,15 +7,35 @@ using Sedulous.Renderer;
 /// Renders the 3D scene to caller-provided output targets.
 /// Implemented by RenderSubsystem. Application queries via
 /// Context.GetSubsystemByInterface<ISceneRenderer>().
+///
+/// Usage:
+///   BeginRendering(encoder, frameIndex);
+///   RenderScene(scene1, encoder, ...);
+///   RenderScene(scene2, encoder, ...);
+///   EndRendering();
+///
+/// BeginRendering resets shared per-frame state (frame allocator, shadow
+/// atlas, view pool). RenderScene handles per-scene extraction, shadow
+/// rendering, and forward pass. Multiple scenes share the shadow atlas
+/// and frame allocator without clobbering each other.
 interface ISceneRenderer
 {
+	/// Begins a rendering frame. Resets shared per-frame state (frame allocator,
+	/// shadow atlas, view pool, shadow pipeline ring buffers). Must be called
+	/// once per frame before any RenderScene calls.
+	void BeginRendering(ICommandEncoder encoder, int32 frameIndex);
+
 	/// Renders a specific scene to the provided output targets.
 	/// Each scene has its own Pipeline (created in OnSceneCreated).
 	/// The application owns the encoder, output textures, and frame pacing.
 	/// After this call, the color target is transitioned to ShaderRead for blit sampling.
 	/// Pass a CameraOverride to use external camera matrices instead of the scene's active camera.
+	/// Must be called between BeginRendering/EndRendering.
 	void RenderScene(Scene scene, ICommandEncoder encoder, ITexture colorTexture, ITextureView colorTarget,
 		uint32 w, uint32 h, int32 frameIndex, CameraOverride? camera = null);
+
+	/// Ends a rendering frame. Called after all RenderScene calls for the frame.
+	void EndRendering();
 
 	/// Get the pipeline for a specific scene. Returns null if scene has no pipeline.
 	Pipeline GetPipeline(Scene scene);

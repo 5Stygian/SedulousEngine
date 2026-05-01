@@ -49,30 +49,31 @@ Targeted feature set for game-readiness. Not a port of the old renderer - each f
 - **5-set bind group model** - Frame (0), RenderPass (1), Material (2), DrawCall (3), Shadow (4)
 - **Profiler instrumentation** - press P for profile frame
 
-## Known Limitations
+## Multi-Scene Rendering
 
-### Multi-Scene Rendering
+ISceneRenderer uses an explicit `BeginRendering`/`EndRendering` frame wrapper.
+`BeginRendering` resets shared per-frame state once (frame allocator, view pool,
+shadow atlas, shadow pipeline ring buffers). Multiple `RenderScene` calls
+between begin/end share the shadow atlas and frame allocator without clobbering
+each other. Each scene renders only its own shadow jobs via range-based dispatch.
 
-RenderSubsystem has a single shared `RenderContext` and `ShadowPipeline`. When
-multiple scenes render in the same frame (e.g., side-by-side viewports showing
-different scenes), `RenderScene` calls `mRenderContext.BeginFrame()` and
-`mShadowPipeline.BeginFrame()` per scene, resetting the frame allocator and
-shadow state. This causes:
+Per-scene resources on Pipeline (not shared on RenderContext):
+- **LightBuffer** — each scene uploads its own lights; forward pass binds the
+  pipeline's buffer. Prevents lighting bleed between scenes.
+- **Line vertex buffers** — each pipeline has its own per-frame debug line VBs.
+  DebugPass uploads merged local+global vertices into the pipeline's buffer.
+  Prevents gizmo/debug draw bleed between scenes.
+- **PrevViewProjectionMatrix** — each pipeline tracks its own camera history
+  for correct per-scene motion vectors.
 
-- **Shadow atlas bleeding** — the second scene's shadow renders overwrite the
-  atlas, so the first scene displays the wrong shadows
-- **Frame allocator invalidation** — scene1's extracted render data is freed
-  when scene2 calls `BeginFrame()`
-- **Motion vector corruption** — `mPrevViewProjectionMatrix` is a single field
-  overwritten by whichever scene renders last
+Shared on RenderContext (read-only or spatially partitioned):
+- Shadow atlas (each scene gets different cells)
+- Shadow data buffer (cumulative writes, indices preserved)
+- PipelineStateCache, MaterialSystem, GPUResources, SkinningSystem
+- DebugDrawSystem font atlas + overlay vertex buffers (screen-space, not per-scene)
 
-**Current mitigation:** The editor skips rendering for viewports in inactive
-dock tabs (`IsViewEffectivelyVisible` ancestor walk). This is correct
-regardless (no GPU work for hidden viewports) but masks the underlying issue.
-
-**Proper fix (future):** Per-pipeline frame scoping — `BeginFrame`/`EndFrame`
-scoped per pipeline rather than globally. Shadow atlas partitioned per pipeline
-or per-pipeline shadow atlases. `mPrevViewProjectionMatrix` moved to Pipeline.
+The editor additionally skips rendering for viewports in inactive dock tabs
+(`IsViewEffectivelyVisible` ancestor walk) to avoid unnecessary GPU work.
 
 ## Phase 5: Tone Mapping & Post-Processing Foundation
 

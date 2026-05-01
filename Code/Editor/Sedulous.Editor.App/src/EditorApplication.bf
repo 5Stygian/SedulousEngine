@@ -661,8 +661,8 @@ class EditorApplication : Application, IFloatingWindowHost
 
 		// Render viewports only for scene pages whose panels are actually visible.
 		// Inactive dock tabs have their DockablePanel set to Visibility=Gone,
-		// so we walk ancestors to skip those — avoids clobbering shared render
-		// state (shadow atlas, frame allocator) between scenes.
+		// so we walk ancestors to skip those — no point doing GPU work for
+		// hidden viewports.
 		for (let page in mEditorContext.PageManager.OpenPages)
 		{
 			if (let scenePage = page as SceneEditorPage)
@@ -1070,7 +1070,14 @@ class EditorApplication : Application, IFloatingWindowHost
 
 		// Render active viewport views (3D scenes) to their offscreen textures
 		// BEFORE UI rendering - the UI will display these textures via DrawImage.
+		let sceneRenderer = mRuntimeContext?.GetSubsystemByInterface<ISceneRenderer>();
+		if (sceneRenderer != null)
+			sceneRenderer.BeginRendering(encoder, frame.FrameIndex);
+
 		RenderActiveViewports(encoder, frame.FrameIndex);
+
+		if (sceneRenderer != null)
+			sceneRenderer.EndRendering();
 
 		// Begin render pass for UI
 		ColorAttachment[1] colorAttachments = .(.()

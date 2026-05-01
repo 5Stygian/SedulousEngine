@@ -1067,8 +1067,12 @@ class ModelViewerApp : Application
 		tab.AmbientIntensity = value;
 
 		let renderSub = mRuntimeContext.GetSubsystem<RenderSubsystem>();
-		if (renderSub?.RenderContext?.LightBuffer != null)
-			renderSub.RenderContext.LightBuffer.AmbientColor = .(value, value, value);
+		if (renderSub != null && tab.Scene != null)
+		{
+			let pipeline = renderSub.GetPipeline(tab.Scene);
+			if (pipeline?.LightBuffer != null)
+				pipeline.LightBuffer.AmbientColor = .(value, value, value);
+		}
 	}
 
 	// ==================== Rendering ====================
@@ -1229,7 +1233,10 @@ class ModelViewerApp : Application
 		let frame = render.Frame;
 
 		// Render 3D viewport before UI
+		let renderSub = mRuntimeContext.GetSubsystem<RenderSubsystem>();
+		renderSub?.BeginRendering(encoder, frame.FrameIndex);
 		ActiveTab?.Viewport?.RenderContent(encoder, frame.FrameIndex);
+		renderSub?.EndRendering();
 
 		// UI render pass
 		ColorAttachment[1] colorAttachments = .(.()

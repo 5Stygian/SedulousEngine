@@ -75,7 +75,7 @@ class DebugPass : PipelinePass
 		let overlayMax = maxVerts - depthClamped;
 		let overlayClamped = Math.Min(totalOverlay, overlayMax);
 
-		let vb = debugSystem.GetLineVertexBuffer(view.FrameIndex);
+		let vb = pipeline.GetLineVertexBuffer(view.FrameIndex);
 		uint64 offset = 0;
 
 		// Upload depth-tested lines: local first, then global

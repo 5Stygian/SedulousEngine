@@ -132,7 +132,9 @@ class TowerDefenseApp : EngineApplication
 		mGameSub.UpdateWaypoints();
 
 		// Reduce ambient lighting for better contrast with shadows
-		renderSub.RenderContext.LightBuffer.AmbientColor = .(0.05f, 0.05f, 0.08f);
+		let pipeline = renderSub.GetPipeline(mScene);
+		if (pipeline?.LightBuffer != null)
+			pipeline.LightBuffer.AmbientColor = .(0.05f, 0.05f, 0.08f);
 
 		// Set up UI
 		SetupUI();
