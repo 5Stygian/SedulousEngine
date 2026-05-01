@@ -564,6 +564,9 @@ class EditorApplication : Application, IFloatingWindowHost
 
 		let scene = sceneSub.CreateScene(sceneName);
 
+		// Editor mode: disable simulation
+		scene.SimulationEnabled = false;
+
 		// Read and deserialize scene file through the resource path
 		let text = scope String();
 		if (System.IO.File.ReadAllText(path, text) case .Err)
@@ -845,6 +848,10 @@ class EditorApplication : Application, IFloatingWindowHost
 		let sceneName = scope String();
 		sceneName.AppendF("Untitled {}", mNewSceneCounter);
 		let scene = sceneSub.CreateScene(sceneName);
+
+		// Editor mode: disable simulation so physics, animation, particles don't tick.
+		// Play mode (future) will re-enable via scene.Start().
+		scene.SimulationEnabled = false;
 
 		// Create default camera
 		let cameraEntity = scene.CreateEntity("Main Camera");
