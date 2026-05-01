@@ -642,7 +642,6 @@ class ModelViewerApp : Application
 		let lightEntity = scene.CreateEntity("Sun");
 		scene.SetLocalTransform(lightEntity, Transform.CreateLookAt(.(5, 8, 5), .Zero));
 		let lightMgr = scene.GetModule<LightComponentManager>();
-		lightMgr.DebugDrawEnabled = false;
 		let lightHandle = lightMgr.CreateComponent(lightEntity);
 		if (let light = lightMgr.Get(lightHandle))
 		{

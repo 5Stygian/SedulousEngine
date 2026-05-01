@@ -186,13 +186,15 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		mDeltaTime = deltaTime;
 		mTotalTime += deltaTime;
 
-		// Clear last frame's debug draws here, not after RenderScene. PostUpdate
-		// emitters (e.g. LightComponentManager) run unconditionally each frame,
-		// but RenderScene may be skipped when the editor window is minimized or
-		// no viewport is active - clearing on render would let mLineVerts grow
+		// Clear debug draws here, not after RenderScene. RenderScene may be
+		// skipped when minimized - clearing on render would let vertices grow
 		// without bound.
 		if (mRenderContext != null && mRenderContext.DebugDraw != null)
 			mRenderContext.DebugDraw.Clear();
+
+		// Clear per-pipeline debug draws (scene-specific gizmos, editor shapes)
+		for (let kv in mScenePipelines)
+			kv.value.DebugDraw.Clear();
 	}
 
 	/// Renders a specific scene to application-provided output targets.
@@ -688,9 +690,7 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 
 		scene.AddModule(new CameraComponentManager());
 
-		let lightMgr = new LightComponentManager();
-		lightMgr.RenderContext = mRenderContext;
-		scene.AddModule(lightMgr);
+		scene.AddModule(new LightComponentManager());
 
 		// Create a pipeline for this scene.
 		let pipeline = CreatePipelineForScene();

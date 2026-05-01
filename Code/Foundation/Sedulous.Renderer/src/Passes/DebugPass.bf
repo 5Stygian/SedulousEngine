@@ -19,8 +19,14 @@ class DebugPass : PipelinePass
 
 	public override void AddPasses(Sedulous.RenderGraph.RenderGraph graph, RenderView view, Pipeline pipeline)
 	{
-		let debugDraw = pipeline.RenderContext.DebugDraw;
-		if (debugDraw == null || (debugDraw.LineVertexCount == 0 && debugDraw.OverlayLineVertexCount == 0))
+		// Check both pipeline-local (scene gizmos) and global (shared) debug draws
+		let localDraw = pipeline.DebugDraw;
+		let globalDraw = pipeline.RenderContext.DebugDraw;
+
+		let localCount = (localDraw != null) ? localDraw.LineVertexCount + localDraw.OverlayLineVertexCount : 0;
+		let globalCount = (globalDraw != null) ? globalDraw.LineVertexCount + globalDraw.OverlayLineVertexCount : 0;
+
+		if (localCount == 0 && globalCount == 0)
 			return;
 
 		let outputHandle = graph.GetResource("PipelineOutput");
@@ -47,32 +53,64 @@ class DebugPass : PipelinePass
 		using (Profiler.Begin("DebugLines"))
 		{
 		let renderContext = pipeline.RenderContext;
-		let debugDraw = renderContext.DebugDraw;
+		let localDraw = pipeline.DebugDraw;
+		let globalDraw = renderContext.DebugDraw;
 		let debugSystem = renderContext.DebugDrawSystem;
 		let cache = renderContext.PipelineStateCache;
 		if (cache == null || debugSystem == null) return;
 
-		// Upload both depth-tested and overlay line vertices into the same buffer
-		// at different offsets (like the old renderer) to avoid overwriting in-flight data.
-		let depthCount = debugDraw.LineVertexCount;
-		let overlayCount = debugDraw.OverlayLineVertexCount;
-		let totalCount = depthCount + overlayCount;
-		if (totalCount == 0) return;
+		// Merge depth-tested and overlay vertices from both local (per-pipeline)
+		// and global (shared) debug draws into the vertex buffer.
+		let localDepth = (localDraw != null) ? (uint32)localDraw.LineVertexCount : 0;
+		let globalDepth = (globalDraw != null) ? (uint32)globalDraw.LineVertexCount : 0;
+		let localOverlay = (localDraw != null) ? (uint32)localDraw.OverlayLineVertexCount : 0;
+		let globalOverlay = (globalDraw != null) ? (uint32)globalDraw.OverlayLineVertexCount : 0;
+
+		let totalDepth = localDepth + globalDepth;
+		let totalOverlay = localOverlay + globalOverlay;
+		if (totalDepth == 0 && totalOverlay == 0) return;
 
 		let maxVerts = DebugDrawSystem.MaxLineVertices;
-		let depthClamped = Math.Min((uint32)depthCount, maxVerts);
+		let depthClamped = Math.Min(totalDepth, maxVerts);
 		let overlayMax = maxVerts - depthClamped;
-		let overlayClamped = Math.Min((uint32)overlayCount, overlayMax);
+		let overlayClamped = Math.Min(totalOverlay, overlayMax);
 
 		let vb = debugSystem.GetLineVertexBuffer(view.FrameIndex);
+		uint64 offset = 0;
 
-		// Upload depth-tested lines at offset 0, overlay lines immediately after
-		if (depthClamped > 0)
-			TransferHelper.WriteMappedBuffer(vb, 0,
-				Span<uint8>((uint8*)debugDraw.LineVertices.Ptr, (int)(depthClamped * DebugVertex.SizeInBytes)));
-		if (overlayClamped > 0)
-			TransferHelper.WriteMappedBuffer(vb, (uint64)(depthClamped * DebugVertex.SizeInBytes),
-				Span<uint8>((uint8*)debugDraw.OverlayLineVertices.Ptr, (int)(overlayClamped * DebugVertex.SizeInBytes)));
+		// Upload depth-tested lines: local first, then global
+		if (localDepth > 0)
+		{
+			let count = Math.Min(localDepth, depthClamped);
+			TransferHelper.WriteMappedBuffer(vb, offset,
+				Span<uint8>((uint8*)localDraw.LineVertices.Ptr, (int)(count * DebugVertex.SizeInBytes)));
+			offset += (uint64)(count * DebugVertex.SizeInBytes);
+		}
+		if (globalDepth > 0 && offset / DebugVertex.SizeInBytes < depthClamped)
+		{
+			let remaining = depthClamped - (uint32)(offset / DebugVertex.SizeInBytes);
+			let count = Math.Min(globalDepth, remaining);
+			TransferHelper.WriteMappedBuffer(vb, offset,
+				Span<uint8>((uint8*)globalDraw.LineVertices.Ptr, (int)(count * DebugVertex.SizeInBytes)));
+			offset += (uint64)(count * DebugVertex.SizeInBytes);
+		}
+
+		// Upload overlay lines: local first, then global
+		let overlayStart = offset;
+		if (localOverlay > 0)
+		{
+			let count = Math.Min(localOverlay, overlayClamped);
+			TransferHelper.WriteMappedBuffer(vb, offset,
+				Span<uint8>((uint8*)localDraw.OverlayLineVertices.Ptr, (int)(count * DebugVertex.SizeInBytes)));
+			offset += (uint64)(count * DebugVertex.SizeInBytes);
+		}
+		if (globalOverlay > 0 && (uint32)((offset - overlayStart) / (uint64)DebugVertex.SizeInBytes) < overlayClamped)
+		{
+			let remaining = overlayClamped - (uint32)((offset - overlayStart) / (uint64)DebugVertex.SizeInBytes);
+			let count = Math.Min(globalOverlay, remaining);
+			TransferHelper.WriteMappedBuffer(vb, offset,
+				Span<uint8>((uint8*)globalDraw.OverlayLineVertices.Ptr, (int)(count * DebugVertex.SizeInBytes)));
+		}
 
 		encoder.SetViewport(0, 0, (float)view.Width, (float)view.Height, 0.0f, 1.0f);
 		encoder.SetScissor(0, 0, view.Width, view.Height);

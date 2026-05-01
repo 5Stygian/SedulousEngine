@@ -429,8 +429,6 @@ class ShowcaseApp : EngineApplication
 	private void SetupLighting(Scene scene)
 	{
 		let lightMgr = scene.GetModule<LightComponentManager>();
-		// lightMgr.DebugDrawEnabled = true;  // uncomment to visualize light gizmos
-		lightMgr.DebugDrawEnabled = false;
 
 		// Warm directional sun - angled for long shadows
 		let sunEntity = scene.CreateEntity("Sun");

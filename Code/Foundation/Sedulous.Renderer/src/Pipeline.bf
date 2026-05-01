@@ -7,6 +7,7 @@ using Sedulous.RenderGraph;
 using Sedulous.Core.Mathematics;
 using Sedulous.Materials;
 using Sedulous.Profiler;
+using Sedulous.Renderer.Debug;
 
 /// Per-view pass execution engine.
 ///
@@ -41,10 +42,19 @@ public class Pipeline : IRenderingPipeline, IDisposable
 	// Frame counter
 	private uint64 mFrameNumber = 0;
 
+	// Per-pipeline debug draw (scene-specific gizmos, editor overlays).
+	// Separate from RenderContext.DebugDraw which is global.
+	private DebugDraw mDebugDraw = new .() ~ delete _;
+
 	// ==================== Properties ====================
 
 	/// The shared renderer infrastructure.
 	public RenderContext RenderContext => mRenderContext;
+
+	/// Per-pipeline debug draw for scene-specific overlays (gizmos, editor shapes).
+	/// Use this instead of RenderContext.DebugDraw for draws that should only
+	/// appear in this pipeline's viewport.
+	public DebugDraw DebugDraw => mDebugDraw;
 
 	/// The render graph.
 	public RenderGraph RenderGraph => mRenderGraph;
