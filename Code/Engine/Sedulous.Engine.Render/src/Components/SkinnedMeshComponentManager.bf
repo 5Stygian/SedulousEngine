@@ -40,30 +40,45 @@ class SkinnedMeshComponentManager : ComponentManager<SkinnedMeshComponent>, IRen
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.PostUpdate, new => UpdateSkinnedMeshes);
+		// Resource resolution always runs (presentation).
+		RegisterUpdate(.PostUpdate, new => ResolveSkinnedMeshResources);
+
+		// Bone matrix upload only runs during simulation — animation must have evaluated first.
+		// Bind-pose matrices are uploaded once during resource resolution so skinned meshes
+		// are visible even without simulation (editor mode).
+		RegisterUpdate(.PostUpdate, new => UploadBoneMatrices, simulationOnly: true);
 	}
 
-	/// Per-frame: resolve resources, evaluate animation, upload bone matrices.
-	private void UpdateSkinnedMeshes(float deltaTime)
+	/// Resolves mesh and material resources. Always runs (presentation).
+	private void ResolveSkinnedMeshResources(float deltaTime)
+	{
+		if (Resolver == null) return;
+
+		for (let comp in ActiveComponents)
+		{
+			if (!comp.IsActive)
+				continue;
+			ResolveComponentResources(comp);
+		}
+	}
+
+	/// Reads bone matrices from animation components and uploads to GPU.
+	/// Simulation only — requires animation evaluation to have run first.
+	/// Bind-pose is uploaded once during resource resolution for editor visibility.
+	private void UploadBoneMatrices(float deltaTime)
 	{
 		for (let comp in ActiveComponents)
 		{
 			if (!comp.IsActive)
 				continue;
 
-			// Resolve resources if resolver is available
-			if (Resolver != null)
-				ResolveComponentResources(comp);
-
-			// Read bone matrices from animation component on the same entity
-			// and upload to the GPU bone buffer.
-			// Priority: AnimationGraphComponent > SkeletalAnimationComponent
 			if (comp.BoneBufferHandle.IsValid && GPUResources != null && Scene != null)
 			{
 				Span<Matrix> currentMatrices = default;
 				Span<Matrix> prevMatrices = default;
 
 				// Check for animation graph first (overrides simple clip)
+				// Priority: AnimationGraphComponent > SkeletalAnimationComponent
 				let graphMgr = Scene.GetModule<AnimationGraphComponentManager>();
 				let graphComp = (graphMgr != null) ? graphMgr.GetForEntity(comp.Owner) : null;
 				if (graphComp != null && graphComp.IsReady)
@@ -156,7 +171,27 @@ class SkinnedMeshComponentManager : ComponentManager<SkinnedMeshComponent>, IRen
 					if (boneCount > 0)
 					{
 						if (GPUResources.CreateBoneBuffer(boneCount) case .Ok(let boneHandle))
+						{
 							comp.BoneBufferHandle = boneHandle;
+
+							// Upload bind-pose (identity skinning) matrices so the mesh is
+							// visible in editor mode without simulation. Animation overwrites
+							// these each frame when simulating.
+							let boneBuffer = GPUResources.GetBoneBuffer(boneHandle);
+							if (boneBuffer != null && boneBuffer.Buffer != null)
+							{
+								let bindPose = scope Matrix[boneCount];
+								for (int i = 0; i < boneCount; i++)
+									bindPose[i] = .Identity;
+
+								let matrixSize = (uint64)(boneCount * sizeof(Matrix));
+								TransferHelper.WriteMappedBuffer(boneBuffer.Buffer, 0,
+									Span<uint8>((uint8*)&bindPose[0], (int)matrixSize));
+								// Previous frame = same bind pose
+								TransferHelper.WriteMappedBuffer(boneBuffer.Buffer, matrixSize,
+									Span<uint8>((uint8*)&bindPose[0], (int)matrixSize));
+							}
+						}
 					}
 				}
 			}

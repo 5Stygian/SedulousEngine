@@ -57,6 +57,7 @@ public class Scene : IDisposable
 	{
 		public delegate void(float) Function;
 		public float Priority;
+		public bool SimulationOnly;
 	}
 
 	private List<PhaseEntry>[(int)ScenePhase.COUNT] mPhaseFunctions;
@@ -79,10 +80,60 @@ public class Scene : IDisposable
 	/// Scene name (for debugging/identification).
 	public String Name { get; set; } = new .("Scene") ~ delete _;
 
+	/// Whether simulation-phase update functions run.
+	/// When false, functions registered with simulationOnly=true are skipped.
+	/// Transforms and presentation functions always run.
+	/// Default: true (runtime). Editor sets to false for edit mode.
+	/// Managed by Start()/Stop() — prefer those over setting directly.
+	public bool SimulationEnabled = true;
+
+	/// Whether the scene has been started (is in play/simulation mode).
+	public bool IsStarted { get; private set; }
+
+	/// Time scale multiplier for this scene. Affects deltaTime passed to update functions.
+	/// 0 = paused (functions still run but with zero delta — use for game pause).
+	/// 0.5 = slow motion, 1.0 = normal (default), 2.0 = fast forward.
+	/// Does not affect FixedUpdate timestep (physics always uses fixed delta).
+	public float TimeScale = 1.0f;
+
+	/// Unscaled delta time from the last Update call (before TimeScale is applied).
+	/// Use for systems that must run during pause (UI animations, input, etc.).
+	public float UnscaledDeltaTime { get; private set; }
+
 	public this()
 	{
 		for (int i = 0; i < (int)ScenePhase.COUNT; i++)
 			mPhaseFunctions[i] = new .();
+	}
+
+	// ==================== Simulation Lifecycle ====================
+
+	/// Starts the scene — enables simulation and notifies all modules.
+	/// Call when entering play mode. Modules receive OnSceneStarted()
+	/// to initialize runtime state (physics bodies, audio sources, AI, etc.).
+	/// No-op if already started.
+	public void Start()
+	{
+		if (IsStarted) return;
+		IsStarted = true;
+		SimulationEnabled = true;
+
+		for (let module in mModules)
+			module.OnSceneStarted();
+	}
+
+	/// Stops the scene — notifies all modules and disables simulation.
+	/// Call when exiting play mode. Modules receive OnSceneStopped()
+	/// to clean up runtime state. No-op if not started.
+	public void Stop()
+	{
+		if (!IsStarted) return;
+
+		for (let module in mModules)
+			module.OnSceneStopped();
+
+		IsStarted = false;
+		SimulationEnabled = false;
 	}
 
 	// ==================== Entity Management ====================
@@ -573,7 +624,8 @@ public class Scene : IDisposable
 			mPhaseFunctions[(int)reg.Phase].Add(.()
 			{
 				Function = reg.Function,
-				Priority = reg.Priority
+				Priority = reg.Priority,
+				SimulationOnly = reg.SimulationOnly
 			});
 		}
 
@@ -583,7 +635,8 @@ public class Scene : IDisposable
 			mFixedUpdateFunctions.Add(.()
 			{
 				Function = reg.Function,
-				Priority = reg.Priority
+				Priority = reg.Priority,
+				SimulationOnly = reg.SimulationOnly
 			});
 		}
 
@@ -622,20 +675,25 @@ public class Scene : IDisposable
 	// ==================== Update ====================
 
 	/// Runs the full scene update loop. Called by SceneSubsystem.
+	/// deltaTime is scaled by TimeScale before being passed to update functions.
+	/// UnscaledDeltaTime is available for pause-immune systems.
 	public void Update(float deltaTime)
 	{
+		UnscaledDeltaTime = deltaTime;
+		let scaledDelta = deltaTime * TimeScale;
+
 		mIsUpdating = true;
 
-		RunPhase(.Initialize, deltaTime);
-		RunPhase(.PreUpdate, deltaTime);
-		RunPhase(.Update, deltaTime);
-		RunAsyncPhase(deltaTime);
-		RunPhase(.PostUpdate, deltaTime);
+		RunPhase(.Initialize, scaledDelta);
+		RunPhase(.PreUpdate, scaledDelta);
+		RunPhase(.Update, scaledDelta);
+		RunAsyncPhase(scaledDelta);
+		RunPhase(.PostUpdate, scaledDelta);
 
 		// Transform propagation (internal, not user-registered)
 		UpdateTransforms();
 
-		RunPhase(.PostTransform, deltaTime);
+		RunPhase(.PostTransform, scaledDelta);
 
 		mIsUpdating = false;
 
@@ -656,10 +714,15 @@ public class Scene : IDisposable
 	}
 
 	/// Runs fixed update functions. Called by SceneSubsystem at fixed timestep.
+	/// Skips simulation-only functions when SimulationEnabled is false.
 	public void FixedUpdate(float fixedDeltaTime)
 	{
 		for (let entry in mFixedUpdateFunctions)
+		{
+			if (entry.SimulationOnly && !SimulationEnabled)
+				continue;
 			entry.Function(fixedDeltaTime);
+		}
 	}
 
 	// ==================== Internal ====================
@@ -667,17 +730,33 @@ public class Scene : IDisposable
 	private void RunPhase(ScenePhase phase, float deltaTime)
 	{
 		for (let entry in mPhaseFunctions[(int)phase])
+		{
+			if (entry.SimulationOnly && !SimulationEnabled)
+				continue;
 			entry.Function(deltaTime);
+		}
 	}
 
 	/// Runs the AsyncUpdate phase - all registered functions execute concurrently.
 	/// Each function should only access its own component pool.
+	/// Skips simulation-only functions when SimulationEnabled is false.
 	private void RunAsyncPhase(float deltaTime)
 	{
 		let asyncFunctions = mPhaseFunctions[(int)ScenePhase.AsyncUpdate];
 		let count = (int32)asyncFunctions.Count;
 		if (count == 0)
 			return;
+
+		if (!SimulationEnabled)
+		{
+			// Run only non-simulation functions sequentially
+			for (int32 i = 0; i < count; i++)
+			{
+				if (!asyncFunctions[i].SimulationOnly)
+					asyncFunctions[i].Function(deltaTime);
+			}
+			return;
+		}
 
 		if (count == 1)
 		{

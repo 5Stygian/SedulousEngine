@@ -33,6 +33,16 @@ public abstract class SceneModule : IDisposable
 		Scene = null;
 	}
 
+	/// Called when Scene.Start() is invoked (entering play/simulation mode).
+	/// Override to initialize runtime state, connect signals, start AI, etc.
+	/// SimulationEnabled is already true when this is called.
+	public virtual void OnSceneStarted() { }
+
+	/// Called when Scene.Stop() is invoked (exiting play/simulation mode).
+	/// Override to clean up runtime state, disconnect signals, etc.
+	/// SimulationEnabled is still true when this is called (set to false after).
+	public virtual void OnSceneStopped() { }
+
 	/// Serialization type ID for this module.
 	/// Override and return a non-empty string to make this module's components serializable.
 	/// This ID is stored in scene files to identify which manager owns which components.
@@ -52,24 +62,30 @@ public abstract class SceneModule : IDisposable
 	protected virtual void OnRegisterUpdateFunctions() { }
 
 	/// Registers an update function for a specific scene phase.
-	protected void RegisterUpdate(ScenePhase phase, delegate void(float) fn, float priority = 0)
+	/// Set simulationOnly to true for functions that should only run when
+	/// Scene.SimulationEnabled is true (physics, animation advance, particle tick).
+	/// Functions not marked as simulationOnly always run (resource resolution, extraction).
+	protected void RegisterUpdate(ScenePhase phase, delegate void(float) fn, float priority = 0, bool simulationOnly = false)
 	{
 		mUpdateRegistrations.Add(.()
 		{
 			Phase = phase,
 			Function = fn,
-			Priority = priority
+			Priority = priority,
+			SimulationOnly = simulationOnly
 		});
 	}
 
 	/// Registers a fixed update function (called at fixed timestep, e.g., physics).
-	protected void RegisterFixedUpdate(delegate void(float) fn, float priority = 0)
+	/// Fixed updates are simulation-only by default since they're typically physics steps.
+	protected void RegisterFixedUpdate(delegate void(float) fn, float priority = 0, bool simulationOnly = true)
 	{
 		mFixedUpdateRegistrations.Add(.()
 		{
 			Phase = .Update, // unused for fixed, but keeps struct consistent
 			Function = fn,
-			Priority = priority
+			Priority = priority,
+			SimulationOnly = simulationOnly
 		});
 	}
 
@@ -96,5 +112,6 @@ public abstract class SceneModule : IDisposable
 		public ScenePhase Phase;
 		public delegate void(float) Function;
 		public float Priority; // higher = runs earlier in the phase
+		public bool SimulationOnly; // if true, skipped when Scene.SimulationEnabled is false
 	}
 }

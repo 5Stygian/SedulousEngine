@@ -57,7 +57,7 @@ class ParticleComponentManager : ComponentManager<ParticleComponent>, IRenderDat
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => SimulateParticles);
+		RegisterUpdate(.Update, new => SimulateParticles, simulationOnly: true);
 		RegisterUpdate(.PostUpdate, new => ResolveResources);
 	}
 

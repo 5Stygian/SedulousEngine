@@ -32,11 +32,17 @@ class AnimationGraphComponentManager : ComponentManager<AnimationGraphComponent>
 
 	protected override void OnRegisterUpdateFunctions()
 	{
+		// Resource resolution always runs (presentation).
+		// Priority 13: run before simulation (priority 11) so resources are ready.
+		RegisterUpdate(.PostUpdate, new => ResolveGraphResources, 13);
+
+		// Graph evaluation advances animation state (simulation only).
 		// Priority 11: run before SkeletalAnimationComponentManager (priority 10)
-		RegisterUpdate(.PostUpdate, new => UpdateGraphs, 11);
+		RegisterUpdate(.PostUpdate, new => UpdateGraphs, 11, simulationOnly: true);
 	}
 
-	private void UpdateGraphs(float deltaTime)
+	/// Resolves skeleton and graph resources. Always runs (presentation).
+	private void ResolveGraphResources(float deltaTime)
 	{
 		if (ResourceSystem == null) return;
 
@@ -44,14 +50,21 @@ class AnimationGraphComponentManager : ComponentManager<AnimationGraphComponent>
 		{
 			if (!comp.IsActive || !comp.Active) continue;
 
-			// Resolve resources if needed
 			ResolveResources(comp);
 
 			// Create graph player once resources are ready
 			if (comp.GraphPlayer == null && comp.Skeleton != null && comp.Graph != null)
 				comp.GraphPlayer = new AnimationGraphPlayer(comp.Graph, comp.Skeleton);
+		}
+	}
 
-			// Update graph evaluation
+	/// Evaluates animation graphs. Simulation only.
+	private void UpdateGraphs(float deltaTime)
+	{
+		for (let comp in ActiveComponents)
+		{
+			if (!comp.IsActive || !comp.Active) continue;
+
 			if (comp.GraphPlayer != null)
 				comp.GraphPlayer.Update(deltaTime);
 		}

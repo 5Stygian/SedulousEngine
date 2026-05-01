@@ -32,20 +32,24 @@ class SkeletalAnimationComponentManager : ComponentManager<SkeletalAnimationComp
 
 	protected override void OnRegisterUpdateFunctions()
 	{
+		// Resource resolution always runs (presentation).
+		// Priority 12: run before simulation (priority 10) so resources are ready.
+		RegisterUpdate(.PostUpdate, new => ResolveAnimationResources, 12);
+
+		// Animation playback advances time (simulation only).
 		// Priority 10: run before SkinnedMeshComponentManager (priority 0)
 		// so bone matrices are computed before GPU upload.
-		RegisterUpdate(.PostUpdate, new => UpdateAnimations, 10);
+		RegisterUpdate(.PostUpdate, new => UpdateAnimations, 10, simulationOnly: true);
 	}
 
-	private void UpdateAnimations(float deltaTime)
+	/// Resolves skeleton and clip resources. Always runs (presentation).
+	private void ResolveAnimationResources(float deltaTime)
 	{
 		if (ResourceSystem == null) return;
 
 		for (let comp in ActiveComponents)
 		{
 			if (!comp.IsActive) continue;
-
-			// Resolve resources if needed
 			ResolveResources(comp);
 
 			// Create player once resources are ready
@@ -59,8 +63,16 @@ class SkeletalAnimationComponentManager : ComponentManager<SkeletalAnimationComp
 					comp.Playing = true;
 				}
 			}
+		}
+	}
 
-			// Update playback
+	/// Advances animation playback. Simulation only.
+	private void UpdateAnimations(float deltaTime)
+	{
+		for (let comp in ActiveComponents)
+		{
+			if (!comp.IsActive) continue;
+
 			if (comp.Player != null && comp.Playing)
 			{
 				comp.Player.Speed = comp.Speed;

@@ -19,8 +19,8 @@ class NavigationComponentManager : ComponentManager<NavAgentComponent>
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterFixedUpdate(new => FixedUpdateNavigation);
-		RegisterUpdate(.Update, new => UpdateNavigation);
+		RegisterFixedUpdate(new => FixedUpdateNavigation); // simulationOnly default true
+		RegisterUpdate(.Update, new => UpdateNavigation, simulationOnly: true);
 	}
 
 	/// Steps the crowd + tile cache at fixed timestep.

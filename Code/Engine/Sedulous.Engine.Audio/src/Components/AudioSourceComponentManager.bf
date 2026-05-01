@@ -40,7 +40,7 @@ class AudioSourceComponentManager : ComponentManager<AudioSourceComponent>
 	protected override void OnRegisterUpdateFunctions()
 	{
 		// PostTransform: after transforms are finalized, sync 3D positions
-		RegisterUpdate(.PostTransform, new => UpdateAudioSources);
+		RegisterUpdate(.PostTransform, new => UpdateAudioSources, simulationOnly: true);
 	}
 
 	private void UpdateAudioSources(float deltaTime)

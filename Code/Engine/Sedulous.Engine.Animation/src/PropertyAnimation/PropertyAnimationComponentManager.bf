@@ -34,7 +34,7 @@ class PropertyAnimationComponentManager : ComponentManager<PropertyAnimationComp
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.AsyncUpdate, new => UpdatePropertyAnimations);
+		RegisterUpdate(.AsyncUpdate, new => UpdatePropertyAnimations, simulationOnly: true);
 	}
 
 	private void UpdatePropertyAnimations(float deltaTime)

@@ -15,7 +15,7 @@ class NavObstacleComponentManager : ComponentManager<NavObstacleComponent>
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => UpdateObstacles);
+		RegisterUpdate(.Update, new => UpdateObstacles, simulationOnly: true);
 	}
 
 	private void UpdateObstacles(float deltaTime)
