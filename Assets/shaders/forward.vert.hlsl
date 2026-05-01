@@ -30,6 +30,14 @@ cbuffer SceneUniforms : register(b0, space0)
 #ifdef INSTANCED
 
 // Set 3: Per-instance data (instanced path)
+// b0: BaseInstance offset (DX12 SV_InstanceID is 0-based regardless of
+//     firstInstance; Vulkan gl_InstanceIndex includes it. We pass firstInstance=0
+//     on both backends and add BaseInstance explicitly for portability.)
+cbuffer InstanceParams : register(b0, space3)
+{
+    uint BaseInstance;
+};
+
 struct InstanceData
 {
     float4x4 WorldMatrix;
@@ -79,8 +87,9 @@ VertexOutput main(VertexInput input)
     VertexOutput output;
 
 #ifdef INSTANCED
-    float4x4 world = Instances[input.InstanceID].WorldMatrix;
-    float4x4 prevWorld = Instances[input.InstanceID].PrevWorldMatrix;
+    uint instanceIndex = input.InstanceID + BaseInstance;
+    float4x4 world = Instances[instanceIndex].WorldMatrix;
+    float4x4 prevWorld = Instances[instanceIndex].PrevWorldMatrix;
 #else
     float4x4 world = WorldMatrix;
     float4x4 prevWorld = PrevWorldMatrix;

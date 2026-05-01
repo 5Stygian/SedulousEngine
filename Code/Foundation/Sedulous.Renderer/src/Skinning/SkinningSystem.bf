@@ -52,9 +52,9 @@ class SkinningSystem : IDisposable
 		//   u0: OutputVertices (storage, read-write)
 		BindGroupLayoutEntry[4] entries = .(
 			.UniformBuffer(0, .Compute),
-			.() { Binding = 0, Visibility = .Compute, Type = .StorageBufferReadOnly },
-			.() { Binding = 1, Visibility = .Compute, Type = .StorageBufferReadOnly },
-			.() { Binding = 0, Visibility = .Compute, Type = .StorageBufferReadWrite }
+			.() { Binding = 0, Visibility = .Compute, Type = .StorageBufferReadOnly, StorageBufferStride = 64 }, // BoneMatrices (4 × float4 = 64 bytes per matrix)
+			.() { Binding = 1, Visibility = .Compute, Type = .StorageBufferReadOnly },  // SourceVertices (ByteAddressBuffer, stride=0)
+			.() { Binding = 0, Visibility = .Compute, Type = .StorageBufferReadWrite }   // OutputVertices (RWByteAddressBuffer, stride=0)
 		);
 
 		BindGroupLayoutDesc layoutDesc = .() { Label = "Skinning BindGroup Layout", Entries = entries };

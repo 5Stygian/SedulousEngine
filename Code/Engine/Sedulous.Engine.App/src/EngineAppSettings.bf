@@ -26,7 +26,7 @@ struct EngineAppSettings
 	public bool Resizable = true;
 
 	/// RHI backend to use.
-	public BackendType Backend = .Vulkan;
+	public BackendType Backend = .DX12;
 
 	/// Whether to enable RHI validation layer.
 	public bool EnableValidation = true;

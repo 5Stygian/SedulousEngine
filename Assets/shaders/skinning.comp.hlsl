@@ -12,8 +12,15 @@ cbuffer SkinningParams : register(b0)
     uint _Pad1;
 };
 
-// Bone matrices: current frame (BoneCount matrices), then previous frame (BoneCount matrices)
-StructuredBuffer<float4x4> BoneMatrices : register(t0);
+// Bone matrices: current frame (BoneCount matrices), then previous frame (BoneCount matrices).
+// Stored as 4x float4 rows per matrix instead of float4x4 because pack_matrix(row_major)
+// does not apply to StructuredBuffer members on DXIL — the compiler would read float4x4
+// as column-major, misinterpreting the row-major data uploaded from the CPU.
+struct BoneMatrix
+{
+    float4 Row0, Row1, Row2, Row3;
+};
+StructuredBuffer<BoneMatrix> BoneMatrices : register(t0);
 
 // Source vertices (72 bytes each) - read as raw bytes
 ByteAddressBuffer SourceVertices : register(t1);
@@ -50,11 +57,18 @@ void main(uint3 dtid : SV_DispatchThreadID)
 
     float4 weights = asfloat(SourceVertices.Load4(srcOffset + 56));
 
-    // Blend bone matrices
-    float4x4 skinMatrix = BoneMatrices[jointIndices.x] * weights.x
-                        + BoneMatrices[jointIndices.y] * weights.y
-                        + BoneMatrices[jointIndices.z] * weights.z
-                        + BoneMatrices[jointIndices.w] * weights.w;
+    // Reconstruct and blend bone matrices from float4 rows
+    BoneMatrix bx = BoneMatrices[jointIndices.x];
+    BoneMatrix by = BoneMatrices[jointIndices.y];
+    BoneMatrix bz = BoneMatrices[jointIndices.z];
+    BoneMatrix bw = BoneMatrices[jointIndices.w];
+
+    float4x4 skinMatrix = float4x4(
+        bx.Row0 * weights.x + by.Row0 * weights.y + bz.Row0 * weights.z + bw.Row0 * weights.w,
+        bx.Row1 * weights.x + by.Row1 * weights.y + bz.Row1 * weights.z + bw.Row1 * weights.w,
+        bx.Row2 * weights.x + by.Row2 * weights.y + bz.Row2 * weights.z + bw.Row2 * weights.w,
+        bx.Row3 * weights.x + by.Row3 * weights.y + bz.Row3 * weights.z + bw.Row3 * weights.w
+    );
 
     // Transform position (as point, w=1)
     float3 skinnedPos = mul(float4(position, 1.0), skinMatrix).xyz;

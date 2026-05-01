@@ -373,8 +373,6 @@ public class MeshRenderer : Renderer
 
 				// Re-bind groups after pipeline switch
 				pipeline.BindFrameGroup(encoder, frame);
-				if (frame.InstanceBindGroup != null)
-					encoder.SetBindGroup(BindGroupFrequency.DrawCall, frame.InstanceBindGroup, default);
 				if (shadowSystem != null)
 				{
 					let shadowBg2 = shadowSystem.GetBindGroup(view.FrameIndex);
@@ -395,6 +393,17 @@ public class MeshRenderer : Renderer
 				}
 			}
 
+			// Write BaseInstance and bind instance group with dynamic offset per draw.
+			// SV_InstanceID is 0-based on DX12 regardless of firstInstance, so we
+			// pass the offset explicitly and always use firstInstance=0.
+			let baseInst = (uint32)(startOffset + group.InstanceStart);
+			let baseInstOffset = pipeline.WriteBaseInstance(view.FrameIndex, baseInst);
+			if (frame.InstanceBindGroup != null)
+			{
+				uint32[1] dynOffset = .(baseInstOffset);
+				encoder.SetBindGroup(BindGroupFrequency.DrawCall, frame.InstanceBindGroup, dynOffset);
+			}
+
 			encoder.SetVertexBuffer(0, gpuMesh.VertexBuffer, 0);
 
 			if (gpuMesh.IndexBuffer != null)
@@ -405,12 +414,12 @@ public class MeshRenderer : Renderer
 					(uint32)group.InstanceCount,
 					subMesh.IndexStart,
 					subMesh.BaseVertex,
-					(uint32)(startOffset + group.InstanceStart));
+					0);
 			}
 			else
 			{
 				let vertCount = subMesh.IndexCount > 0 ? subMesh.IndexCount : gpuMesh.VertexCount;
-				encoder.Draw(vertCount, (uint32)group.InstanceCount, 0, (uint32)(startOffset + group.InstanceStart));
+				encoder.Draw(vertCount, (uint32)group.InstanceCount, 0, 0);
 			}
 		}
 	}

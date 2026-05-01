@@ -49,9 +49,11 @@ struct GPULight
 StructuredBuffer<GPULight> Lights : register(t0, space0);
 
 // Set 4: Shadow data
+// LightViewProj stored as 4x float4 rows instead of float4x4 because
+// pack_matrix(row_major) does not apply to StructuredBuffer members on DXIL.
 struct GPUShadowData
 {
-    float4x4 LightViewProj;
+    float4   LightViewProjRow0, LightViewProjRow1, LightViewProjRow2, LightViewProjRow3;
     float4   AtlasUVRect;       // (u, v, w, h) within the atlas in [0,1]
     float4   CascadeSplits;     // view-space far depth per cascade (base entry only)
     float    Bias;
@@ -93,7 +95,9 @@ float SampleShadowEntry(GPUShadowData shadow, float3 worldPos, float3 worldNorma
     // cascade's world texel size, and fade at grazing angles (NdotL -> 0).
     float3 biasedPos = worldPos + worldNormal * (shadow.NormalBias * shadow.WorldTexelSize * (1.0 - NdotL));
 
-    float4 lightClip = mul(float4(biasedPos, 1.0), shadow.LightViewProj);
+    float4x4 lightViewProj = float4x4(shadow.LightViewProjRow0, shadow.LightViewProjRow1,
+                                      shadow.LightViewProjRow2, shadow.LightViewProjRow3);
+    float4 lightClip = mul(float4(biasedPos, 1.0), lightViewProj);
     if (lightClip.w <= 0.0) return 1.0;
 
     float3 lightNDC = lightClip.xyz / lightClip.w;

@@ -352,7 +352,7 @@ public class RenderContext : IDisposable
 		BindGroupLayoutEntry[3] frameEntries = .(
 			.() { Binding = 0, Visibility = .Vertex | .Fragment | .Compute, Type = .UniformBuffer, HasDynamicOffset = true }, // b0: SceneUniforms
 			.UniformBuffer(1, .Fragment),                                           // b1: LightParams
-			.() { Binding = 0, Visibility = .Fragment, Type = .StorageBufferReadOnly } // t0: Lights
+			.() { Binding = 0, Visibility = .Fragment, Type = .StorageBufferReadOnly, StorageBufferStride = (uint32)GPULight.Size } // t0: Lights
 		);
 
 		BindGroupLayoutDesc frameLayoutDesc = .()
@@ -388,9 +388,12 @@ public class RenderContext : IDisposable
 		else
 			return .Err;
 
-		// Instance bind group layout (set 3, storage buffer for instanced draws).
-		BindGroupLayoutEntry[1] instanceEntries = .(
-			.() { Binding = 0, Visibility = .Vertex, Type = .StorageBufferReadOnly }
+		// Instance bind group layout (set 3: b0 = BaseInstance cbuffer with dynamic
+		// offset, t0 = StructuredBuffer<InstanceData>).
+		// BaseInstance corrects SV_InstanceID differences between DX12 and Vulkan.
+		BindGroupLayoutEntry[2] instanceEntries = .(
+			.() { Binding = 0, Visibility = .Vertex, Type = .UniformBuffer, HasDynamicOffset = true },
+			.() { Binding = 0, Visibility = .Vertex, Type = .StorageBufferReadOnly, StorageBufferStride = 128 }
 		);
 
 		BindGroupLayoutDesc instanceLayoutDesc = .()

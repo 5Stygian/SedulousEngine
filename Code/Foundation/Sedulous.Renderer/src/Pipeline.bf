@@ -172,6 +172,7 @@ public class Pipeline : IRenderingPipeline, IDisposable
 		frame.SceneBufferOffset = 0;
 		frame.ObjectBufferOffset = 0;
 		frame.InstanceOffset = 0;
+		frame.BaseInstanceOffset = 0;
 		frame.CurrentSceneOffset = 0;
 	}
 
@@ -490,6 +491,28 @@ public class Pipeline : IRenderingPipeline, IDisposable
 		encoder.SetBindGroup(BindGroupFrequency.Frame, frame.FrameBindGroup, sceneOffsets);
 	}
 
+	/// Writes a BaseInstance value to the ring buffer and returns the byte offset
+	/// for use as a dynamic offset when binding the instance bind group.
+	public uint32 WriteBaseInstance(int32 frameIndex, uint32 baseInstance)
+	{
+		let frame = mFrameResources[frameIndex % MaxFramesInFlight];
+		if (frame == null || frame.BaseInstanceBuffer == null)
+			return 0;
+
+		if (frame.BaseInstanceOffset >= PerFrameResources.MaxBaseInstanceSlots * PerFrameResources.BaseInstanceAlignment)
+			return 0;
+
+		let offset = frame.BaseInstanceOffset;
+
+		// Write the BaseInstance uint at the current slot (rest of 256-byte slot is padding)
+		uint32[1] data = .(baseInstance);
+		TransferHelper.WriteMappedBuffer(frame.BaseInstanceBuffer, (uint64)offset,
+			Span<uint8>((uint8*)&data[0], 4));
+
+		frame.BaseInstanceOffset += PerFrameResources.BaseInstanceAlignment;
+		return offset;
+	}
+
 	private Result<void> CreatePerFrameResources()
 	{
 		let device = mRenderContext.Device;
@@ -566,27 +589,39 @@ public class Pipeline : IRenderingPipeline, IDisposable
 			};
 
 			if (device.CreateBuffer(instanceBufDesc) case .Ok(let instanceBuf))
-			{
 				frame.InstanceBuffer = instanceBuf;
 
-				// Create bind group for instance buffer (set 3, binding 0)
-				let instanceLayout = mRenderContext.InstanceBindGroupLayout;
-				if (instanceLayout != null)
+			// BaseInstance ring buffer (dynamic offset selects per-draw slot)
+			let baseInstBufSize = (uint64)(PerFrameResources.BaseInstanceAlignment * PerFrameResources.MaxBaseInstanceSlots);
+			BufferDesc baseInstBufDesc = .()
+			{
+				Label = "BaseInstance Buffer",
+				Size = baseInstBufSize,
+				Usage = .Uniform,
+				Memory = .CpuToGpu
+			};
+
+			if (device.CreateBuffer(baseInstBufDesc) case .Ok(let baseInstBuf))
+				frame.BaseInstanceBuffer = baseInstBuf;
+
+			// Instance bind group (set 3: b0=BaseInstance with dynamic offset, t0=InstanceBuffer)
+			let instanceLayout = mRenderContext.InstanceBindGroupLayout;
+			if (instanceLayout != null && frame.BaseInstanceBuffer != null && frame.InstanceBuffer != null)
+			{
+				BindGroupEntry[2] instanceBgEntries = .(
+					BindGroupEntry.Buffer(frame.BaseInstanceBuffer, 0, PerFrameResources.BaseInstanceAlignment),
+					BindGroupEntry.Buffer(frame.InstanceBuffer, 0, instanceBufferSize)
+				);
+
+				BindGroupDesc instanceBgDesc = .()
 				{
-					BindGroupEntry[1] instanceBgEntries = .(
-						BindGroupEntry.Buffer(instanceBuf, 0, instanceBufferSize)
-					);
+					Label = "Instance BindGroup",
+					Layout = instanceLayout,
+					Entries = instanceBgEntries
+				};
 
-					BindGroupDesc instanceBgDesc = .()
-					{
-						Label = "Instance BindGroup",
-						Layout = instanceLayout,
-						Entries = instanceBgEntries
-					};
-
-					if (device.CreateBindGroup(instanceBgDesc) case .Ok(let instanceBg))
-						frame.InstanceBindGroup = instanceBg;
-				}
+				if (device.CreateBindGroup(instanceBgDesc) case .Ok(let instanceBg))
+					frame.InstanceBindGroup = instanceBg;
 			}
 
 			// Frame bind group is rebuilt each frame (includes light buffer which changes)

@@ -55,11 +55,25 @@ class PerFrameResources
 	/// Each entry = 128 bytes (WorldMatrix + PrevWorldMatrix).
 	public IBuffer InstanceBuffer;
 
-	/// Bind group for the instance buffer (set 3, used for instanced draws).
+	/// BaseInstance uniform ring buffer (set 3, binding 0 with dynamic offset).
+	/// Each slot holds a uint BaseInstance value (256-byte aligned for Vulkan).
+	/// Written before each instanced draw call; the dynamic offset selects the slot.
+	public IBuffer BaseInstanceBuffer;
+
+	/// Current write offset into BaseInstanceBuffer (in bytes, 256-byte aligned).
+	public uint32 BaseInstanceOffset;
+
+	/// Bind group for the instance data (set 3: b0=BaseInstance + t0=InstanceBuffer).
 	public IBindGroup InstanceBindGroup;
 
 	/// Current write offset into InstanceBuffer (in instances, not bytes).
 	public int32 InstanceOffset;
+
+	/// Maximum BaseInstance slots per frame (matching MaxObjects for safety).
+	public const uint32 MaxBaseInstanceSlots = 4096;
+
+	/// Alignment for BaseInstance buffer entries (256 bytes for Vulkan).
+	public const uint32 BaseInstanceAlignment = 256;
 
 	/// Current write offset into SceneUniformBuffer (reset each frame).
 	/// Pipeline.WriteSceneUniforms returns the slot offset before advancing this.
@@ -100,5 +114,7 @@ class PerFrameResources
 		device.DestroyBuffer(ref ObjectUniformBuffer);
 		if (InstanceBuffer != null)
 			device.DestroyBuffer(ref InstanceBuffer);
+		if (BaseInstanceBuffer != null)
+			device.DestroyBuffer(ref BaseInstanceBuffer);
 	}
 }

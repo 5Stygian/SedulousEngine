@@ -27,6 +27,11 @@ cbuffer SceneUniforms : register(b0, space0)
 #ifdef INSTANCED
 
 // Set 3: Per-instance data (instanced path)
+cbuffer InstanceParams : register(b0, space3)
+{
+    uint BaseInstance;
+};
+
 struct InstanceData
 {
     float4x4 WorldMatrix;
@@ -72,7 +77,7 @@ VertexOutput main(VertexInput input)
     VertexOutput output;
 
 #ifdef INSTANCED
-    float4x4 world = Instances[input.InstanceID].WorldMatrix;
+    float4x4 world = Instances[input.InstanceID + BaseInstance].WorldMatrix;
 #else
     float4x4 world = WorldMatrix;
 #endif
