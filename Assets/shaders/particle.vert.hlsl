@@ -19,12 +19,12 @@ cbuffer SceneUniforms : register(b0, space0)
 
 struct VertexInput
 {
-    float3 WorldPos       : POSITION;     // world-space particle center
-    float2 Size           : TEXCOORD0;    // billboard width, height
-    float4 Color          : COLOR;        // RGBA tint (unorm8x4)
-    float  Rotation       : TEXCOORD1;    // rotation angle in radians
-    float4 UVOffsetScale  : TEXCOORD2;    // xy = atlas offset, zw = atlas scale
-    float2 Velocity2D     : TEXCOORD3;    // screen-space velocity for stretched billboard
+    float3 WorldPos       : TEXCOORD0;    // world-space particle center
+    float2 Size           : TEXCOORD1;    // billboard width, height
+    float4 Color          : TEXCOORD2;    // RGBA tint (unorm8x4)
+    float  Rotation       : TEXCOORD3;    // rotation angle in radians
+    float4 UVOffsetScale  : TEXCOORD4;    // xy = atlas offset, zw = atlas scale
+    float2 Velocity2D     : TEXCOORD5;    // screen-space velocity for stretched billboard
     uint   VertexID       : SV_VertexID;
 };
 

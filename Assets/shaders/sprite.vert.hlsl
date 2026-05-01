@@ -21,10 +21,10 @@ cbuffer SceneUniforms : register(b0, space0)
 
 struct VertexInput
 {
-    float4 PositionSize    : POSITION;    // xyz = world pos, w = size.x
-    float4 SizeOrientation : TEXCOORD0;   // x = size.y, y = orientation mode
-    float4 Tint            : COLOR;
-    float4 UVRect          : TEXCOORD1;   // (u, v, w, h)
+    float4 PositionSize    : TEXCOORD0;    // xyz = world pos, w = size.x
+    float4 SizeOrientation : TEXCOORD1;   // x = size.y, y = orientation mode
+    float4 Tint            : TEXCOORD2;
+    float4 UVRect          : TEXCOORD3;   // (u, v, w, h)
     uint   VertexID        : SV_VertexID;
 };
 

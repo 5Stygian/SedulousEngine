@@ -12,8 +12,8 @@ cbuffer SceneUniforms : register(b0, space0)
 
 struct VertexInput
 {
-    float3 Position : POSITION;
-    float4 Color : COLOR;
+    float3 Position : TEXCOORD0;
+    float4 Color : TEXCOORD1;
 };
 
 struct VertexOutput

@@ -79,7 +79,7 @@ struct VertexStruct
 	nointerpolation int4 glyph : U_GLYPH;			// (glyph data x coord, glyph data y coord, band max x, band max y and flags), constant over glyph.
 };
 
-VertexStruct main(float4 attrib[5] : ATTRIB, uint vid : SV_VertexID)
+VertexStruct main(float4 attrib[5] : TEXCOORD, uint vid : SV_VertexID)
 {
 	float2 p;
 	VertexStruct vresult;

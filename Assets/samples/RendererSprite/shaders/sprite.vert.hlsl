@@ -16,7 +16,7 @@ struct VSInput
     float3 position : TEXCOORD0;     // World position
     float2 size : TEXCOORD1;         // Width, height
     float4 uvRect : TEXCOORD2;       // minU, minV, maxU, maxV
-    float4 color : COLOR;            // RGBA
+    float4 color : TEXCOORD3;        // RGBA
     uint vertexID : SV_VertexID;     // 0-5 for quad
 };
 

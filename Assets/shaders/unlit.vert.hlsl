@@ -48,11 +48,11 @@ cbuffer ObjectUniforms : register(b0, space3)
 
 struct VertexInput
 {
-    float3 Position : POSITION;
-    float3 Normal : NORMAL;
-    float2 TexCoord : TEXCOORD0;
-    float4 Color : COLOR;
-    float3 Tangent : TANGENT;
+    float3 Position : TEXCOORD0;
+    float3 Normal : TEXCOORD1;
+    float2 TexCoord : TEXCOORD2;
+    float4 Color : TEXCOORD3;
+    float3 Tangent : TEXCOORD4;
 #ifdef INSTANCED
     uint InstanceID : SV_InstanceID;
 #endif

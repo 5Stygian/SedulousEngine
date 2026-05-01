@@ -3,9 +3,9 @@
 
 struct VSInput
 {
-    float2 position : POSITION;
-    float2 texCoord : TEXCOORD0;
-    float4 color : COLOR0;
+    float2 position : TEXCOORD0;
+    float2 texCoord : TEXCOORD1;
+    float4 color : TEXCOORD2;
 };
 
 struct VSOutput
