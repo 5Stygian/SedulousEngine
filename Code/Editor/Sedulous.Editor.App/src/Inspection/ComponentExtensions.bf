@@ -1,70 +1,164 @@
-namespace Sedulous.Engine.Render;
 
 using System;
 
 /// Comptime extensions that generate IInspectable implementations
-/// for engine render components. Each extension fires [OnCompile(.TypeInit)]
+/// for engine components. Each extension fires [OnCompile(.TypeInit)]
 /// to scan [Property] fields and emit DescribeProperties.
+///
+/// Render components are in this namespace; other engine modules
+/// have their extensions below in separate namespace blocks.
 
-extension LightComponent
+namespace Sedulous.Engine.Render
 {
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
+	extension LightComponent
 	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension CameraComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension MeshComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension SkinnedMeshComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension SpriteComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension DecalComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension ParticleComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+}
+// ==================== Animation Components ====================
+
+namespace Sedulous.Engine.Animation
+{
+	extension SkeletalAnimationComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension AnimationGraphComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension PropertyAnimationComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
 	}
 }
 
-extension CameraComponent
+// ==================== Audio Components ====================
+
+namespace Sedulous.Engine.Audio
 {
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
+	extension AudioSourceComponent
 	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+
+	extension AudioListenerComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
 	}
 }
+// ==================== Physics Components ====================
 
-extension MeshComponent
+namespace Sedulous.Engine.Physics
 {
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
+	extension RigidBodyComponent
 	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
 	}
 }
+// ==================== Navigation Components ====================
 
-extension SkinnedMeshComponent
+namespace Sedulous.Engine.Navigation
 {
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
+	extension NavAgentComponent
 	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
 	}
-}
 
-extension SpriteComponent
-{
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
+	extension NavObstacleComponent
 	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
-	}
-}
-
-extension DecalComponent
-{
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
-	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
-	}
-}
-
-extension ParticleComponent
-{
-	[OnCompile(.TypeInit), Comptime]
-	static void GenerateInspector()
-	{
-		Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
 	}
 }

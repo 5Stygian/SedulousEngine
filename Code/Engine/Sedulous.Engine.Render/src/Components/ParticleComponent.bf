@@ -34,9 +34,13 @@ class ParticleComponent : Component, ISerializableComponent
 	public ParticleEffectInstance Instance ~ delete _;
 
 	/// Particle effect resource reference (serialized).
+	[Property]
+	[ResourceRefType(".particlefx")]
 	private ResourceRef mEffectRef ~ _.Dispose();
 
 	/// Texture resource reference (serialized). Overrides the effect's default texture.
+	[Property]
+	[ResourceRefType(".texture")]
 	private ResourceRef mTextureRef ~ _.Dispose();
 
 	/// Resolved MaterialInstance - created by the manager, released on destroy.

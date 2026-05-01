@@ -33,6 +33,8 @@ class DecalComponent : Component, ISerializableComponent
 
 	/// Texture resource reference (serialized). Resolved to a MaterialInstance
 	/// by DecalComponentManager.
+	[Property]
+	[ResourceRefType(".texture")]
 	private ResourceRef mTextureRef ~ _.Dispose();
 
 	/// Resolved MaterialInstance - shared across decals using the same texture.

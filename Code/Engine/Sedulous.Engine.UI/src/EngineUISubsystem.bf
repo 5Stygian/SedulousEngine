@@ -190,7 +190,7 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 		if (sceneRenderer == null || sceneSub == null) return;
 
 		// Get viewport dimensions from first active scene's pipeline.
-		Sedulous.Renderer.Pipeline activePipeline = null;
+		Pipeline activePipeline = null;
 		for (let scene in sceneSub.ActiveScenes)
 		{
 			activePipeline = sceneRenderer.GetPipeline(scene);
@@ -206,7 +206,7 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 		let mouse = inputMgr.Mouse;
 		if (mouse == null) return;
 
-		let sceneSub = Context?.GetSubsystem<Sedulous.Engine.SceneSubsystem>();
+		let sceneSub = Context?.GetSubsystem<SceneSubsystem>();
 		if (sceneSub == null) return;
 
 		// Find the active camera.
@@ -346,7 +346,7 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 		}
 	}
 
-	private void RouteWorldMouseButton(UIComponent comp, Sedulous.Shell.Input.IMouse mouse,
+	private void RouteWorldMouseButton(UIComponent comp, IMouse mouse,
 		Sedulous.Shell.Input.MouseButton shellBtn, ref bool prevDown, float px, float py)
 	{
 		let down = mouse.IsButtonDown(shellBtn);
@@ -436,7 +436,7 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 	{
 		// Null out SharedTheme on scene modules before screen UIContext (which owns the theme) is deleted.
 		// Per-component UIContexts use SetSharedTheme so they don't own it - but they hold a pointer.
-		let sceneSub = Context?.GetSubsystem<Sedulous.Engine.SceneSubsystem>();
+		let sceneSub = Context?.GetSubsystem<SceneSubsystem>();
 		if (sceneSub != null)
 		{
 			for (let scene in sceneSub.ActiveScenes)

@@ -247,6 +247,36 @@ public abstract class ComponentManager<T> : ComponentManagerBase, IComponentMana
 		}
 	}
 
+	/// Creates a component on the given entity. Non-generic accessor for editor use.
+	public override Component CreateComponentOnEntity(EntityHandle entity)
+	{
+		let handle = CreateComponent(entity);
+		return Get(handle);
+	}
+
+	/// Destroys the component on the given entity. Non-generic accessor for editor use.
+	public override void DestroyComponentOnEntity(EntityHandle entity)
+	{
+		for (int32 i = 0; i < mSlots.Count; i++)
+		{
+			var slot = ref mSlots[i];
+			if (slot.Occupied && slot.Component.Owner == entity)
+			{
+				ComponentHandle<T> handle = .() { Index = (uint32)i, Generation = slot.Generation };
+				DestroyComponent(handle);
+				return;
+			}
+		}
+	}
+
+	/// Display name for this component type. Defaults to the type name without "Component" suffix.
+	public override void GetComponentDisplayName(String outName)
+	{
+		typeof(T).GetName(outName);
+		if (outName.EndsWith("Component"))
+			outName.RemoveToEnd(outName.Length - 9);
+	}
+
 	public override void Dispose()
 	{
 		// Destroy all remaining components

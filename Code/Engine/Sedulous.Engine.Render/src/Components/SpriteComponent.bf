@@ -37,6 +37,8 @@ class SpriteComponent : Component, ISerializableComponent
 
 	/// Texture resource reference (serialized). Resolved to a MaterialInstance
 	/// (with the texture bound to the "SpriteTexture" property) by the manager.
+	[Property]
+	[ResourceRefType(".texture")]
 	private ResourceRef mTextureRef ~ _.Dispose();
 
 	/// Resolved MaterialInstance - created by the manager, released on destroy.

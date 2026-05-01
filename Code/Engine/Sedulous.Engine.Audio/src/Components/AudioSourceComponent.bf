@@ -44,9 +44,13 @@ class AudioSourceComponent : Component, ISerializableComponent
 	// --- Resource refs (serializable) ---
 
 	/// Audio clip resource reference (used when CueRef is empty).
+	[Property]
+	[ResourceRefType(".audioclip")]
 	private ResourceRef mClipRef ~ _.Dispose();
 
 	/// Sound cue resource reference (overrides ClipRef when set).
+	[Property]
+	[ResourceRefType(".soundcue")]
 	private ResourceRef mCueRef ~ _.Dispose();
 
 	// --- Configuration ---

@@ -46,6 +46,8 @@ class SkinnedMeshComponent : Component, ISerializableComponent
 	}
 
 	/// Mesh resource reference (serialized). Resolved to GPU handle by manager.
+	[Property]
+	[ResourceRefType(".skinnedmesh")]
 	private ResourceRef mMeshRef ~ _.Dispose();
 
 	/// GPU mesh handle (runtime - set by manager after resource resolution).
@@ -55,6 +57,8 @@ class SkinnedMeshComponent : Component, ISerializableComponent
 	public GPUBoneBufferHandle BoneBufferHandle = .Invalid;
 
 	/// Material resource references per slot (serialized).
+	[Property]
+	[ResourceRefType(".material")]
 	private List<ResourceRef> mMaterialRefs = new .() ~ { for (var r in _) r.Dispose(); delete _; };
 
 	/// Resolved material instances per slot (runtime).
