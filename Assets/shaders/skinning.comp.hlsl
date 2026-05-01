@@ -13,9 +13,7 @@ cbuffer SkinningParams : register(b0)
 };
 
 // Bone matrices: current frame (BoneCount matrices), then previous frame (BoneCount matrices).
-// Stored as 4x float4 rows per matrix instead of float4x4 because pack_matrix(row_major)
-// does not apply to StructuredBuffer members on DXIL — the compiler would read float4x4
-// as column-major, misinterpreting the row-major data uploaded from the CPU.
+// float4 rows instead of float4x4 — see CONVENTIONS.md (StructuredBuffer matrix layout).
 struct BoneMatrix
 {
     float4 Row0, Row1, Row2, Row3;

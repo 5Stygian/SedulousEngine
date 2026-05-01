@@ -26,7 +26,7 @@ cbuffer SceneUniforms : register(b0, space0)
 
 #ifdef INSTANCED
 
-// Set 3: Per-instance data (instanced path)
+// Set 3: Per-instance data — see CONVENTIONS.md
 cbuffer InstanceParams : register(b0, space3)
 {
     uint BaseInstance;

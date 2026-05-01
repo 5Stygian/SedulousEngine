@@ -49,8 +49,7 @@ struct GPULight
 StructuredBuffer<GPULight> Lights : register(t0, space0);
 
 // Set 4: Shadow data
-// LightViewProj stored as 4x float4 rows instead of float4x4 because
-// pack_matrix(row_major) does not apply to StructuredBuffer members on DXIL.
+// float4 rows instead of float4x4 — see CONVENTIONS.md (StructuredBuffer matrix layout).
 struct GPUShadowData
 {
     float4   LightViewProjRow0, LightViewProjRow1, LightViewProjRow2, LightViewProjRow3;

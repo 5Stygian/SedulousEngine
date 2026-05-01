@@ -30,9 +30,7 @@ cbuffer SceneUniforms : register(b0, space0)
 #ifdef INSTANCED
 
 // Set 3: Per-instance data (instanced path)
-// b0: BaseInstance offset (DX12 SV_InstanceID is 0-based regardless of
-//     firstInstance; Vulkan gl_InstanceIndex includes it. We pass firstInstance=0
-//     on both backends and add BaseInstance explicitly for portability.)
+// See CONVENTIONS.md for BaseInstance and StructuredBuffer matrix rules.
 cbuffer InstanceParams : register(b0, space3)
 {
     uint BaseInstance;
