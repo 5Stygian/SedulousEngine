@@ -142,18 +142,11 @@ Sedulous is developed and tested on Windows. The engine is intended to be
 cross-platform, but targeting other platforms would require building the
 dependencies for those platforms and filling any gaps in RHI bootstrapping.
 
-## Known Limitations
-
-- **DX12 renderer support**: The RHI layer and RHI samples work on both Vulkan and
-  DX12. However, Sedulous.Renderer and its shaders have only been developed and tested
-  with the Vulkan backend. Updating them for DX12 is straightforward but not a current
-  priority.
-
 ## Requirements
 
 - [Beeflang Nightly](https://nightly.beeflang.org/index.html) (BeefBuild or Beef IDE)
 - [Vulkan SDK](https://vulkan.lunarg.com/) (for shader compilation)
-- Vulkan-capable GPU supporting Vulkan 1.3 or later
+- GPU supporting Vulkan 1.3 or DX12
 
 ## Building
 
