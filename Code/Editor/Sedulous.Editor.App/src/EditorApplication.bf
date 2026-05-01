@@ -217,6 +217,13 @@ class EditorApplication : Application, IFloatingWindowHost
 		mEditorContext.RegisterAssetImporter(new ModelAssetImporter());
 		mEditorContext.RegisterAssetImporter(new TextureAssetImporter());
 
+		// Register built-in page factories
+		mEditorContext.RegisterPageFactory(new SceneEditorPageFactory(
+			Device, mVGRenderer, Shell.InputManager.Keyboard, mTypeRegistry));
+
+		// Register built-in gizmo renderers
+		mEditorContext.RegisterGizmoRenderer(typeof(Sedulous.Engine.Render.LightComponent), new LightGizmoRenderer());
+
 		// Initialize plugins after UI is set up.
 		mEditorContext.PluginRegistry.InitializeAll(mEditorContext);
 	}
@@ -550,60 +557,11 @@ class EditorApplication : Application, IFloatingWindowHost
 
 	private void OpenSceneFile(StringView path)
 	{
-		// Create scene through RuntimeContext so subsystems inject component managers
-		let sceneSub = mRuntimeContext.GetSubsystem<SceneSubsystem>();
-		if (sceneSub == null)
-		{
-			mEditorLogger.Log(.Error, "No SceneSubsystem in RuntimeContext");
-			return;
-		}
-
-		// Extract scene name from filename
-		let sceneName = scope String();
-		System.IO.Path.GetFileNameWithoutExtension(path, sceneName);
-
-		let scene = sceneSub.CreateScene(sceneName);
-
-		// Editor mode: disable simulation
-		scene.SimulationEnabled = false;
-
-		// Read and deserialize scene file through the resource path
-		let text = scope String();
-		if (System.IO.File.ReadAllText(path, text) case .Err)
-		{
-			mEditorLogger.Log(.Error, scope String()..AppendF("Failed to read scene file: {}", path));
-			sceneSub.DestroyScene(scene);
-			return;
-		}
-
-		let reader = ResourceSystem.SerializerProvider.CreateReader(text);
-		if (reader == null)
-		{
-			mEditorLogger.Log(.Error, "Failed to create scene reader");
-			sceneSub.DestroyScene(scene);
-			return;
-		}
-		defer delete reader;
-
-		// Use a temporary SceneResource to deserialize through the Resource path
-		// (reads header + scene data via SceneResource.OnSerialize)
-		let tempResource = scope SceneResource();
-		tempResource.Scene = scene;
-		tempResource.TypeRegistry = mTypeRegistry;
-		tempResource.Serialize(reader);
-
-		// Create page
-		let page = new SceneEditorPage(scene, path, mEditorContext);
-
-		let sceneRenderer = mRuntimeContext.GetSubsystemByInterface<ISceneRenderer>();
-		let content = ScenePageBuilder.Build(page, mEditorContext, Device, mVGRenderer,
-			sceneRenderer, Shell.InputManager.Keyboard);
-		page.SetContentView(content);
-
-		mEditorContext.PageManager.AddPage(page);
-		mEditorLogger.Log(.Information, scope String()..AppendF("Opened scene: {}", path));
-
-		// Debug: check state after first update tick
+		let page = mEditorContext.PageManager.OpenWithContext(path, mEditorContext);
+		if (page != null)
+			mEditorLogger.Log(.Information, scope String()..AppendF("Opened scene: {}", path));
+		else
+			mEditorLogger.Log(.Error, scope String()..AppendF("Failed to open: {}", path));
 	}
 
 	private void OnPageOpened(IEditorPage page)
@@ -655,6 +613,9 @@ class EditorApplication : Application, IFloatingWindowHost
 		}
 
 		mPageDockPanels[.(page)] = panel;
+
+		// Activate the new tab so the opened page is immediately visible
+		dockManager.ActivatePanel(panel);
 	}
 
 	private void OnPageClosed(IEditorPage page)
@@ -698,15 +659,34 @@ class EditorApplication : Application, IFloatingWindowHost
 	{
 		if (mEditorContext?.PageManager == null) return;
 
-		// Render viewports for ALL open scene pages that still have dock panels.
+		// Render viewports only for scene pages whose panels are actually visible.
+		// Inactive dock tabs have their DockablePanel set to Visibility=Gone,
+		// so we walk ancestors to skip those — avoids clobbering shared render
+		// state (shadow atlas, frame allocator) between scenes.
 		for (let page in mEditorContext.PageManager.OpenPages)
 		{
 			if (let scenePage = page as SceneEditorPage)
 			{
-				if (scenePage.ContentView != null && !scenePage.ContentView.IsPendingDeletion)
+				if (scenePage.ContentView != null && !scenePage.ContentView.IsPendingDeletion
+					&& IsViewEffectivelyVisible(scenePage.ContentView))
+				{
 					RenderViewportsInTree(scenePage.ContentView, encoder, frameIndex);
+				}
 			}
 		}
+	}
+
+	/// Checks if a view and all its ancestors are Visible (not Gone/Collapsed).
+	private static bool IsViewEffectivelyVisible(View view)
+	{
+		var v = view;
+		while (v != null)
+		{
+			if (v.Visibility != .Visible)
+				return false;
+			v = v.Parent;
+		}
+		return true;
 	}
 
 	private void RenderViewportsInTree(View view, ICommandEncoder encoder, int32 frameIndex)

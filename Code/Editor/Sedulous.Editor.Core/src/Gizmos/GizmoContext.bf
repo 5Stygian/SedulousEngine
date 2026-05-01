@@ -10,6 +10,9 @@ struct GizmoContext
 	/// Debug draw API for wire shapes, lines, text.
 	public Sedulous.Renderer.Debug.DebugDraw DebugDraw;
 
+	/// The scene being rendered.
+	public Sedulous.Engine.Core.Scene Scene;
+
 	/// View-projection matrix for the current viewport.
 	public Matrix ViewProjectionMatrix;
 

@@ -203,7 +203,7 @@ static class ScenePageBuilder
 	{
 		let split = new SplitView(.Horizontal);
 
-		let viewport = BuildViewport(page, device, vgRenderer, sceneRenderer, keyboard);
+		let viewport = BuildViewport(page, editorContext, device, vgRenderer, sceneRenderer, keyboard);
 		let inspector = BuildInspector(page, editorContext);
 
 		split.SetPanes(viewport, inspector);
@@ -212,8 +212,8 @@ static class ScenePageBuilder
 		return split;
 	}
 
-	private static View BuildViewport(SceneEditorPage page, IDevice device,
-		VGRenderer vgRenderer, ISceneRenderer sceneRenderer, IKeyboard keyboard)
+	private static View BuildViewport(SceneEditorPage page, EditorContext editorContext,
+		IDevice device, VGRenderer vgRenderer, ISceneRenderer sceneRenderer, IKeyboard keyboard)
 	{
 		// Container: toolbar on top, viewport below
 		let container = new LinearLayout();
@@ -298,9 +298,14 @@ static class ScenePageBuilder
 			// Update fly cam movement
 			camController.Update(1.0f / 60.0f);
 
-			// Draw gizmo at selected entity position (before RenderScene so DebugPass picks it up)
+			// Draw gizmos into the pipeline's per-scene DebugDraw (not the global one)
+			// so they only appear in this viewport.
 			if (sceneRenderer != null)
 			{
+				let pipeline = sceneRenderer.GetPipeline(capturedScene);
+				let pipelineDbg = (pipeline != null) ? pipeline.DebugDraw : sceneRenderer.RenderContext.DebugDraw;
+
+				// Transform gizmo for selected entity
 				let selected = page.PrimarySelection;
 				if (selected != .Invalid && capturedScene.IsValid(selected))
 				{
@@ -317,7 +322,38 @@ static class ScenePageBuilder
 					let camDist = Vector3.Distance(editorCamera.Position, gizmo.Position);
 					gizmo.Size = camDist * 0.15f;
 
-					gizmo.Draw(sceneRenderer.RenderContext.DebugDraw, page.GizmoMode);
+					gizmo.Draw(pipelineDbg, page.GizmoMode);
+				}
+
+				// Component gizmo renderers (light wireframes, camera frustums, etc.)
+				let aspect = (vp.RenderHeight > 0) ? (float)vp.RenderWidth / (float)vp.RenderHeight : 1.0f;
+				let camOverride = editorCamera.GetCameraOverride(aspect);
+				GizmoContext gizmoCtx = .()
+				{
+					DebugDraw = pipelineDbg,
+					Scene = capturedScene,
+					ViewProjectionMatrix = camOverride.ViewMatrix * camOverride.ProjectionMatrix,
+					CameraPosition = editorCamera.Position,
+					ViewportWidth = vp.RenderWidth,
+					ViewportHeight = vp.RenderHeight
+				};
+
+				for (let entity in capturedScene.Entities)
+				{
+					if (!capturedScene.IsValid(entity)) continue;
+
+					let components = scope List<Component>();
+					capturedScene.GetComponents(entity, components);
+
+					for (let comp in components)
+					{
+						let renderer = editorContext.GetGizmoRenderer(comp.GetType());
+						if (renderer != null)
+						{
+							if (renderer.DrawWhenUnselected || entity == selected)
+								renderer.Draw(comp, gizmoCtx);
+						}
+					}
 				}
 			}
 
