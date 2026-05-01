@@ -110,6 +110,105 @@ No intermediate ComponentData classes needed - components serialize directly.
 | AI/behavior | SensorComponent | Perception system |
 | Wind system | SimpleWindComponent | Global wind fields |
 
+## Simulation Control — Per-Scene Simulation Enable + Time Scale
+
+### Problem
+
+The editor ticks RuntimeContext which runs all subsystems — physics simulates,
+animations play, particles emit. There's no distinction between "render the
+scene" and "simulate the scene." The editor needs to render without simulating.
+Games need pause/slow-motion without per-system hacks.
+
+### Reference Engines
+
+**ezEngine:** Per-update-function `bOnlyUpdateWhenSimulating` flag. World-level
+`SetWorldSimulationEnabled(bool)`. When disabled, clock is paused, transforms
+still update, simulation-only functions are skipped. Components get deferred
+`OnSimulationStarted()`. Most granular approach.
+
+**Traktor:** `deltaTime = 0` when editor is not playing. Components naturally
+freeze. Dual time tracking (simulation time vs state/rendering time). Simpler
+but update functions still execute (just with zero delta).
+
+**LumixEngine:** Per-module `m_is_game_running` flag. Each module independently
+checks and returns early from `update()`/`updateParallel()` when false. Engine
+also has global `pause()` + `nextFrame()` + `setTimeMultiplier()` for game-level
+control. Modules have `startGame()`/`stopGame()` lifecycle hooks.
+
+### Design: Two Orthogonal Controls
+
+**1. Scene.SimulationEnabled (per-scene, hard gate)**
+- Controls whether simulation-phase update functions execute at all
+- Editor mode: `false` (no physics, no animation advance, no particle tick)
+- Play mode: `true`
+- No CPU cost for disabled simulation — functions don't run
+- Transforms always update (presentation-only)
+- Resource resolution always runs (presentation-only)
+
+**2. Scene.TimeScale (per-scene, soft control)**
+- Multiplier on deltaTime passed to update functions
+- 0 = paused (functions run but don't advance time-based state)
+- 0.5 = slow motion, 2 = fast forward
+- Systems that need to work during pause use unscaled/real time
+- Game-level pause: `TimeScale = 0`, UI/audio use unscaled time
+
+**Why both:** `SimulationEnabled = false` is a hard gate — functions don't
+execute, zero cost, no side effects. Used by editor. `TimeScale = 0` is soft —
+functions execute but time doesn't advance, input still processed, pause menus
+work. Used by games.
+
+### Implementation Plan
+
+**Phase 1: SimulationOnly flag on update functions**
+- Add `SimulationOnly` bool to scene phase registration
+  (similar to ezEngine's `bOnlyUpdateWhenSimulating`)
+- Add `Scene.SimulationEnabled` property (default `true`)
+- When `SimulationEnabled = false`, `Scene.Update()` skips functions
+  marked `SimulationOnly`
+- Transforms (`UpdateTransforms` phase) and resource resolution always run
+
+**Phase 2: Mark existing update functions**
+- Component managers mark their updates as simulation or presentation:
+
+| Manager | Function | SimulationOnly? |
+|---------|----------|----------------|
+| PhysicsComponentManager | FixedUpdatePhysics | YES |
+| SkeletalAnimationComponentManager | UpdateAnimations | YES (time advance), NO (resource resolve) |
+| AnimationGraphComponentManager | UpdateGraphs | YES (evaluation), NO (resource resolve) |
+| PropertyAnimationComponentManager | UpdatePropertyAnimations | YES |
+| ParticleComponentManager | UpdateParticles | YES |
+| MeshComponentManager | ResolveResources | NO |
+| SkinnedMeshComponentManager | UpdateSkinnedMeshes | SPLIT — resolve NO, bone upload YES |
+| LightComponentManager | PostUpdate | NO (debug draw) |
+| AudioSubsystem | Update | YES (except listener position) |
+| NavigationSubsystem | Update | YES |
+
+Some managers may need to split their update into two functions: resource
+resolution (always) and simulation (only when simulating).
+
+**Phase 3: Scene lifecycle — Start/Stop**
+- `Scene.Start()` — sets `SimulationEnabled = true`, calls
+  `OnSceneStarted()` on all component managers (initialize runtime state,
+  connect signals, start AI, etc.)
+- `Scene.Stop()` — calls `OnSceneStopped()` on all component managers
+  (cleanup runtime state), sets `SimulationEnabled = false`
+- `Scene.IsStarted` property for querying current state
+- Component managers override `OnSceneStarted()`/`OnSceneStopped()` for
+  per-manager lifecycle (e.g. physics creates bodies, audio starts sources)
+- Editor play mode: serialize scene state → `scene.Start()` → ticking
+- Editor stop: `scene.Stop()` → restore serialized scene state
+
+**Phase 4: TimeScale**
+- Add `Scene.TimeScale` property (default 1.0)
+- `Scene.Update()` multiplies deltaTime by `TimeScale`
+- Add `Scene.UnscaledDeltaTime` for pause-immune systems
+- Game pause: `TimeScale = 0`, UI reads `UnscaledDeltaTime`
+
+### Dependencies
+- Phase 1-2 are engine-only (no editor changes)
+- Phase 3 depends on editor Play Mode (EditorRoadmap Phase 6)
+- Phase 4 is game-level, independent of editor
+
 ## Particle System Gaps
 
 | Feature | Status |

@@ -149,6 +149,23 @@ class EditorApplication : Application, IFloatingWindowHost
 		renderSub.ShaderSystem = mShaderSystem;
 		mRuntimeContext.RegisterSubsystem(renderSub);
 
+		// Register all engine subsystems so all component types are available
+		// in the editor (Add Component, inspector, scene serialization).
+		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Physics.PhysicsSubsystem());
+		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Animation.AnimationSubsystem(mResourceSystem));
+		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Audio.AudioSubsystem(mResourceSystem));
+		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Navigation.NavigationSubsystem());
+
+		let uiSub = new Sedulous.Engine.UI.EngineUISubsystem();
+		uiSub.Device = Device;
+		uiSub.Window = Window;
+		uiSub.Shell = Shell;
+		uiSub.ShaderSystem = mShaderSystem;
+		let uiAssetDir = scope String();
+		GetAssetPath("", uiAssetDir);
+		uiSub.AssetDirectory = new String(uiAssetDir);
+		mRuntimeContext.RegisterSubsystem(uiSub);
+
 		mRuntimeContext.Startup();
 
 		// Default primitive assets + registry

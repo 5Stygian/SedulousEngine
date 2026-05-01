@@ -398,6 +398,14 @@ static class ScenePageBuilder
 			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
 		});
 
+		// "Add Component" button - below property grid, visible when entity is selected
+		let addCompBtn = new Button();
+		addCompBtn.SetText("Add Component");
+		addCompBtn.Visibility = .Gone;
+		container.AddView(addCompBtn, new LinearLayout.LayoutParams() {
+			Width = LayoutParams.MatchParent, Height = 28
+		});
+
 		// Wire selection changes to inspector rebuild
 		page.OnSelectionChanged.Add(new (p) =>
 		{
@@ -407,8 +415,11 @@ static class ScenePageBuilder
 			if (selected == .Invalid || !p.Scene.IsValid(selected))
 			{
 				headerLabel.SetText("Inspector");
+				addCompBtn.Visibility = .Gone;
 				return;
 			}
+
+			addCompBtn.Visibility = .Visible;
 
 			let name = scope String();
 			name.Set(p.Scene.GetEntityName(selected));
@@ -465,6 +476,42 @@ static class ScenePageBuilder
 					inspectable.DescribeProperties(desc);
 				}
 			}
+
+		});
+
+		// Wire "Add Component" button click
+		addCompBtn.OnClick.Add(new [=page, =editorContext] (btn) => {
+			let ctx = btn.Context;
+			if (ctx == null) return;
+
+			let selected = page.PrimarySelection;
+			if (selected == .Invalid) return;
+
+			let menu = new ContextMenu();
+
+			// List all component managers on the scene that this entity doesn't have yet
+			for (let module in page.Scene.Modules)
+			{
+				if (let manager = module as ComponentManagerBase)
+				{
+					if (manager.HasComponent(selected))
+						continue; // Already has this component
+
+					let displayName = scope String();
+					manager.GetComponentDisplayName(displayName);
+					menu.AddItem(displayName, new [=page, =selected, =manager] () => {
+						manager.CreateComponentOnEntity(selected);
+						// Refresh inspector
+						page.OnSelectionChanged(page);
+					});
+				}
+			}
+
+			// Show at button position
+			float screenX = 0, screenY = btn.Height;
+			View v = btn;
+			while (v != null) { screenX += v.Bounds.X; screenY += v.Bounds.Y; v = v.Parent; }
+			menu.Show(ctx, screenX, screenY);
 		});
 
 		return container;
