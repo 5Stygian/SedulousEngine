@@ -143,8 +143,6 @@ class DebugPass : PipelinePass
 
 		let frame = pipeline.GetFrameResources(view.FrameIndex);
 
-		encoder.SetVertexBuffer(0, vb, 0);
-
 		// Depth-tested lines
 		if (depthClamped > 0)
 		{
@@ -153,6 +151,7 @@ class DebugPass : PipelinePass
 			if (pipelineResult case .Ok(let depthPipeline))
 			{
 				encoder.SetPipeline(depthPipeline);
+				encoder.SetVertexBuffer(0, vb, 0);
 				pipeline.BindFrameGroup(encoder, frame);
 				if (renderContext.DefaultMaterialBindGroup != null)
 					encoder.SetBindGroup(BindGroupFrequency.Material, renderContext.DefaultMaterialBindGroup, default);
@@ -176,6 +175,7 @@ class DebugPass : PipelinePass
 			if (overlayPipelineResult case .Ok(let overlayPipeline))
 			{
 				encoder.SetPipeline(overlayPipeline);
+				encoder.SetVertexBuffer(0, vb, 0);
 				pipeline.BindFrameGroup(encoder, frame);
 				if (renderContext.DefaultMaterialBindGroup != null)
 					encoder.SetBindGroup(BindGroupFrequency.Material, renderContext.DefaultMaterialBindGroup, default);
