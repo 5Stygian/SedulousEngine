@@ -74,23 +74,26 @@ class AnimationGraphComponentManager : ComponentManager<AnimationGraphComponent>
 	{
 		let state = GetOrCreateResolveState(comp.Owner);
 
-		// Resolve skeleton
-		if (state.Skeleton.Resolve(ResourceSystem, comp.SkeletonRef))
+		// Resolve skeleton from resource ref. Skip if no ref is set — the
+		// skeleton may have been assigned directly (programmatic setup).
+		if (comp.SkeletonRef.IsValid)
 		{
-			let res = state.Skeleton.Handle.Resource;
-			comp.Skeleton = (res != null) ? res.Skeleton : null;
+			if (state.Skeleton.Resolve(ResourceSystem, comp.SkeletonRef))
+			{
+				let res = state.Skeleton.Handle.Resource;
+				comp.Skeleton = (res != null) ? res.Skeleton : null;
+			}
 		}
-		else if (!comp.SkeletonRef.IsValid && comp.Skeleton != null)
-			comp.Skeleton = null;
 
-		// Resolve graph
-		if (state.Graph.Resolve(ResourceSystem, comp.GraphRef))
+		// Resolve graph from resource ref. Same logic — skip if no ref.
+		if (comp.GraphRef.IsValid)
 		{
-			let res = state.Graph.Handle.Resource;
-			comp.Graph = (res != null) ? res.Graph : null;
+			if (state.Graph.Resolve(ResourceSystem, comp.GraphRef))
+			{
+				let res = state.Graph.Handle.Resource;
+				comp.Graph = (res != null) ? res.Graph : null;
+			}
 		}
-		else if (!comp.GraphRef.IsValid && comp.Graph != null)
-			comp.Graph = null;
 	}
 
 	private AnimGraphResolveState GetOrCreateResolveState(EntityHandle entity)

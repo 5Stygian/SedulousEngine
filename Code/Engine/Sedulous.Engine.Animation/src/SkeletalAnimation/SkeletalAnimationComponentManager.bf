@@ -87,23 +87,26 @@ class SkeletalAnimationComponentManager : ComponentManager<SkeletalAnimationComp
 	{
 		let state = GetOrCreateResolveState(comp.Owner);
 
-		// Resolve skeleton
-		if (state.Skeleton.Resolve(ResourceSystem, comp.SkeletonRef))
+		// Resolve skeleton from resource ref. Skip if no ref is set — the
+		// skeleton may have been assigned directly (programmatic setup).
+		if (comp.SkeletonRef.IsValid)
 		{
-			let res = state.Skeleton.Handle.Resource;
-			comp.Skeleton = (res != null) ? res.Skeleton : null;
+			if (state.Skeleton.Resolve(ResourceSystem, comp.SkeletonRef))
+			{
+				let res = state.Skeleton.Handle.Resource;
+				comp.Skeleton = (res != null) ? res.Skeleton : null;
+			}
 		}
-		else if (!comp.SkeletonRef.IsValid && comp.Skeleton != null)
-			comp.Skeleton = null;
 
-		// Resolve clip
-		if (state.Clip.Resolve(ResourceSystem, comp.ClipRef))
+		// Resolve clip from resource ref. Same logic — skip if no ref.
+		if (comp.ClipRef.IsValid)
 		{
-			let res = state.Clip.Handle.Resource;
-			comp.CurrentClip = (res != null) ? res.Clip : null;
+			if (state.Clip.Resolve(ResourceSystem, comp.ClipRef))
+			{
+				let res = state.Clip.Handle.Resource;
+				comp.CurrentClip = (res != null) ? res.Clip : null;
+			}
 		}
-		else if (!comp.ClipRef.IsValid && comp.CurrentClip != null)
-			comp.CurrentClip = null;
 	}
 
 	private SkeletalAnimResolveState GetOrCreateResolveState(EntityHandle entity)
