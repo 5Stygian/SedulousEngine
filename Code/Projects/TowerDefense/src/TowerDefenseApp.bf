@@ -15,6 +15,8 @@ using Sedulous.Images.STB;
 using Sedulous.Images.SDL;
 using Sedulous.Messaging.Runtime;
 using Sedulous.Engine;
+using Sedulous.Engine.UI;
+using Sedulous.UI;
 
 class TowerDefenseApp : EngineApplication
 {
@@ -32,6 +34,12 @@ class TowerDefenseApp : EngineApplication
 
 	// Tower placement
 	private TowerPlacement mTowerPlacement = new .() ~ delete _;
+
+	// UI
+	private HUDManager mHUD = new .() ~ delete _;
+	private TowerSelectionPanel mTowerPanel = new .() ~ delete _;
+	private MainMenuUI mMainMenu = new .() ~ delete _;
+	private GameOverUI mGameOverUI = new .() ~ delete _;
 
 	// ==================== Configuration ====================
 
@@ -126,16 +134,10 @@ class TowerDefenseApp : EngineApplication
 		// Reduce ambient lighting for better contrast with shadows
 		renderSub.RenderContext.LightBuffer.AmbientColor = .(0.05f, 0.05f, 0.08f);
 
+		// Set up UI
+		SetupUI();
+
 		Console.WriteLine("=== Tower Defense Ready ===");
-		Console.WriteLine("Controls:");
-		Console.WriteLine("  WASD / Arrows  - Pan camera");
-		Console.WriteLine("  Scroll wheel   - Zoom");
-		Console.WriteLine("  Enter          - Start game (enables placement)");
-		Console.WriteLine("  1-4            - Select tower (1=Ballista, 2=Cannon, 3=Catapult, 4=Turret)");
-		Console.WriteLine("  0              - Deselect tower");
-		Console.WriteLine("  Left click     - Place tower on green slot");
-		Console.WriteLine("  Space          - Start next wave");
-		Console.WriteLine("  Escape         - Quit");
 	}
 
 	// ==================== Update ====================
@@ -156,6 +158,8 @@ class TowerDefenseApp : EngineApplication
 		if (keyboard.IsKeyPressed(.Return) && mGameSub.Phase == .MainMenu)
 		{
 			mGameSub.SetPhase(.Playing);
+			mMainMenu.Hide();
+			mTowerPanel.SetVisible(true);
 			Console.WriteLine("[Game] Playing - place towers, then press Space to start wave");
 		}
 
@@ -194,6 +198,38 @@ class TowerDefenseApp : EngineApplication
 
 	protected override void OnShutdown()
 	{
+		// Clean up UI message subscriptions
+		let messaging = Context.GetSubsystem<MessagingSubsystem>();
+		let bus = messaging?.Bus;
+		mHUD.Shutdown(bus);
+		mGameOverUI.Shutdown(bus);
+
 		mModels.Shutdown();
+	}
+
+	// ==================== UI Setup ====================
+
+	private void SetupUI()
+	{
+		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
+		if (uiSub?.ScreenView == null)
+			return;
+
+		let root = uiSub.ScreenView.Root;
+		let messaging = Context.GetSubsystem<MessagingSubsystem>();
+		let bus = messaging?.Bus;
+
+		// HUD (top bar - gold, lives, wave)
+		mHUD.Setup(root, bus, mGameSub);
+
+		// Tower selection panel (bottom bar - hidden until game starts)
+		mTowerPanel.Setup(root, mTowerPlacement, mGameSub);
+		mTowerPanel.SetVisible(false);
+
+		// Main menu overlay (shown initially)
+		mMainMenu.Setup(root, mGameSub);
+
+		// Game over overlay (hidden until game ends)
+		mGameOverUI.Setup(root, bus, mGameSub);
 	}
 }
