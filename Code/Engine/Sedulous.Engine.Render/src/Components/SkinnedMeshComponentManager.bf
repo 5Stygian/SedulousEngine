@@ -145,52 +145,63 @@ class SkinnedMeshComponentManager : ComponentManager<SkinnedMeshComponent>, IRen
 			comp.MeshHandle = meshHandle;
 			comp.LocalBounds = bounds;
 
-			// Create bone buffer from animation component's skeleton
-			if (!comp.BoneBufferHandle.IsValid && Scene != null)
+			// Create bone buffer — prefer skeleton from animation component,
+			// fall back to mesh's RequiredBoneCount for T-pose rendering.
+			if (!comp.BoneBufferHandle.IsValid && GPUResources != null)
 			{
-				Skeleton skeleton = null;
+				uint16 boneCount = 0;
 
-				// Check graph component first
-				let graphMgr = Scene.GetModule<AnimationGraphComponentManager>();
-				let graphComp = (graphMgr != null) ? graphMgr.GetForEntity(comp.Owner) : null;
-				if (graphComp != null)
-					skeleton = graphComp.Skeleton;
-
-				// Fall back to skeletal animation component
-				if (skeleton == null)
+				// Try to get bone count from animation component's skeleton
+				if (Scene != null)
 				{
-					let animMgr = Scene.GetModule<SkeletalAnimationComponentManager>();
-					let animComp = (animMgr != null) ? animMgr.GetForEntity(comp.Owner) : null;
-					if (animComp != null)
-						skeleton = animComp.Skeleton;
+					Skeleton skeleton = null;
+
+					let graphMgr = Scene.GetModule<AnimationGraphComponentManager>();
+					let graphComp = (graphMgr != null) ? graphMgr.GetForEntity(comp.Owner) : null;
+					if (graphComp != null)
+						skeleton = graphComp.Skeleton;
+
+					if (skeleton == null)
+					{
+						let animMgr = Scene.GetModule<SkeletalAnimationComponentManager>();
+						let animComp = (animMgr != null) ? animMgr.GetForEntity(comp.Owner) : null;
+						if (animComp != null)
+							skeleton = animComp.Skeleton;
+					}
+
+					if (skeleton != null)
+						boneCount = (uint16)skeleton.BoneCount;
 				}
 
-				if (skeleton != null)
+				// Fall back to mesh's required bone count (from vertex joint indices)
+				if (boneCount == 0)
 				{
-					let boneCount = (uint16)skeleton.BoneCount;
-					if (boneCount > 0)
+					let gpuMesh = GPUResources.GetMesh(comp.MeshHandle);
+					if (gpuMesh != null && gpuMesh.IsSkinned)
+						boneCount = gpuMesh.RequiredBoneCount;
+				}
+
+				if (boneCount > 0)
+				{
+					if (GPUResources.CreateBoneBuffer(boneCount) case .Ok(let boneHandle))
 					{
-						if (GPUResources.CreateBoneBuffer(boneCount) case .Ok(let boneHandle))
+						comp.BoneBufferHandle = boneHandle;
+
+						// Upload identity matrices so the mesh renders in bind pose
+						// (T-pose) until animation overwrites them.
+						let boneBuffer = GPUResources.GetBoneBuffer(boneHandle);
+						if (boneBuffer != null && boneBuffer.Buffer != null)
 						{
-							comp.BoneBufferHandle = boneHandle;
+							let bindPose = scope Matrix[boneCount];
+							for (int i = 0; i < boneCount; i++)
+								bindPose[i] = .Identity;
 
-							// Upload bind-pose (identity skinning) matrices so the mesh is
-							// visible in editor mode without simulation. Animation overwrites
-							// these each frame when simulating.
-							let boneBuffer = GPUResources.GetBoneBuffer(boneHandle);
-							if (boneBuffer != null && boneBuffer.Buffer != null)
-							{
-								let bindPose = scope Matrix[boneCount];
-								for (int i = 0; i < boneCount; i++)
-									bindPose[i] = .Identity;
-
-								let matrixSize = (uint64)(boneCount * sizeof(Matrix));
-								TransferHelper.WriteMappedBuffer(boneBuffer.Buffer, 0,
-									Span<uint8>((uint8*)&bindPose[0], (int)matrixSize));
-								// Previous frame = same bind pose
-								TransferHelper.WriteMappedBuffer(boneBuffer.Buffer, matrixSize,
-									Span<uint8>((uint8*)&bindPose[0], (int)matrixSize));
-							}
+							let matrixSize = (uint64)(boneCount * sizeof(Matrix));
+							TransferHelper.WriteMappedBuffer(boneBuffer.Buffer, 0,
+								Span<uint8>((uint8*)&bindPose[0], (int)matrixSize));
+							// Previous frame = same bind pose
+							TransferHelper.WriteMappedBuffer(boneBuffer.Buffer, matrixSize,
+								Span<uint8>((uint8*)&bindPose[0], (int)matrixSize));
 						}
 					}
 				}

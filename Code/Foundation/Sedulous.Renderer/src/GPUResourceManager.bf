@@ -184,6 +184,25 @@ public class GPUResourceManager : IDisposable
 		gpuMesh.IndexFormat = desc.IndexFormat;
 		gpuMesh.Bounds = desc.Bounds;
 		gpuMesh.IsSkinned = desc.IsSkinned;
+
+		// Scan vertex joint indices to determine required bone count
+		if (desc.IsSkinned && desc.VertexData != null && desc.VertexCount > 0)
+		{
+			uint16 maxJoint = 0;
+			let jointOffset = 48; // SkinnedVertex joints at offset 48 (4x uint16)
+			for (uint32 v = 0; v < desc.VertexCount; v++)
+			{
+				let vertPtr = desc.VertexData + v * desc.VertexStride + jointOffset;
+				let joints = (uint16*)vertPtr;
+				for (int j = 0; j < 4; j++)
+				{
+					if (joints[j] > maxJoint)
+						maxJoint = joints[j];
+				}
+			}
+			gpuMesh.RequiredBoneCount = maxJoint + 1;
+		}
+
 		gpuMesh.RefCount = 1;
 		gpuMesh.Generation = generation;
 		gpuMesh.IsActive = true;

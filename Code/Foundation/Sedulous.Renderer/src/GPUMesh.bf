@@ -48,6 +48,10 @@ public class GPUMesh
 	public bool IsActive;
 	public bool IsSkinned;
 
+	/// Number of bones required by this skinned mesh (max joint index + 1).
+	/// Only valid when IsSkinned is true. Determined from vertex joint indices at upload.
+	public uint16 RequiredBoneCount;
+
 	/// Frees GPU resources.
 	public void Release(IDevice device)
 	{
