@@ -143,7 +143,8 @@ static class VulkanConversions
 		if (usage.HasFlag(.Vertex))    flags |= .VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 		if (usage.HasFlag(.Index))     flags |= .VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
 		if (usage.HasFlag(.Uniform))   flags |= .VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-		if (usage.HasFlag(.Storage))   flags |= .VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		if (usage.HasFlag(.Storage))       flags |= .VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		if (usage.HasFlag(.StorageRead))   flags |= .VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
 		if (usage.HasFlag(.Indirect))  flags |= .VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
 		if (usage.HasFlag(.AccelStructInput))
 			flags |= .VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR |

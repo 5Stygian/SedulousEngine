@@ -34,8 +34,15 @@ enum BufferUsage : uint32
 	Index           = 1 << 3,
 	/// Buffer can be used as a uniform (constant) buffer.
 	Uniform         = 1 << 4,
-	/// Buffer can be used as a storage buffer (SSBO / UAV).
+	/// Buffer can be used as a read-write storage buffer (SSBO / UAV).
+	/// Not compatible with CpuToGpu memory on DX12 (UPLOAD heaps cannot have
+	/// ALLOW_UNORDERED_ACCESS). Use StorageRead for shader-read-only buffers
+	/// that need CpuToGpu mapping.
 	Storage         = 1 << 5,
+	/// Buffer can be used as a read-only storage buffer (SSBO / SRV).
+	/// Unlike Storage, this is compatible with CpuToGpu memory on DX12
+	/// because it does not require ALLOW_UNORDERED_ACCESS.
+	StorageRead     = 1 << 10,
 	/// Buffer can be used for indirect draw/dispatch arguments.
 	Indirect        = 1 << 6,
 	/// Buffer can be used as input for acceleration structure builds (ray tracing extension).

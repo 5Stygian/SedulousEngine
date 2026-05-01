@@ -87,16 +87,19 @@ class ValidatedDevice : IDevice
 		}
 
 		// DX12 portability: UPLOAD/READBACK heaps cannot have UAV (Storage) usage.
-		// Vulkan allows this but DX12 does not. Use a staging + GPU copy pattern instead.
+		// Vulkan allows this but DX12 does not. Use StorageRead for read-only
+		// structured buffers, or a staging + GPU copy pattern for read-write.
 		if (desc.Memory == .CpuToGpu && desc.Usage.HasFlag(.Storage))
 		{
 			ValidationLogger.Error(
 				"""
-				CreateBuffer: Storage usage is not compatible with CpuToGpu memory.
+				CreateBuffer: Storage (read-write) usage is not compatible with CpuToGpu memory.
 				DX12 UPLOAD heaps cannot have ALLOW_UNORDERED_ACCESS.
-				Use a staging buffer (CpuToGpu, CopySrc) + GPU buffer (GpuOnly, Storage | CopyDst) instead.
+				If the buffer is shader-read-only (StructuredBuffer, not RWStructuredBuffer),
+				use StorageRead instead of Storage.
+				For true read-write access, use GpuOnly memory with a staging copy pattern.
 				""");
-			//return .Err;
+			return .Err;
 		}
 
 		if (desc.Memory == .GpuToCpu && desc.Usage.HasFlag(.Storage))
@@ -106,7 +109,7 @@ class ValidatedDevice : IDevice
 				CreateBuffer: Storage usage is not compatible with GpuToCpu memory.
 				"DX12 READBACK heaps cannot have ALLOW_UNORDERED_ACCESS.
 				""");
-			//return .Err;
+			return .Err;
 		}
 
 		let result = mInner.CreateBuffer(desc);
