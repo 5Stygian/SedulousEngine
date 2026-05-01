@@ -207,6 +207,23 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		QueueDeleteNode(panel);
 	}
 
+	/// Activates (selects) a panel's tab in its parent tab group.
+	/// No-op if the panel is not in a tab group.
+	public void ActivatePanel(DockablePanel panel)
+	{
+		if (let tabGroup = panel.Parent as DockTabGroup)
+		{
+			for (int32 i = 0; i < tabGroup.PanelCount; i++)
+			{
+				if (tabGroup.GetPanel(i) === panel)
+				{
+					tabGroup.SelectedIndex = i;
+					return;
+				}
+			}
+		}
+	}
+
 	/// Re-dock a floating window back into the dock tree.
 	public void RedockFloatingWindow(FloatingWindow floating)
 	{
