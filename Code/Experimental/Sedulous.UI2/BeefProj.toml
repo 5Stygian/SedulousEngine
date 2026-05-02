@@ -4,3 +4,12 @@ FileVersion = 1
 Name = "Sedulous.UI2"
 TargetType = "BeefLib"
 StartupObject = "Sedulous.UI2.Program"
+
+[Dependencies]
+corlib = "*"
+"Sedulous.Core" = "*"
+"Sedulous.Core.Mathematics" = "*"
+"Sedulous.VG" = "*"
+"Sedulous.Fonts" = "*"
+"Sedulous.Images" = "*"
+"Sedulous.VG.SVG" = "*"

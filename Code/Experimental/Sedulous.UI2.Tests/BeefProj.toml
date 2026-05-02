@@ -4,3 +4,8 @@ FileVersion = 1
 Name = "Sedulous.UI2.Tests"
 TargetType = "BeefTest"
 StartupObject = "Sedulous.UI2.Tests.Program"
+
+[Dependencies]
+corlib = "*"
+"Sedulous.UI2" = "*"
+"Sedulous.Core.Mathematics" = "*"

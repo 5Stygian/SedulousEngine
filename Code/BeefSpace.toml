@@ -2,7 +2,7 @@ FileVersion = 1
 Locked = ["Bulkan", "cgltf-Beef", "cimgui-Beef", "Nuklear-Beef", "Dxc-Beef", "glslang-Beef", "SDL3", "SPIRV-Cross", "stb_image-Beef", "stb_truetype-Beef", "stb_vorbis-Beef", "dr_libs-Beef", "ufbx-Beef", "Win32", "joltc-Beef", "SDL3_image", "recastnavigation-Beef"]
 
 [Workspace]
-StartupProject = "EngineSandbox"
+StartupProject = "UI2Sandbox"
 
 [Projects]
 "Sedulous.RHI" = {Path = "Foundation/Sedulous.RHI"}
@@ -195,6 +195,7 @@ UI2Sandbox = {Path = "Experimental/UI2Sandbox"}
 "Sedulous.Audio.Effects" = {Path = "Foundation/Sedulous.Audio.Effects"}
 "Sedulous.Audio.Effects.Tests" = {Path = "Foundation/Sedulous.Audio.Effects.Tests"}
 TowerDefense = {Path = "Projects/TowerDefense"}
+"Sedulous.UI2.Runtime" = {Path = "Experimental/Sedulous.UI2.Runtime"}
 
 [WorkspaceFolders]
 Dependencies = ["corlib", "Bulkan", "cgltf-Beef", "cimgui-Beef", "Nuklear-Beef", "Dxc-Beef", "dr_libs-Beef", "glslang-Beef", "SDL3", "SPIRV-Cross", "stb_image-Beef", "stb_truetype-Beef", "stb_vorbis-Beef", "ufbx-Beef", "Win32", "joltc-Beef", "SDL3_image", "recastnavigation-Beef"]
@@ -229,6 +230,6 @@ Editor = ["Sedulous.Editor.Core", "Sedulous.Editor.App"]
 Tools = ["ModelViewer"]
 Experimental = []
 "Experimental/Slug" = ["Sedulous.Slug", "Sedulous.Slug.Renderer", "Sedulous.Slug.Tests", "Sedulous.Slug.TTF", "SlugSample"]
-"Experimental/UI2" = ["Sedulous.UI2", "Sedulous.UI2.Tests", "Sedulous.UI2.Shell", "Sedulous.UI2.Toolkit", "UI2Sandbox"]
+"Experimental/UI2" = ["Sedulous.UI2", "Sedulous.UI2.Tests", "Sedulous.UI2.Shell", "Sedulous.UI2.Toolkit", "UI2Sandbox", "Sedulous.UI2.Runtime"]
 "Foundation/Messaging" = ["Sedulous.Messaging", "Sedulous.Messaging.Runtime", "Sedulous.Messaging.Tests"]
 Projects = ["TowerDefense"]
