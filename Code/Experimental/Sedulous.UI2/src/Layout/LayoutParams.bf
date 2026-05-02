@@ -4,7 +4,7 @@ using Sedulous.Core.Mathematics;
 
 /// Base layout parameters for a view within a container.
 /// Container-specific subclasses add layout-specific fields
-/// (e.g., Flex.LayoutParams adds Grow/Shrink).
+/// (e.g., FlexLayout.LayoutParams adds Grow/Shrink).
 public class LayoutParams
 {
 	/// Desired width. Default: Wrap (fit to content).

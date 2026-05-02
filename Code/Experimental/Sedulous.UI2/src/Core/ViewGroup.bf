@@ -6,7 +6,7 @@ using Sedulous.Core.Mathematics;
 
 /// Container view that manages a list of child views.
 /// Subclasses implement OnMeasure/OnLayout to arrange children
-/// (Flex, Grid, DockView, etc.).
+/// (FlexLayout, GridLayout, DockLayout, etc.).
 public class ViewGroup : View
 {
 	private List<View> mChildren = new .();

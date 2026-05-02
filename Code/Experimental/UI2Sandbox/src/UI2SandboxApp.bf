@@ -57,9 +57,82 @@ class UI2SandboxApp : Application
 
 	private void BuildUI()
 	{
-		// Add a simple demo view that draws a dark background with text
-		let demoView = new DemoView();
-		mRoot.AddView(demoView);
+		// Main vertical layout filling the window
+		let main = new FlexLayout() { Direction = .Vertical };
+		mRoot.AddView(main);
+
+		// Header
+		let header = new ColorBox(.(40, 42, 50, 255), 0, 36);
+		main.AddView(header, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(36)) });
+
+		// Body: horizontal split
+		let body = new FlexLayout() { Direction = .Horizontal, Spacing = 2 };
+		main.AddView(body, new FlexLayout.LayoutParams() { Width = .Match, Grow = 1 });
+
+		// Left panel — DockLayout demo
+		let leftPanel = new DockLayout();
+		leftPanel.Padding = .(4);
+		body.AddView(leftPanel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(250)), Height = .Match });
+
+		let dockTop = new ColorBox(.(60, 130, 60, 255), 240, 30);
+		leftPanel.AddView(dockTop, new DockLayout.LayoutParams(.Top));
+
+		let dockBottom = new ColorBox(.(130, 60, 60, 255), 240, 30);
+		leftPanel.AddView(dockBottom, new DockLayout.LayoutParams(.Bottom));
+
+		let dockLeft = new ColorBox(.(60, 60, 130, 255), 50, 0);
+		leftPanel.AddView(dockLeft, new DockLayout.LayoutParams(.Left));
+
+		let dockCenter = new ColorBox(.(50, 52, 58, 255));
+		leftPanel.AddView(dockCenter, new DockLayout.LayoutParams(.Fill));
+
+		// Center panel — Grid demo
+		let centerPanel = new GridLayout();
+		centerPanel.Columns.Add(.Flex(1));
+		centerPanel.Columns.Add(.Flex(2));
+		centerPanel.Columns.Add(.Flex(1));
+		centerPanel.Rows.Add(.Fixed(40));
+		centerPanel.Rows.Add(.Flex(1));
+		centerPanel.Rows.Add(.Fixed(40));
+		centerPanel.ColumnSpacing = 2;
+		centerPanel.RowSpacing = 2;
+		body.AddView(centerPanel, new FlexLayout.LayoutParams() { Grow = 1, Height = .Match });
+
+		// Fill grid cells with colored boxes
+		Color[?] gridColors = .(
+			.(80, 60, 60, 255), .(60, 80, 60, 255), .(60, 60, 80, 255),
+			.(70, 50, 50, 255), .(50, 70, 50, 255), .(50, 50, 70, 255),
+			.(90, 70, 70, 255), .(70, 90, 70, 255), .(70, 70, 90, 255)
+		);
+		for (int r = 0; r < 3; r++)
+		{
+			for (int c = 0; c < 3; c++)
+			{
+				let cell = new ColorBox(gridColors[r * 3 + c]);
+				centerPanel.AddView(cell, new GridLayout.LayoutParams() { Row = (int32)r, Column = (int32)c });
+			}
+		}
+
+		// Right panel — FlowLayout demo
+		let rightPanel = new FlowLayout() { Orientation = .Horizontal, HSpacing = 4, VSpacing = 4 };
+		rightPanel.Padding = .(4);
+		body.AddView(rightPanel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)), Height = .Match });
+
+		Color[?] flowColors = .(
+			.(100, 60, 80, 255), .(60, 100, 80, 255), .(80, 60, 100, 255),
+			.(100, 80, 60, 255), .(60, 80, 100, 255), .(80, 100, 60, 255),
+			.(90, 70, 90, 255), .(70, 90, 70, 255)
+		);
+		for (int i = 0; i < flowColors.Count; i++)
+		{
+			let size = 30 + (i % 3) * 15;
+			let @box = new ColorBox(flowColors[i], (float)size, (float)size);
+			rightPanel.AddView(@box);
+		}
+
+		// Footer
+		let footer = new ColorBox(.(35, 37, 43, 255), 0, 24);
+		main.AddView(footer, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
 	}
 
 	protected override void OnInput(FrameContext frame)
@@ -130,40 +203,30 @@ class UI2SandboxApp : Application
 	}
 }
 
-/// Simple demo view that fills with a dark background and draws text.
-/// Temporary — will be replaced by real controls in later phases.
-class DemoView : View
+/// Simple colored rectangle view for layout demos.
+class ColorBox : View
 {
+	public Color Color;
+	private float mDesiredW;
+	private float mDesiredH;
+
+	public this(Color color, float desiredW = 0, float desiredH = 0)
+	{
+		Color = color;
+		mDesiredW = desiredW;
+		mDesiredH = desiredH;
+	}
+
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		MeasuredSize = .(constraints.ConstrainWidth(constraints.MaxWidth),
-			constraints.ConstrainHeight(constraints.MaxHeight));
+		// If desired size is 0, fill available space.
+		let w = (mDesiredW > 0) ? mDesiredW : constraints.MaxWidth;
+		let h = (mDesiredH > 0) ? mDesiredH : constraints.MaxHeight;
+		MeasuredSize = .(constraints.ConstrainWidth(w), constraints.ConstrainHeight(h));
 	}
 
 	public override void OnDraw(UIDrawContext ctx)
 	{
-		let bounds = RectangleF(0, 0, Width, Height);
-
-		// Dark background
-		ctx.VG.FillRect(bounds, .(30, 32, 38, 255));
-
-		// Title text
-		if (ctx.FontService != null)
-		{
-			let font = ctx.FontService.GetFont(24);
-			if (font != null)
-				ctx.VG.DrawText("UI2 Sandbox", font, .(20, 20, Width - 40, 30), .Left, .Top, .(220, 220, 230, 255));
-
-			let smallFont = ctx.FontService.GetFont(16);
-			if (smallFont != null)
-			{
-				ctx.VG.DrawText("F2: Toggle Bounds | F3: Padding/Margin | F4: Hit/Focus | Esc: Quit",
-					smallFont, .(20, 56, Width - 40, 20), .Left, .Top, .(140, 140, 150, 255));
-
-				ctx.VG.DrawText(scope String()..AppendF("Viewport: {}x{} | DPI: {:.1}",
-					(int)Width, (int)Height, Root?.DpiScale ?? 1.0f),
-					smallFont, .(20, 80, Width - 40, 20), .Left, .Top, .(100, 100, 110, 255));
-			}
-		}
+		ctx.VG.FillRect(.(0, 0, Width, Height), Color);
 	}
 }
