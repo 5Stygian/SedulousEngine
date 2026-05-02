@@ -17,6 +17,12 @@ class PostProcessContext
 	/// Scene depth (read-only, for depth-aware effects like DoF, fog, SSAO).
 	public RGHandle SceneDepth;
 
+	/// View-space normals (RG16Float, for SSAO and similar effects).
+	public RGHandle SceneNormals;
+
+	/// Screen-space motion vectors (RG16Float, for TAA and motion blur).
+	public RGHandle MotionVectors;
+
 	/// Auxiliary textures produced by earlier effects (e.g., "BloomTexture").
 	private Dictionary<String, RGHandle> mAuxTextures = new .() ~ DeleteDictionaryAndKeys!(_);
 
@@ -46,6 +52,8 @@ class PostProcessContext
 		Input = .Invalid;
 		Output = .Invalid;
 		SceneDepth = .Invalid;
+		SceneNormals = .Invalid;
+		MotionVectors = .Invalid;
 		DeleteDictionaryAndKeys!(mAuxTextures);
 		mAuxTextures = new .();
 	}

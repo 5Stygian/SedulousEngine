@@ -25,6 +25,12 @@ class RenderView
 	/// Camera world-space position.
 	public Vector3 CameraPosition;
 
+	/// Sub-pixel jitter offset in clip space (applied to projection for TAA).
+	public Vector2 JitterOffset;
+
+	/// Previous frame's jitter offset (for unjittering in TAA resolve).
+	public Vector2 PrevJitterOffset;
+
 	/// Near clip plane distance.
 	public float NearPlane = 0.1f;
 

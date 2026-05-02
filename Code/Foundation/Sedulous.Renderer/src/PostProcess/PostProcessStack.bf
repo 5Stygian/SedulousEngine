@@ -70,6 +70,8 @@ class PostProcessStack
 	{
 		mContext.Clear();
 		mContext.SceneDepth = sceneDepth;
+		mContext.SceneNormals = graph.GetResource("SceneNormals");
+		mContext.MotionVectors = graph.GetResource("MotionVectors");
 
 		// Count active effects
 		int activeCount = 0;

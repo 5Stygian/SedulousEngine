@@ -1422,15 +1422,15 @@ class SandboxApp : EngineApplication
 		}
 
 		// Particle system bounding boxes.
-		DrawParticleBounds(dbg, mSparksEffect, .Yellow);
-		DrawParticleBounds(dbg, mSmokeEffect, .LightGray);
-		DrawParticleBounds(dbg, mMagicEffect, .Cyan);
-		DrawParticleBounds(dbg, mFireEffect, .Red);
-		DrawParticleBounds(dbg, mTrailEffect, .Blue);
-		DrawParticleBounds(dbg, mFireworksEffect, .Magenta);
+		//DrawParticleBounds(dbg, mSparksEffect, .Yellow);
+		//DrawParticleBounds(dbg, mSmokeEffect, .LightGray);
+		//DrawParticleBounds(dbg, mMagicEffect, .Cyan);
+		//DrawParticleBounds(dbg, mFireEffect, .Red);
+		//DrawParticleBounds(dbg, mTrailEffect, .Blue);
+		//DrawParticleBounds(dbg, mFireworksEffect, .Magenta);
 
 		// Physics debug shapes.
-		DrawPhysicsDebug(dbg);
+		//DrawPhysicsDebug(dbg);
 	}
 
 	private void DrawPhysicsDebug(DebugDraw dbg)
@@ -1749,7 +1749,7 @@ class SandboxApp : EngineApplication
 		let hudPanel = new Panel();
 		hudPanel.Background = new ColorDrawable(.(0, 0, 0, 140));
 		hudPanel.Padding = .(8, 6, 8, 6);
-		hud.AddView(hudPanel, new AbsoluteLayout.LayoutParams() { X = 4, Y = 4, Width = 420, Height = 70 });
+		hud.AddView(hudPanel, new AbsoluteLayout.LayoutParams() { X = 4, Y = 4, Width = 420, Height = 460 });
 
 		let hudLayout = new LinearLayout();
 		hudLayout.Orientation = .Vertical;
@@ -1768,14 +1768,171 @@ class SandboxApp : EngineApplication
 		mControlsLabel.FontSize = 11;
 		hudLayout.AddView(mControlsLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
 
-		// Test button to confirm input works.
-		let btn = new Button();
-		btn.SetText("Click Me");
-		btn.OnClick.Add(new (b) =>
+		// Post-processing toggles
+		let ssaoToggle = new CheckBox();
+		ssaoToggle.SetText("SSAO");
+		ssaoToggle.IsChecked = false;
+		ssaoToggle.OnCheckedChanged.Add(new (cb, isChecked) =>
 		{
-			mControlsLabel.SetText("Button clicked!");
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline?.PostProcessStack != null)
+			{
+				let ssao = pipeline.PostProcessStack.GetEffect<SSAOEffect>();
+				if (ssao != null) ssao.Enabled = isChecked;
+			}
 		});
-		hudLayout.AddView(btn, new LinearLayout.LayoutParams() { Width = 100, Height = 24 });
+		hudLayout.AddView(ssaoToggle, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+
+		// SSAO parameter sliders
+		let radiusLabel = new Label();
+		radiusLabel.SetText("SSAO Radius: 0.50");
+		radiusLabel.FontSize = 11;
+		hudLayout.AddView(radiusLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+
+		let radiusSlider = new Slider();
+		radiusSlider.Min = 0.1f;
+		radiusSlider.Max = 3.0f;
+		radiusSlider.Value = 0.5f;
+		radiusSlider.OnValueChanged.Add(new (s, val) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline?.PostProcessStack != null)
+			{
+				let ssao = pipeline.PostProcessStack.GetEffect<SSAOEffect>();
+				if (ssao != null) ssao.Radius = val;
+			}
+			radiusLabel.SetText(scope $"SSAO Radius: {val:F2}");
+		});
+		hudLayout.AddView(radiusSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+
+		let intensityLabel = new Label();
+		intensityLabel.SetText("SSAO Intensity: 1.50");
+		intensityLabel.FontSize = 11;
+		hudLayout.AddView(intensityLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+
+		let intensitySlider = new Slider();
+		intensitySlider.Min = 0.5f;
+		intensitySlider.Max = 5.0f;
+		intensitySlider.Value = 1.5f;
+		intensitySlider.OnValueChanged.Add(new (s, val) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline?.PostProcessStack != null)
+			{
+				let ssao = pipeline.PostProcessStack.GetEffect<SSAOEffect>();
+				if (ssao != null) ssao.Intensity = val;
+			}
+			intensityLabel.SetText(scope $"SSAO Intensity: {val:F2}");
+		});
+		hudLayout.AddView(intensitySlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+
+		let biasLabel = new Label();
+		biasLabel.SetText("SSAO Bias: 0.025");
+		biasLabel.FontSize = 11;
+		hudLayout.AddView(biasLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+
+		let biasSlider = new Slider();
+		biasSlider.Min = 0.0f;
+		biasSlider.Max = 0.2f;
+		biasSlider.Value = 0.025f;
+		biasSlider.OnValueChanged.Add(new (s, val) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline?.PostProcessStack != null)
+			{
+				let ssao = pipeline.PostProcessStack.GetEffect<SSAOEffect>();
+				if (ssao != null) ssao.Bias = val;
+			}
+			biasLabel.SetText(scope $"SSAO Bias: {val:F3}");
+		});
+		hudLayout.AddView(biasSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+
+		// AA toggles — FXAA and TAA are mutually exclusive
+		let fxaaToggle = new CheckBox();
+		fxaaToggle.SetText("FXAA");
+		fxaaToggle.IsChecked = true;
+		hudLayout.AddView(fxaaToggle, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+
+		let taaToggle = new CheckBox();
+		taaToggle.SetText("TAA");
+		taaToggle.IsChecked = false;
+		hudLayout.AddView(taaToggle, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+
+		fxaaToggle.OnCheckedChanged.Add(new (cb, isChecked) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline?.PostProcessStack != null)
+			{
+				let fxaa = pipeline.PostProcessStack.GetEffect<FXAAEffect>();
+				if (fxaa != null) fxaa.Enabled = isChecked;
+				if (isChecked && taaToggle.IsChecked)
+					taaToggle.IsChecked = false;
+			}
+		});
+
+		// TAA parameter sliders
+		let blendLabel = new Label();
+		blendLabel.SetText("TAA Blend: 0.95");
+		blendLabel.FontSize = 11;
+		hudLayout.AddView(blendLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+
+		let blendSlider = new Slider();
+		blendSlider.Min = 0.5f;
+		blendSlider.Max = 0.99f;
+		blendSlider.Value = 0.95f;
+		blendSlider.OnValueChanged.Add(new (s, val) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline?.PostProcessStack != null)
+			{
+				let taa = pipeline.PostProcessStack.GetEffect<TAAEffect>();
+				if (taa != null) taa.BlendFactor = val;
+			}
+			blendLabel.SetText(scope $"TAA Blend: {val:F2}");
+		});
+		hudLayout.AddView(blendSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+
+		let jitterLabel = new Label();
+		jitterLabel.SetText("Jitter Scale: 1.00");
+		jitterLabel.FontSize = 11;
+		hudLayout.AddView(jitterLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+
+		let jitterSlider = new Slider();
+		jitterSlider.Min = 0.0f;
+		jitterSlider.Max = 2.0f;
+		jitterSlider.Value = 1.0f;
+		jitterSlider.OnValueChanged.Add(new (s, val) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline != null)
+				pipeline.JitterScale = val;
+			jitterLabel.SetText(scope $"Jitter Scale: {val:F2}");
+		});
+		hudLayout.AddView(jitterSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+
+		taaToggle.OnCheckedChanged.Add(new (cb, isChecked) =>
+		{
+			let rs = Context.GetSubsystem<RenderSubsystem>();
+			let pipeline = (rs != null) ? rs.GetPipeline(mScene) : null;
+			if (pipeline != null)
+			{
+				pipeline.TAAEnabled = isChecked;
+				if (pipeline.PostProcessStack != null)
+				{
+					let taa = pipeline.PostProcessStack.GetEffect<TAAEffect>();
+					if (taa != null) taa.Enabled = isChecked;
+					if (isChecked && fxaaToggle.IsChecked)
+						fxaaToggle.IsChecked = false;
+				}
+			}
+		});
 	}
 
 	protected override void OnCleanup()

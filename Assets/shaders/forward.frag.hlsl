@@ -239,29 +239,46 @@ struct FragmentOutput
 
 // ==================== PBR Functions ====================
 
+// Geometric Specular Anti-Aliasing (Tokuyoshi & Kaplanyan 2019).
+// Widens roughness based on screen-space normal derivatives to prevent
+// sub-pixel specular aliasing on smooth metallic surfaces.
+float AdjustRoughness(float roughness, float3 N)
+{
+    float3 dNdx = ddx(N);
+    float3 dNdy = ddy(N);
+    float variance = dot(dNdx, dNdx) + dot(dNdy, dNdy);
+    float kernelRoughness = min(variance * 2.0, 0.18);
+    return saturate(roughness + kernelRoughness);
+}
+
+// GGX Normal Distribution Function.
 float DistributionGGX(float NdotH, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;
-    float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
-    return a2 / (PI * denom * denom);
+    float d = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    return a2 / (PI * d * d);
 }
 
-float GeometrySchlickGGX(float NdotV, float roughness)
+// Height-correlated Smith GGX visibility (joint approximation).
+// Includes the 1/(4*NdotV*NdotL) denominator — caller multiplies D*Vis*F directly.
+// Reference: Karis 2013, Heitz 2014.
+float VisibilitySmithGGX(float NdotV, float NdotL, float roughness)
 {
-    float r = roughness + 1.0;
-    float k = (r * r) / 8.0;
-    return NdotV / (NdotV * (1.0 - k) + k);
+    float a = roughness * roughness;
+    float lambdaV = NdotL * (NdotV * (1.0 - a) + a);
+    float lambdaL = NdotV * (NdotL * (1.0 - a) + a);
+    return 0.5 / (lambdaV + lambdaL + 0.00001);
 }
 
-float GeometrySmith(float NdotV, float NdotL, float roughness)
-{
-    return GeometrySchlickGGX(NdotV, roughness) * GeometrySchlickGGX(NdotL, roughness);
-}
-
+// Fresnel-Schlick with firefly prevention (ezEngine/Flax approach).
+// Limits F90 via saturate(50 * luminance(F0)) to prevent extreme specular
+// on low-reflectance materials at grazing angles.
 float3 FresnelSchlick(float cosTheta, float3 F0)
 {
-    return F0 + (1.0 - F0) * pow(saturate(1.0 - cosTheta), 5.0);
+    float f = pow(saturate(1.0 - cosTheta), 5.0);
+    float F90 = saturate(50.0 * dot(F0, float3(0.2126, 0.7152, 0.0722)));
+    return F0 + (F90 - F0) * f;
 }
 
 // ==================== Light Evaluation ====================
@@ -317,10 +334,13 @@ float3 EvaluateLight(GPULight light, float3 worldPos, float3 worldNormal, float 
     float shadow = SampleShadow(light, worldPos, worldNormal, geomNdotL, viewDepth);
 
     float D = DistributionGGX(NdotH, roughness);
-    float G = GeometrySmith(NdotV, NdotL, roughness);
+    float Vis = VisibilitySmithGGX(NdotV, NdotL, roughness);
     float3 F = FresnelSchlick(HdotV, F0);
 
-    float3 specular = (D * G * F) / (4.0 * NdotV * NdotL + 0.0001);
+    // D * Vis already includes the 1/(4*NdotV*NdotL) normalization.
+    // Fresnel firefly prevention in FresnelSchlick limits extreme grazing-angle
+    // reflections, so no hard specular cap is needed.
+    float3 specular = D * Vis * F;
 
     float3 kD = (1.0 - F) * (1.0 - metallic);
     float3 diffuse = kD * albedo / PI;
@@ -357,7 +377,7 @@ FragmentOutput main(FragmentInput input)
     // Combine texture samples with uniform values
     float3 albedo = BaseColor.rgb * albedoSample.rgb * input.Color.rgb;
     float alpha = BaseColor.a * albedoSample.a;
-    float roughness = max(Roughness * mrSample.g, 0.04);
+    float roughness = max(Roughness * mrSample.g, 0.045);
     float metallic = Metallic * mrSample.b;
     float ao = AO * aoSample;
     float3 emissive = EmissiveColor.rgb + emissiveSample;
@@ -384,6 +404,10 @@ FragmentOutput main(FragmentInput input)
         N = normalize(geomNormal);
 
     float3 V = normalize(CameraPosition - input.WorldPos);
+
+    // Geometric specular AA: widen roughness where normals change rapidly
+    // across screen pixels to prevent sub-pixel specular aliasing.
+    roughness = AdjustRoughness(roughness, N);
 
     // View-space depth (positive distance from camera) for cascade selection.
     float3 viewPos = mul(float4(input.WorldPos, 1.0), ViewMatrix).xyz;

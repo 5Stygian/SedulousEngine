@@ -26,6 +26,8 @@ public struct SceneUniforms
 	public float _Pad0;
 	public Vector2 ScreenSize;
 	public Vector2 InvScreenSize;
+	public Vector2 JitterOffset;
+	public Vector2 PrevJitterOffset;
 
 	public const uint64 Size = sizeof(Self);
 }

@@ -12,6 +12,7 @@ cbuffer TonemapParams : register(b0)
 
 Texture2D SceneColor : register(t0);
 Texture2D BloomTexture : register(t1);
+Texture2D AOTexture : register(t2);
 SamplerState LinearSampler : register(s0);
 
 struct FragmentInput
@@ -38,11 +39,13 @@ float4 main(FragmentInput input) : SV_Target
 
     float3 hdr = SceneColor.Sample(LinearSampler, uv).rgb;
 
-    // Add bloom contribution. BloomTexture is produced by BloomEffect and
-    // contains the soft glow from bright areas. When bloom is disabled,
-    // the fallback texture (scene color bound to both slots) is effectively
-    // a no-op since the additive contribution doesn't double the main color
-    // - the tonemap curve handles the extra brightness gracefully.
+    // Apply SSAO: multiply by ambient occlusion factor before bloom/tonemap.
+    // AOTexture is R8 where 1.0 = no occlusion, 0.0 = fully occluded.
+    // When SSAO is disabled, the fallback is a white (1.0) texture — no darkening.
+    float ao = AOTexture.Sample(LinearSampler, uv).r;
+    hdr *= ao;
+
+    // Add bloom contribution.
     float3 bloom = BloomTexture.Sample(LinearSampler, uv).rgb;
     hdr += bloom;
 

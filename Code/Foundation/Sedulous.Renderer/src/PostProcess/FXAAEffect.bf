@@ -6,9 +6,10 @@ using Sedulous.RenderGraph;
 using Sedulous.Shaders;
 using Sedulous.Profiler;
 
-/// ACES filmic tone mapping + gamma correction.
-/// Reads HDR scene color (and optional bloom), writes LDR output.
-class TonemapEffect : PostProcessEffect
+/// Fast Approximate Anti-Aliasing (FXAA 3.11 quality variant).
+/// Spatial anti-aliasing operating on LDR color — runs after tone mapping.
+/// Single fullscreen pass with luminance-based edge detection and directional search.
+class FXAAEffect : PostProcessEffect
 {
 	private Sedulous.RHI.IRenderPipeline mPipeline;
 	private IPipelineLayout mPipelineLayout;
@@ -16,21 +17,24 @@ class TonemapEffect : PostProcessEffect
 	private ISampler mSampler;
 	private IBuffer mParamsBuffer;
 	private IDevice mDevice;
+	private RenderContext mRenderContext;
 
 	// Per-frame bind groups (double-buffered to avoid use-after-free)
 	private const int MaxFrames = 2;
 	private IBindGroup[MaxFrames] mBindGroups;
 
-	/// Exposure multiplier (1.0 = no change).
-	public float Exposure = 1.0f;
+	/// Sub-pixel quality factor. 0.0 = off, 0.75 = default, 1.0 = maximum smoothing.
+	public float SubpixelQuality = 0.75f;
 
-	/// White point for tone curve.
-	public float WhitePoint = 11.2f;
+	/// Edge detection contrast threshold. Lower = more edges detected.
+	/// 0.166 = default, 0.125 = sharper, 0.063 = overkill.
+	public float EdgeThreshold = 0.166f;
 
-	/// Gamma correction value.
-	public float Gamma = 2.2f;
+	/// Minimum edge threshold. Avoids processing very dark areas where
+	/// contrast is low but visually insignificant.
+	public float EdgeThresholdMin = 0.0312f;
 
-	public override StringView Name => "Tonemap";
+	public override StringView Name => "FXAA";
 
 	public override Result<void> OnInitialize(RenderContext renderContext)
 	{
@@ -40,28 +44,25 @@ class TonemapEffect : PostProcessEffect
 		if (shaderSystem == null)
 			return .Err;
 
-		// Fullscreen triangle vertex shader (shared across post-process passes).
+		// Fullscreen triangle vertex shader (shared across post-process passes)
 		let vertResult = shaderSystem.GetShader("fullscreen", .Vertex);
 		if (vertResult case .Err)
 			return .Err;
 		let vertModule = vertResult.Value;
 
-		// Tonemap-specific fragment shader.
-		let fragResult = shaderSystem.GetShader("tonemap", .Fragment);
+		let fragResult = shaderSystem.GetShader("fxaa", .Fragment);
 		if (fragResult case .Err)
 			return .Err;
 		let fragModule = fragResult.Value;
 
-		// Bind group layout: b0 = params, t0 = HDR, t1 = bloom, t2 = AO, s0 = sampler
-		BindGroupLayoutEntry[5] entries = .(
+		// Bind group layout: b0 = params, t0 = scene color, s0 = linear sampler
+		BindGroupLayoutEntry[3] entries = .(
 			.UniformBuffer(0, .Fragment),
 			.SampledTexture(0, .Fragment),
-			.SampledTexture(1, .Fragment),
-			.SampledTexture(2, .Fragment),
 			.Sampler(0, .Fragment)
 		);
 
-		BindGroupLayoutDesc layoutDesc = .() { Label = "Tonemap BindGroup Layout", Entries = entries };
+		BindGroupLayoutDesc layoutDesc = .() { Label = "FXAA BindGroup Layout", Entries = entries };
 		if (mDevice.CreateBindGroupLayout(layoutDesc) case .Ok(let layout))
 			mBindGroupLayout = layout;
 		else
@@ -74,7 +75,7 @@ class TonemapEffect : PostProcessEffect
 		else
 			return .Err;
 
-		// Sampler
+		// Linear sampler for offset sampling
 		SamplerDesc samplerDesc = .()
 		{
 			MinFilter = .Linear,
@@ -92,8 +93,8 @@ class TonemapEffect : PostProcessEffect
 		// Params constant buffer
 		BufferDesc bufDesc = .()
 		{
-			Label = "Tonemap Params",
-			Size = TonemapParams.Size,
+			Label = "FXAA Params",
+			Size = FXAAParams.Size,
 			Usage = .Uniform,
 			Memory = .CpuToGpu
 		};
@@ -102,13 +103,14 @@ class TonemapEffect : PostProcessEffect
 		else
 			return .Err;
 
-		// Render pipeline (no vertex buffers - fullscreen triangle via SV_VertexID)
-		// Output format matches pipeline output (RGBA16Float) - blit handles final format conversion
+		// Render pipeline (fullscreen triangle, no vertex buffers)
+		// Output format matches pipeline output — FXAA runs after tonemap on LDR
+		// but the pipeline output is still RGBA16Float (the blit handles final format).
 		ColorTargetState[1] colorTargets = .(.() { Format = .RGBA16Float });
 
 		RenderPipelineDesc pipelineDesc = .()
 		{
-			Label = "Tonemap Pipeline",
+			Label = "FXAA Pipeline",
 			Layout = mPipelineLayout,
 			Vertex = .() { Shader = .(vertModule.Module, "main"), Buffers = default },
 			Fragment = .() { Shader = .(fragModule.Module, "main"), Targets = colorTargets },
@@ -127,80 +129,57 @@ class TonemapEffect : PostProcessEffect
 
 	public override void AddPasses(RenderGraph graph, RenderView view, RenderContext renderContext, PostProcessContext ctx)
 	{
-		using (Profiler.Begin("Tonemap"))
+		using (Profiler.Begin("FXAA"))
 		{
 
 		// Upload params
-		TonemapParams @params = .() { Exposure = Exposure, WhitePoint = WhitePoint, Gamma = Gamma };
-		TransferHelper.WriteMappedBuffer(mParamsBuffer, 0, Span<uint8>((uint8*)&@params, TonemapParams.Size));
+		FXAAParams @params = .()
+		{
+			TexelSizeX = 1.0f / Math.Max(view.Width, 1),
+			TexelSizeY = 1.0f / Math.Max(view.Height, 1),
+			SubpixelQuality = SubpixelQuality,
+			EdgeThreshold = EdgeThreshold,
+			EdgeThresholdMin = EdgeThresholdMin
+		};
+		TransferHelper.WriteMappedBuffer(mParamsBuffer, 0, Span<uint8>((uint8*)&@params, FXAAParams.Size));
 
 		let input = ctx.Input;
 		let output = ctx.Output;
-		let bloomHandle = ctx.GetAux("BloomTexture");
-		let aoHandle = ctx.GetAux("AOTexture");
 
-		graph.AddRenderPass("Tonemap", scope (builder) => {
+		graph.AddRenderPass("FXAA", scope (builder) => {
 			builder
-				.ReadTexture(input);
-
-			if (bloomHandle.IsValid)
-				builder.ReadTexture(bloomHandle);
-			if (aoHandle.IsValid)
-				builder.ReadTexture(aoHandle);
-
-			builder
+				.ReadTexture(input)
 				.SetColorTarget(0, output, .DontCare, .Store)
 				.NeverCull()
 				.SetExecute(new [=] (encoder) => {
-					ExecuteTonemap(encoder, view, graph, input, bloomHandle, aoHandle);
+					ExecuteFXAA(encoder, view, graph, input);
 				});
 		});
 
-		} // Tonemap profiler scope
+		} // FXAA profiler scope
 	}
 
-	private RenderContext mRenderContext;
-
-	private void ExecuteTonemap(IRenderPassEncoder encoder, RenderView view, RenderGraph graph,
-		RGHandle inputHandle, RGHandle bloomHandle, RGHandle aoHandle)
+	private void ExecuteFXAA(IRenderPassEncoder encoder, RenderView view, RenderGraph graph, RGHandle inputHandle)
 	{
 		let inputView = graph.GetTextureView(inputHandle);
 		if (inputView == null)
 			return;
 
-		// Get bloom view. Fallback to 1×1 black texture (adds zero).
-		ITextureView bloomView = null;
-		if (bloomHandle.IsValid)
-			bloomView = graph.GetTextureView(bloomHandle);
-		if (bloomView == null)
-			bloomView = mRenderContext?.MaterialSystem?.BlackTexture;
-
-		// Get AO view. Fallback to 1×1 white texture (no darkening).
-		ITextureView aoView = null;
-		if (aoHandle.IsValid)
-			aoView = graph.GetTextureView(aoHandle);
-		if (aoView == null)
-			aoView = mRenderContext?.MaterialSystem?.WhiteTexture;
-
 		let frameSlot = view.FrameIndex % MaxFrames;
 
+		// Destroy previous bind group for this frame slot
 		if (mBindGroups[frameSlot] != null)
 			mDevice.DestroyBindGroup(ref mBindGroups[frameSlot]);
 
-		if (bloomView != null && aoView != null)
-		{
-			BindGroupEntry[5] bgEntries = .(
-				BindGroupEntry.Buffer(mParamsBuffer, 0, TonemapParams.Size),
-				BindGroupEntry.Texture(inputView),
-				BindGroupEntry.Texture(bloomView),
-				BindGroupEntry.Texture(aoView),
-				BindGroupEntry.Sampler(mSampler)
-			);
+		BindGroupEntry[3] bgEntries = .(
+			BindGroupEntry.Buffer(mParamsBuffer, 0, FXAAParams.Size),
+			BindGroupEntry.Texture(inputView),
+			BindGroupEntry.Sampler(mSampler)
+		);
 
-			BindGroupDesc bgDesc = .() { Label = "Tonemap BindGroup", Layout = mBindGroupLayout, Entries = bgEntries };
-			if (mDevice.CreateBindGroup(bgDesc) case .Ok(let bg))
-				mBindGroups[frameSlot] = bg;
-		}
+		BindGroupDesc bgDesc = .() { Label = "FXAA BindGroup", Layout = mBindGroupLayout, Entries = bgEntries };
+		if (mDevice.CreateBindGroup(bgDesc) case .Ok(let bg))
+			mBindGroups[frameSlot] = bg;
 
 		if (mBindGroups[frameSlot] == null)
 			return;
@@ -228,12 +207,16 @@ class TonemapEffect : PostProcessEffect
 	}
 
 	[CRepr]
-	private struct TonemapParams
+	private struct FXAAParams
 	{
-		public float Exposure;
-		public float WhitePoint;
-		public float Gamma;
-		public float _Pad;
-		public const uint64 Size = 16;
+		public float TexelSizeX;
+		public float TexelSizeY;
+		public float SubpixelQuality;
+		public float EdgeThreshold;
+		public float EdgeThresholdMin;
+		public float _Pad0;
+		public float _Pad1;
+		public float _Pad2;
+		public const uint64 Size = 32;
 	}
 }

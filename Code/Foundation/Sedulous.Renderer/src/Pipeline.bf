@@ -58,6 +58,12 @@ public class Pipeline : IRenderingPipeline, IDisposable
 	// Per-pipeline so each scene tracks its own camera history independently.
 	private Matrix mPrevViewProjectionMatrix = .Identity;
 
+	// TAA jitter state
+	private int32 mJitterIndex = 0;
+	private Vector2 mPrevJitterOffset = .Zero;
+	private bool mTAAEnabled = false;
+	private float mJitterScale = 1.0f;
+
 	// ==================== Properties ====================
 
 	/// The shared renderer infrastructure.
@@ -80,6 +86,22 @@ public class Pipeline : IRenderingPipeline, IDisposable
 	{
 		get => mPrevViewProjectionMatrix;
 		set => mPrevViewProjectionMatrix = value;
+	}
+
+	/// Enable/disable TAA jitter on the projection matrix.
+	/// When enabled, a sub-pixel Halton(2,3) offset is applied each frame.
+	public bool TAAEnabled
+	{
+		get => mTAAEnabled;
+		set => mTAAEnabled = value;
+	}
+
+	/// Scale factor for TAA jitter offsets. 1.0 = full Halton offset,
+	/// 0.5 = half (less jitter, less sub-pixel detail), 0.0 = no jitter.
+	public float JitterScale
+	{
+		get => mJitterScale;
+		set => mJitterScale = value;
 	}
 
 	/// The render graph.
@@ -269,6 +291,26 @@ public class Pipeline : IRenderingPipeline, IDisposable
 		{
 		let frameSlot = frameIndex % MaxFramesInFlight;
 		let frame = mFrameResources[frameSlot];
+
+		// Apply TAA jitter to the projection matrix before uploading uniforms.
+		if (mTAAEnabled)
+		{
+			var jitter = HaltonJitter(mJitterIndex, view.Width, view.Height);
+			jitter.X *= mJitterScale;
+			jitter.Y *= mJitterScale;
+			view.PrevJitterOffset = mPrevJitterOffset;
+			view.JitterOffset = jitter;
+			view.ProjectionMatrix.M31 += jitter.X;
+			view.ProjectionMatrix.M32 += jitter.Y;
+			view.ViewProjectionMatrix = view.ViewMatrix * view.ProjectionMatrix;
+			mPrevJitterOffset = jitter;
+			mJitterIndex = (mJitterIndex + 1) % 8;
+		}
+		else
+		{
+			view.JitterOffset = .Zero;
+			view.PrevJitterOffset = .Zero;
+		}
 
 		// Update per-view uniforms (appends into the per-frame ring buffers).
 		using (Profiler.Begin("UploadUniforms"))
@@ -468,7 +510,9 @@ public class Pipeline : IRenderingPipeline, IDisposable
 			Time = view.TotalTime,
 			DeltaTime = view.DeltaTime,
 			ScreenSize = .(view.Width, view.Height),
-			InvScreenSize = .(1.0f / Math.Max(view.Width, 1), 1.0f / Math.Max(view.Height, 1))
+			InvScreenSize = .(1.0f / Math.Max(view.Width, 1), 1.0f / Math.Max(view.Height, 1)),
+			JitterOffset = view.JitterOffset,
+			PrevJitterOffset = view.PrevJitterOffset
 		};
 
 		TransferHelper.WriteMappedBuffer(
@@ -511,6 +555,30 @@ public class Pipeline : IRenderingPipeline, IDisposable
 
 		frame.BaseInstanceOffset += PerFrameResources.BaseInstanceAlignment;
 		return offset;
+	}
+
+	/// Computes a Halton(2,3) jitter offset in clip space for TAA.
+	/// Returns a sub-pixel offset centered around 0, scaled to clip space.
+	private static Vector2 HaltonJitter(int32 index, uint32 width, uint32 height)
+	{
+		float HaltonSeq(int32 i, int32 @base)
+		{
+			float f = 1.0f;
+			float r = 0.0f;
+			var idx = i + 1; // 1-based
+			while (idx > 0)
+			{
+				f /= (float)@base;
+				r += f * (float)(idx % @base);
+				idx /= @base;
+			}
+			return r;
+		}
+
+		// Halton(2,3) in [0,1], center to [-0.5, 0.5], then to clip space
+		float x = HaltonSeq(index, 2) - 0.5f;
+		float y = HaltonSeq(index, 3) - 0.5f;
+		return .(x * 2.0f / Math.Max(width, 1), y * 2.0f / Math.Max(height, 1));
 	}
 
 	private Result<void> CreatePerFrameResources()
