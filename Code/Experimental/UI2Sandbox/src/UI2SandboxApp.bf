@@ -19,12 +19,16 @@ class UI2SandboxApp : Application
 	// App-owned UI state (cleaned up in OnShutdown)
 	private UIContext mUIContext;
 	private RootView mRoot;
+	private bool mIsDarkTheme = true;
 
 	protected override void OnInitialize(Context context)
 	{
 		// Create app-owned UI state
 		mUIContext = new UIContext();
 		mRoot = new RootView();
+
+		// Set default theme
+		SetTheme(true);
 
 		// Create and register subsystem
 		mUI = new UI2Subsystem();
@@ -61,8 +65,8 @@ class UI2SandboxApp : Application
 		let main = new FlexLayout() { Direction = .Vertical };
 		mRoot.AddView(main);
 
-		// Header
-		let header = new ColorBox(.(40, 42, 50, 255), 0, 36);
+		// Header — themed panel
+		let header = new ThemedBox("panel", 0, 36);
 		main.AddView(header, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(36)) });
 
 		// Body: horizontal split
@@ -83,7 +87,7 @@ class UI2SandboxApp : Application
 		let dockLeft = new ColorBox(.(60, 60, 130, 255), 50, 0);
 		leftPanel.AddView(dockLeft, new DockLayout.LayoutParams(.Left));
 
-		let dockCenter = new ColorBox(.(50, 52, 58, 255));
+		let dockCenter = new ThemedBox("panel");
 		leftPanel.AddView(dockCenter, new DockLayout.LayoutParams(.Fill));
 
 		// Center panel — Grid demo
@@ -130,8 +134,8 @@ class UI2SandboxApp : Application
 			rightPanel.AddView(@box);
 		}
 
-		// Footer
-		let footer = new ColorBox(.(35, 37, 43, 255), 0, 24);
+		// Footer — themed panel
+		let footer = new ThemedBox("panel", 0, 24);
 		main.AddView(footer, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
 	}
 
@@ -155,20 +159,36 @@ class UI2SandboxApp : Application
 			mUIContext.DebugSettings.ShowHitTarget = !mUIContext.DebugSettings.ShowHitTarget;
 			mUIContext.DebugSettings.ShowFocusPath = !mUIContext.DebugSettings.ShowFocusPath;
 		}
+		if (keyboard.IsKeyPressed(.F5))
+		{
+			mIsDarkTheme = !mIsDarkTheme;
+			SetTheme(mIsDarkTheme);
+		}
 	}
+
+	private void SetTheme(bool dark)
+	{
+		let sheet = dark ? DarkTheme.Create() : LightTheme.Create();
+		mUIContext.StyleSheet = sheet;
+		sheet.ReleaseRef(); // context owns the ref now
+		mPalette = dark ? ThemePalette.Dark : ThemePalette.Light;
+	}
+
+	private ThemePalette mPalette = .Dark;
 
 	protected override bool OnRenderFrame(RenderContext render)
 	{
 		if (mUI == null || !mUI.IsRenderingInitialized)
 			return false;
 
-		// Clear the backbuffer first (no 3D scene to preserve).
+		// Clear with theme background color.
+		let bg = mPalette.Background;
 		ColorAttachment[1] clearAttachments = .(.()
 		{
 			View = render.CurrentTextureView,
 			LoadOp = .Clear,
 			StoreOp = .Store,
-			ClearValue = .(0, 0, 0, 1)
+			ClearValue = ClearColor(bg.R / 255.0f, bg.G / 255.0f, bg.B / 255.0f, 1.0f)
 		});
 		RenderPassDesc clearDesc = .() { ColorAttachments = .(clearAttachments) };
 		let clearPass = render.Encoder.BeginRenderPass(clearDesc);
@@ -219,7 +239,6 @@ class ColorBox : View
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		// If desired size is 0, fill available space.
 		let w = (mDesiredW > 0) ? mDesiredW : constraints.MaxWidth;
 		let h = (mDesiredH > 0) ? mDesiredH : constraints.MaxHeight;
 		MeasuredSize = .(constraints.ConstrainWidth(w), constraints.ConstrainHeight(h));
@@ -228,5 +247,44 @@ class ColorBox : View
 	public override void OnDraw(UIDrawContext ctx)
 	{
 		ctx.VG.FillRect(.(0, 0, Width, Height), Color);
+	}
+}
+
+/// View that draws its background from the theme via StyleSheet.
+/// Set StyleId to match a theme rule (e.g., "panel", "button").
+class ThemedBox : View
+{
+	private float mDesiredW;
+	private float mDesiredH;
+
+	public this(StringView styleClass, float desiredW = 0, float desiredH = 0)
+	{
+		StyleId = new String(styleClass);
+		mDesiredW = desiredW;
+		mDesiredH = desiredH;
+	}
+
+	protected override void OnMeasure(BoxConstraints constraints)
+	{
+		let w = (mDesiredW > 0) ? mDesiredW : constraints.MaxWidth;
+		let h = (mDesiredH > 0) ? mDesiredH : constraints.MaxHeight;
+		MeasuredSize = .(constraints.ConstrainWidth(w), constraints.ConstrainHeight(h));
+	}
+
+	public override void OnDraw(UIDrawContext ctx)
+	{
+		let bounds = RectangleF(0, 0, Width, Height);
+
+		// Try drawable from stylesheet first.
+		let drawable = ResolveStyleDrawable(.Background);
+		if (drawable != null)
+		{
+			drawable.Draw(ctx, bounds, GetControlState());
+			return;
+		}
+
+		// Fallback: fill with resolved background color or surface.
+		let bgColor = ResolveStyleColor(.TextColor, .(50, 52, 60, 255));
+		ctx.VG.FillRect(bounds, Palette.Darken(bgColor, 0.7f));
 	}
 }

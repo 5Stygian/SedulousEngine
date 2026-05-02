@@ -12,12 +12,13 @@ out, projects migrate. If not, lessons inform improvements to UI.
 
 ## Phase 0 — Infrastructure (COMPLETE)
 
-All core infrastructure is in place (~82 source files, ~240 tests passing).
+All core infrastructure is in place (~90 source files, ~240 tests passing).
 
 **Core:** View, ViewGroup, RootView, UIContext, ViewId, ViewTransform, Thickness,
-Visibility, CursorType, MutationQueue, IClipboard, Property<T>
+Visibility, CursorType, MutationQueue, IClipboard, Property<T>, Orientation
 
-**Layout:** Unit (Dp/Pt/Px), BoxConstraints, SizeSpec, LayoutParams, Gravity
+**Layout:** Unit (Dp/Pt/Px), BoxConstraints, SizeSpec, LayoutParams, Gravity,
+GravityHelper
 
 **Drawing:** UIDrawContext, ControlState, Drawable base + 12 concrete drawables
 (Color, Image, RoundedRect, NineSlice, Gradient, Atlas variants, SVG,
@@ -47,45 +48,51 @@ FloatAnimation, ColorAnimation, Vector2Animation, Storyboard, ViewAnimator
 
 **Data:** IModel, ModelIndex
 
-**Runtime:** UI2Subsystem
+**Shell Bridge:** UIInputHelper, InputMapping, ShellClipboardAdapter
+
+**Runtime:** UI2Subsystem (with input routing, clipboard bridge, cursor sync)
 
 **Sandbox:** UI2Sandbox app (Application-based, not EngineApplication)
 
 ---
 
-## Phase 1 — Containers
+## Phase 1 — Containers (COMPLETE)
 
-Build all layout containers on top of the infrastructure. Each container
-implements OnMeasure(BoxConstraints) and OnLayout to arrange children.
+All 6 layout containers implemented with ~75 tests passing.
 
-- [ ] Flex container — Direction, JustifyContent, AlignItems, Spacing, AddStretch
-- [ ] Flex.LayoutParams — Grow, Shrink, Gravity
-- [ ] Grid container — TrackSize (Fixed/Flex/Auto), Columns, Rows, AutoFlow, Spacing
-- [ ] Grid.LayoutParams — Row, Column, RowSpan, ColumnSpan
-- [ ] DockView — ported with BoxConstraints, LastChildFill default = false
-- [ ] DockView.LayoutParams — Dock enum
-- [ ] FrameLayout — ported with BoxConstraints
-- [ ] AbsoluteLayout — ported with BoxConstraints
-- [ ] FlowLayout — ported with BoxConstraints
-- [ ] **Tests:** Flex layout (row, column, grow, shrink, justify, align, spacing)
-- [ ] **Tests:** Grid layout (auto/fixed/flex tracks, auto-flow, spanning)
-- [ ] **Tests:** DockView (top/bottom/left/right/fill, LastChildFill false)
-- [ ] **Tests:** FrameLayout (gravity positioning)
-- [ ] **Tests:** FlowLayout (wrapping)
-- [ ] **UI2Sandbox:** Flex row/column demo page, Grid demo page with auto-flow
+**Containers:**
+- FlexLayout — Direction, JustifyContent (6 modes), AlignItems (5 modes),
+  Spacing, Grow/Shrink/AlignSelf per child
+- GridLayout — TrackSize (Auto/Fixed/Flex), Columns, Rows, AutoFlow,
+  ColumnSpacing/RowSpacing, ColumnSpan/RowSpan
+- DockLayout — Dock (Left/Top/Right/Bottom/Fill), LastChildFill (default false)
+- FrameLayout — Gravity positioning (loosened constraints for children)
+- AbsoluteLayout — Explicit X/Y positioning
+- FlowLayout — Wrapping horizontal/vertical flow with HSpacing/VSpacing
+
+**Supporting types:** Orientation, GravityHelper, Justify, Align, Dock, TrackSize
+
+**Sandbox:** Visual demo showing all layouts (FlexLayout main, DockLayout left,
+GridLayout center, FlowLayout right, header/footer)
 
 ---
 
-## Phase 2 — Themes
+## Phase 2 — Themes (COMPLETE)
 
-Build concrete themes using the StyleSheet infrastructure.
+Dark and light themes implemented as StyleSheet factories with 12 tests passing.
 
-- [ ] DarkTheme — defined as a StyleSheet with colors, drawables, and Palette-generated state variants
-- [ ] LightTheme — defined as a StyleSheet
-- [ ] IThemeExtension registry — custom controls register their style rules
-- [ ] **Tests:** DarkTheme resolves expected colors/drawables for known control types
-- [ ] **Tests:** Theme switching changes resolved values
-- [ ] **UI2Sandbox:** Theme switching (F5), stylesheet demo
+**Theme system:**
+- ThemePalette — Seed color struct with Dark and Light presets (Primary, PrimaryAccent,
+  Background, Surface, SurfaceBright, Border, Text, TextDim, Error, Success, Warning)
+- DarkTheme — Factory creating StyleSheet with dark colors, RoundedRect/StateList drawables
+  for button, panel, edittext, checkbox, radiobutton, slider, progressbar, toggleswitch,
+  combobox, scrollbar, separator, expander. Accepts custom ThemePalette.
+- LightTheme — Same structure with light colors
+- ThemeRegistry — Central extension registry applied to all theme factories
+- IThemeExtension — Interface for injecting custom rules into themes
+
+**Sandbox:** F5 toggles dark/light theme. Clear color and themed panels (header,
+footer, dock center) switch between dark and light appearances.
 
 ---
 
@@ -223,21 +230,21 @@ Port existing applications from Sedulous.UI to UI2.
 
 ### How BoxConstraints flow through each container
 
-**Flex:**
+**FlexLayout:**
 1. Compute available main-axis space from parent BoxConstraints (minus spacing, padding)
 2. Measure inflexible children (Grow == 0) with loose constraints on both axes, main-axis capped at remaining space
 3. Distribute remaining main-axis space among flexible children by Grow ratios
 4. If overflow, shrink flexible children by Shrink ratios
 5. Apply JustifyContent for leftover space distribution on main axis
-6. Apply AlignItems for cross-axis positioning (per-child Gravity overrides)
+6. Apply AlignItems for cross-axis positioning (per-child AlignSelf overrides)
 
-**Grid:**
-1. Measure Auto tracks (content-driven)
-2. Distribute remaining space among Flex tracks by weight
-3. Fixed tracks get exact size
-4. Place children in cells, constrained by cell size
+**GridLayout:**
+1. Initialize Fixed tracks upfront (independent of children)
+2. Measure Auto tracks (content-driven, max of children in that track)
+3. Distribute remaining space among Flex tracks by weight
+4. Place children in cells, constrained by cell size (spanning adds spacing)
 
-**DockView:**
+**DockLayout:**
 1. Process children in order. Each docked child gets:
    - Top/Bottom: full remaining width, measured height
    - Left/Right: measured width, full remaining height
@@ -245,7 +252,7 @@ Port existing applications from Sedulous.UI to UI2.
 2. Each docked child shrinks the remaining area for subsequent children.
 
 **FrameLayout:**
-1. Each child measured with parent constraints (minus padding/margin)
+1. Each child measured with loosened constraints (min=0, max=parent minus padding/margin)
 2. Positioned via Gravity within the frame bounds
 
 **AbsoluteLayout:**
