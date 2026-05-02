@@ -37,7 +37,6 @@ class TowerDefenseApp : EngineApplication
 
 	// UI
 	private HUDManager mHUD = new .() ~ delete _;
-	private TowerSelectionPanel mTowerPanel = new .() ~ delete _;
 	private MainMenuUI mMainMenu = new .() ~ delete _;
 	private GameOverUI mGameOverUI = new .() ~ delete _;
 
@@ -159,10 +158,7 @@ class TowerDefenseApp : EngineApplication
 		// Enter to start playing (from main menu - enables all gameplay interaction)
 		if (keyboard.IsKeyPressed(.Return) && mGameSub.Phase == .MainMenu)
 		{
-			mGameSub.SetPhase(.Playing);
-			mMainMenu.Hide();
-			mTowerPanel.SetVisible(true);
-			Console.WriteLine("[Game] Playing - place towers, then press Space to start wave");
+			StartGame();
 		}
 
 		// Everything below requires Playing phase
@@ -218,20 +214,24 @@ class TowerDefenseApp : EngineApplication
 			return;
 
 		let root = uiSub.ScreenView.Root;
+		let ctx = uiSub.UIContext;
 		let messaging = Context.GetSubsystem<MessagingSubsystem>();
 		let bus = messaging?.Bus;
 
-		// HUD (top bar - gold, lives, wave)
-		mHUD.Setup(root, bus, mGameSub);
+		// HUD (DockView with top and bottom bars, fills screen)
+		mHUD.Setup(bus, mGameSub, mTowerPlacement);
+		root.AddView(mHUD.Root, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
 
-		// Tower selection panel (bottom bar - hidden until game starts)
-		mTowerPanel.Setup(root, mTowerPlacement, mGameSub);
-		mTowerPanel.SetVisible(false);
+		// Game over dialog (subscribes to GameOverMsg, shows dialog when triggered)
+		mGameOverUI.Setup(ctx, bus, mGameSub);
 
-		// Main menu overlay (shown initially)
-		mMainMenu.Setup(root, mGameSub);
+		// Main menu dialog (shown immediately, auto-centered)
+		mMainMenu.Show(ctx, mGameSub, new => StartGame);
+	}
 
-		// Game over overlay (hidden until game ends)
-		mGameOverUI.Setup(root, bus, mGameSub);
+	private void StartGame()
+	{
+		mGameSub.SetPhase(.Playing);
+		Console.WriteLine("[Game] Playing - place towers, then press Space to start wave");
 	}
 }

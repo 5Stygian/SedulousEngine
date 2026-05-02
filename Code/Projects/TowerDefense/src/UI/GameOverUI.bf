@@ -5,77 +5,22 @@ using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Messaging;
 
-/// Game over overlay shown on win or lose.
+/// Game over dialog shown on win or lose. Uses Dialog for auto-centered modal.
 class GameOverUI
 {
-	private Panel mOverlay;
-	private Label mResultLabel;
-	private Label mStatsLabel;
 	private SubscriptionHandle mGameOverSub;
+	private UIContext mCtx;
 
-	/// Creates the game over overlay (hidden initially).
-	public void Setup(RootView root, MessageBus bus, GameSubsystem gameSub)
+	/// Sets up the subscription. Dialog is created when GameOverMsg fires.
+	public void Setup(UIContext ctx, MessageBus bus, GameSubsystem gameSub)
 	{
-		mOverlay = new Panel();
-		mOverlay.Background = new ColorDrawable(.(0, 0, 0, 200));
-		mOverlay.Visibility = .Gone;
+		mCtx = ctx;
 
-		root.AddView(mOverlay, new LayoutParams()
-		{
-			Width = LayoutParams.MatchParent,
-			Height = LayoutParams.MatchParent
-		});
-
-		let layout = new LinearLayout();
-		layout.Orientation = .Vertical;
-		layout.Spacing = 16;
-		mOverlay.AddView(layout, new AbsoluteLayout.LayoutParams()
-		{
-			X = 0, Y = 200,
-			Width = LayoutParams.MatchParent, Height = 300
-		});
-
-		// Result label
-		mResultLabel = new Label();
-		mResultLabel.FontSize = 36;
-		mResultLabel.HAlign = .Center;
-		layout.AddView(mResultLabel, new LinearLayout.LayoutParams()
-		{
-			Width = LayoutParams.MatchParent, Height = 50
-		});
-
-		// Stats label
-		mStatsLabel = new Label();
-		mStatsLabel.FontSize = 16;
-		mStatsLabel.TextColor = .(200, 200, 200, 255);
-		mStatsLabel.HAlign = .Center;
-		layout.AddView(mStatsLabel, new LinearLayout.LayoutParams()
-		{
-			Width = LayoutParams.MatchParent, Height = 24
-		});
-
-		// Subscribe to game over message
 		if (bus != null)
 		{
 			mGameOverSub = bus.Subscribe<GameOverMsg>(new (msg) =>
 				{
-					if (msg.Won)
-					{
-						mResultLabel.SetText("VICTORY!");
-						mResultLabel.TextColor = .(50, 255, 50, 255);
-					}
-					else
-					{
-						mResultLabel.SetText("GAME OVER");
-						mResultLabel.TextColor = .(255, 50, 50, 255);
-					}
-
-					let stats = scope String();
-					stats.AppendF("Waves survived: {}  |  Gold: {}  |  Lives: {}",
-						gameSub.Waves.CurrentWave, gameSub.Gold, gameSub.Lives);
-					mStatsLabel.SetText(stats);
-
-					mOverlay.Visibility = .Visible;
+					ShowGameOver(msg.Won, gameSub);
 				});
 		}
 	}
@@ -84,5 +29,50 @@ class GameOverUI
 	{
 		if (bus != null)
 			bus.Unsubscribe(mGameOverSub);
+	}
+
+	private void ShowGameOver(bool won, GameSubsystem gameSub)
+	{
+		let title = won ? "Victory!" : "Game Over";
+		let dialog = new Dialog(title);
+		dialog.MaxWidth = 400;
+		dialog.MaxHeight = 200;
+
+		// Content
+		let content = new LinearLayout();
+		content.Orientation = .Vertical;
+		content.Spacing = 8;
+
+		let resultLabel = new Label();
+		resultLabel.FontSize = 18;
+		resultLabel.HAlign = .Center;
+
+		if (won)
+		{
+			resultLabel.SetText("You defended your base!");
+			resultLabel.TextColor = .(50, 255, 50, 255);
+		}
+		else
+		{
+			resultLabel.SetText("Your base was overrun!");
+			resultLabel.TextColor = .(255, 80, 80, 255);
+		}
+		content.AddView(resultLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 28 });
+
+		let statsLabel = new Label();
+		statsLabel.FontSize = 13;
+		statsLabel.TextColor = .(180, 180, 180, 255);
+		statsLabel.HAlign = .Center;
+		let statsText = scope String();
+		statsText.AppendF("Waves: {}  |  Gold: {}  |  Lives: {}",
+			gameSub.Waves.CurrentWave, gameSub.Gold, gameSub.Lives);
+		statsLabel.SetText(statsText);
+		content.AddView(statsLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+
+		dialog.SetContent(content);
+		dialog.AddButton("OK", .OK);
+
+		if (mCtx != null)
+			dialog.Show(mCtx);
 	}
 }
