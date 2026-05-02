@@ -33,8 +33,16 @@ Targeted feature set for game-readiness. Not a port of the old renderer - each f
 
 ### Post-Processing
 - **PostProcessStack** - ordered effect chain. Auxiliary texture communication via ctx.SetAux/GetAux (ezEngine pipeline pin pattern)
+- **SSAOEffect** - 16-sample hemisphere sampling with bilateral blur. Reads SceneDepth + SceneNormals, produces "AOTexture" aux (R8Unorm). Tonemap multiplies scene color by AO before tone curve
 - **BloomEffect** - 5-level downsample/upsample chain. Produces "BloomTexture" aux without modifying the main chain. Bloom is composited in HDR space before tone mapping so the soft glow preserves HDR range
-- **TonemapEffect** - ACES filmic. Composites BloomTexture (hdr += bloom) before the tone curve. Falls back to 1×1 black texture when bloom is inactive
+- **TAAEffect** - temporal resolve with history ping-pong, motion vector reprojection, neighborhood box clamping (ClipToAABB), luminance-adaptive blend. Halton(2,3) jitter applied to projection matrix by Pipeline. MRT output to both chain and history buffer
+- **TonemapEffect** - ACES filmic. Composites AOTexture + BloomTexture before the tone curve. Falls back to white/black textures when effects are inactive
+- **FXAAEffect** - FXAA 3.11 quality variant. Spatial AA on LDR after tonemap. Luminance-based edge detection with 12-step directional search
+
+### PBR Shading
+- **Height-correlated Smith GGX** visibility (joint approximation) for accurate specular
+- **Fresnel firefly prevention** via F90 clamping: `saturate(50 * luminance(F0))`
+- **Geometric specular AA** (Tokuyoshi & Kaplanyan 2019) — ddx/ddy normal-based roughness widening
 
 ### Debug & Development
 - **DebugDraw** - immediate-mode API: lines, wire shapes, screen text/rects, 3D-positioned text
@@ -424,7 +432,7 @@ Recommended implementation order based on dependencies and game impact:
 10. ~~**Phase 5.2** - Bloom (downsample/upsample chain + tonemap composite)~~ DONE
 11. ~~**Mini G-buffer** - SceneNormals + MotionVectors MRT~~ DONE
 12. ~~**Phase 10** - Particles (self-contained system, CPU simulation, billboard rendering, sub-emitters, LOD)~~ DONE
-13. **Phase 5.3** - Additional post FX (SSAO, FXAA/TAA, motion blur, color grading)
+13. ~~**Phase 5.3** - FXAA, TAA, SSAO~~ DONE (motion blur, color grading deferred)
 
 ## Architecture Notes
 
