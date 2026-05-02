@@ -448,6 +448,175 @@ class HierarchicalState
 
 **Used by:** TreeView, PropertyGrid — `CaptureState()` / `ApplyState()` methods.
 
+### 18. Editor-Informed Patterns
+
+Patterns discovered building the Sedulous editor that need first-class support
+in UI2 to avoid adhoc workarounds.
+
+#### a. Coordinate conversion on View
+
+Built-in local-to-screen and screen-to-local conversion. Currently the editor
+implements a manual helper walking the parent chain. Used for context menu
+positioning, drag-drop, and tooltip placement.
+
+```beef
+class View
+    /// Converts local coordinates to screen (root-relative) coordinates.
+    public Vector2 LocalToScreen(Vector2 local);
+
+    /// Converts screen coordinates to local coordinates.
+    public Vector2 ScreenToLocal(Vector2 screen);
+```
+
+Context menus should auto-position using these without user code.
+
+#### b. Breadcrumb bar (standard component)
+
+Navigation bar showing the current path as clickable segments. The editor
+builds one manually with dynamic button generation. Should be a standard
+toolkit component.
+
+```beef
+class BreadcrumbBar : ViewGroup
+    public void SetPath(Span<StringView> segments);
+    public Event<delegate void(int32 segmentIndex)> OnSegmentClicked;
+```
+
+#### c. GridView (virtualized flowing grid)
+
+The editor's `GridContentView` manually reimplements ListView virtualization
+for a flowing tile layout (icons, thumbnails). Should be a standard view
+alongside ListView.
+
+```beef
+class GridView : ViewGroup
+    public IModel Model;
+    public float CellWidth, CellHeight;  // fixed cell size
+    public float HSpacing, VSpacing;
+    // Virtualized — only creates views for visible cells
+    // ViewRecycler-based pooling, same as ListView
+```
+
+#### d. Slow-click rename detection
+
+Distinct from double-click. After selecting an item, a short delay (0.4-1.5s)
+before a second single click triggers inline rename. The editor implements
+this manually. Should be a standard behavior on editable list/tree items.
+
+```beef
+class ListView
+    public bool SlowClickRenameEnabled = false;
+    public float SlowClickMinDelay = 0.4f;
+    public float SlowClickMaxDelay = 1.5f;
+    public Event<delegate void(ModelIndex)> OnSlowClickRename;
+```
+
+#### e. Keyboard shortcut manager
+
+Global and context-aware keyboard shortcuts. The editor manually checks
+key combinations in OnUpdate. Should be a framework-level service on UIContext.
+
+```beef
+class ShortcutManager  // owned by UIContext
+    /// Register a global shortcut.
+    public void Register(KeyCode key, KeyModifiers mods, delegate void() action,
+        StringView id = default);
+
+    /// Register a shortcut active only when a specific view/subtree has focus.
+    public void RegisterScoped(View scope, KeyCode key, KeyModifiers mods,
+        delegate void() action, StringView id = default);
+
+    /// Unregister by id.
+    public void Unregister(StringView id);
+```
+
+#### f. Input handler chaining
+
+Viewport uses prioritized input handlers (gizmo handler first, camera controller
+second). If the first handler doesn't consume the event, it passes to the next.
+Should be a standard pattern.
+
+```beef
+interface IInputHandler
+    /// Returns true if the event was handled (consumed).
+    bool OnMouseDown(MouseEventArgs e);
+    bool OnMouseMove(MouseEventArgs e);
+    bool OnMouseUp(MouseEventArgs e);
+    bool OnKeyDown(KeyEventArgs e);
+
+class View
+    /// Ordered list of input handlers. First to return true consumes the event.
+    public List<IInputHandler> InputHandlers;
+```
+
+#### g. Persistent split ratios
+
+SplitView ratios are hardcoded in the editor. Should be saveable and
+restorable across sessions.
+
+```beef
+class SplitView
+    public float SplitRatio { get; set; }
+    public StringView PersistenceId;  // key for save/restore
+```
+
+HierarchicalState could be extended to include split ratios, or a separate
+`UILayoutState` captures all persistent layout data (splits, dock positions,
+column widths).
+
+### 19. Content-bearing Controls
+
+Some controls benefit from displaying arbitrary content instead of just text.
+These controls have a `View Content` property — set it to a Label for text
+(the default), an ImageView for an icon, a Flex with icon+text, or any
+custom view.
+
+**Controls with Content:**
+- **Button** — content rendered inside the button's background/padding/state
+- **ToggleButton** — same as Button but with toggle state
+- **Expander** — header content (always visible) + body content (collapsible)
+
+```beef
+class Button : View
+    private View mContent;
+
+    public View Content
+    {
+        get => mContent;
+        set { /* remove old, attach new, invalidate */ }
+    }
+
+    /// Convenience: creates a Label as content.
+    public this(StringView text) { Content = new Label(text); }
+
+    /// Empty button — set Content manually.
+    public this() { }
+
+    // OnMeasure: padding + content.Measure(deflated constraints)
+    // OnDraw: draw background/state, then content.Draw()
+```
+
+**Usage:**
+```beef
+// Simple text button (default)
+new Button("Save")
+
+// Icon button
+new Button() { Content = new ImageView(saveIcon) }
+
+// Icon + text
+let btn = new Button();
+btn.Content = new Flex(.Row) { Spacing = 4 }
+    .AddView(new ImageView(icon))
+    .AddView(new Label("Save"));
+```
+
+**NOT content-bearing** (fixed visual structure, text via String property):
+- CheckBox — box indicator + text, drawn manually
+- RadioButton — radio indicator + text, drawn manually
+- ToggleSwitch — track/knob + optional text, drawn manually
+- Slider, ProgressBar, etc. — no text content model
+
 ---
 
 ## What Stays the Same
@@ -532,12 +701,15 @@ resolved through the cascade.
 ### Button
 
 **Properties:**
-- `String Text` — button label
+- `View Content` — arbitrary content (default: Label when constructed with text)
 - `Drawable Background` — inline override (highest cascade priority), null = resolve from StyleSheet
-- `Color? TextColor` — inline override, null = resolve from StyleSheet
-- `float? FontSize` — inline override, null = resolve from StyleSheet
+- `Color? TextColor` — inline override, null = resolve from StyleSheet (inherited by content Label)
+- `float? FontSize` — inline override, null = resolve from StyleSheet (inherited by content Label)
 - `Thickness? Padding` — inline override, null = resolve from StyleSheet
 - `ICommand Command` — optional command binding
+
+**Convenience:** `new Button("Save")` creates a Label as Content internally.
+`new Button()` leaves Content null for manual setup (icon, icon+text, etc.).
 
 **Events:**
 - `Event<delegate void(Button)> OnClick`
@@ -646,7 +818,7 @@ Same structure as CheckBox. Grouped via RadioGroup.
 
 **Properties:**
 - `bool IsChecked`
-- `String Text`
+- `View Content` — arbitrary content (default: Label when constructed with text)
 - `Drawable CheckedBackground` — background when checked
 
 **Events:**
@@ -787,8 +959,8 @@ JustifyContent, but kept for explicit gaps in non-Flex containers.
 
 **Properties:**
 - `bool IsExpanded`
-- `String Header` — text shown in collapsed state
-- `View Content` — expandable content
+- `View Header` — content shown in collapsed state (default: Label when constructed with text)
+- `View Content` — expandable body content
 
 **Events:**
 - `Event<delegate void(Expander)> OnExpandedChanged`
@@ -983,7 +1155,7 @@ build on.
 - [ ] BoxConstraints struct with Tight/Loose/Expand/Deflate/Constrain
 - [ ] SizeSpec enum (Fixed(Unit)/Match/Wrap)
 - [ ] LayoutParams base class with SizeSpec Width/Height, Margin
-- [ ] View base class — OnMeasure(BoxConstraints), OnLayout, MeasuredSize, Bounds, Visibility, Alpha, user data (SetUserData/GetUserData)
+- [ ] View base class — OnMeasure(BoxConstraints), OnLayout, MeasuredSize, Bounds, Visibility, Alpha, user data (SetUserData/GetUserData), LocalToScreen/ScreenToLocal coordinate conversion
 - [ ] ViewGroup — AddView/RemoveView with LayoutParams, child iteration, padding, fluent AddView return
 - [ ] Gravity flags (Left/Right/CenterH/FillH, Top/Bottom/CenterV/FillV, Center, Fill)
 - [ ] Flex container — Direction, JustifyContent, AlignItems, Spacing, AddStretch
@@ -997,6 +1169,7 @@ build on.
 - [ ] FlowLayout — ported with BoxConstraints
 - [ ] **Tests:** Unit.Resolve (Dp/Pt/Px at various DPI scales)
 - [ ] **Tests:** View user data (SetUserData/GetUserData, typed retrieval, null when not set)
+- [ ] **Tests:** View LocalToScreen/ScreenToLocal (nested views, with padding/margin)
 - [ ] **Tests:** BoxConstraints math (Tight/Loose/Deflate/Constrain), SizeSpec resolution
 - [ ] **Tests:** Flex layout (row, column, grow, shrink, justify, align, spacing, wrap)
 - [ ] **Tests:** Grid layout (auto/fixed/flex tracks, auto-flow, spanning)
@@ -1033,11 +1206,15 @@ build on.
 - [ ] KeyCode, KeyModifiers, MouseButton enums
 - [ ] KeyEventArgs, MouseEventArgs, MouseWheelEventArgs, TextInputEventArgs
 - [ ] Cursor management (EffectiveCursor walks parent chain)
+- [ ] ShortcutManager — global + scoped keyboard shortcuts, owned by UIContext
+- [ ] IInputHandler interface — prioritized input handler chaining on views
 - [ ] UIDebugDrawSettings — all flags from UI + new UI2 flags (ShowConstraints, ShowFlexInfo, ShowGridLines)
 - [ ] UIDebugOverlay — draws bounds, padding, margin, hit target, focus path, constraints
 - [ ] **Tests:** Hit testing (nested views, IsHitTestVisible=false, clipping)
 - [ ] **Tests:** Focus navigation (tab order, focus stack push/pop)
 - [ ] **Tests:** Mouse capture (capture/release, events routed to captured view)
+- [ ] **Tests:** ShortcutManager (global shortcut fires, scoped shortcut only fires when in scope, unregister)
+- [ ] **Tests:** IInputHandler chaining (first handler consumes, second not called; first passes, second called)
 - [ ] **UI2Sandbox:** Debug toggle keys (F2/F3/F4), mouse hover highlight, focus test page
 
 ### Phase 4 — Reactive Properties + Basic Controls
@@ -1095,6 +1272,8 @@ build on.
 - [ ] TabView — tab headers, placement, closable tabs
 - [ ] ComboBox — dropdown selection, backed by IModel
 - [ ] SelectionModel — single/multi selection (port)
+- [ ] GridView — virtualized flowing grid with IModel, fixed cell size, ViewRecycler pooling
+- [ ] ListView slow-click rename — SlowClickRenameEnabled, delay threshold, OnSlowClickRename event
 - [ ] HierarchicalState — capture/restore expand/collapse, selection, scroll for tree widgets
 - [ ] TreeView.CaptureState() / ApplyState() using HierarchicalState
 - [ ] **Tests:** IModel RowCount, GetData, HasChildren for flat and hierarchical models
@@ -1104,8 +1283,10 @@ build on.
 - [ ] **Tests:** ListView visible range calculation (fixed and variable height)
 - [ ] **Tests:** FlattenedTreeAdapter expand/collapse, node count
 - [ ] **Tests:** SelectionModel single/multi select, clear
+- [ ] **Tests:** GridView visible cell calculation, recycler integration
+- [ ] **Tests:** Slow-click rename timing (too fast = no rename, within window = rename, too slow = no rename)
 - [ ] **Tests:** HierarchicalState capture/restore roundtrip, merge partial state
-- [ ] **UI2Sandbox:** ListView demo (1000 items), TreeView demo, TabView demo, ScrollView demo
+- [ ] **UI2Sandbox:** ListView demo (1000 items), GridView demo (thumbnails), TreeView demo, TabView demo, ScrollView demo
 
 ### Phase 7 — Overlays + DragDrop + Animation
 
@@ -1132,12 +1313,14 @@ build on.
 - [ ] MenuBar — horizontal menu with dropdown items
 - [ ] Toolbar + ToolbarButton + ToolbarSeparator
 - [ ] StatusBar — bottom status line with sections
-- [ ] SplitView — draggable divider between two panels
+- [ ] SplitView — draggable divider between two panels, persistent SplitRatio with PersistenceId
+- [ ] BreadcrumbBar — path segments as clickable buttons, OnSegmentClicked event
 - [ ] PropertyGrid + editors (Bool, Int, Float, String, Enum, Range, Color, Vector3)
 - [ ] DraggableTreeView — TreeView with drag reorder
 - [ ] ColorPicker — interactive color selection
 - [ ] **Tests:** PropertyGrid editor creation per type
 - [ ] **Tests:** DockManager panel add/remove/reparent
+- [ ] **Tests:** BreadcrumbBar SetPath creates correct segments, click fires event with index
 - [ ] **UI2Sandbox:** Toolkit demo page (docking, property grid, menus, toolbar)
 
 ### Phase 9 — Runtime Integration + XML Loading
