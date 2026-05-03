@@ -35,13 +35,13 @@ public class ParametricEQ : IAudioEffect
 	}
 
 	/// Low shelf band.
-	public ref Band Low { get mut => ref mLow; }
+	public ref Band Low { get => ref mLow; }
 
 	/// Mid peak band.
-	public ref Band Mid { get mut => ref mMid; }
+	public ref Band Mid { get => ref mMid; }
 
 	/// High shelf band.
-	public ref Band High { get mut => ref mHigh; }
+	public ref Band High { get => ref mHigh; }
 
 	/// Call after changing band parameters.
 	public void MarkDirty() { mDirty = true; }

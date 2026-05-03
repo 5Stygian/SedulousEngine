@@ -107,8 +107,8 @@ class TAAEffect : PostProcessEffect
 			MinFilter = .Linear, MagFilter = .Linear, MipmapFilter = .Nearest,
 			AddressU = .ClampToEdge, AddressV = .ClampToEdge, AddressW = .ClampToEdge
 		};
-		if (mDevice.CreateSampler(linearDesc) case .Ok(let sampler))
-			mLinearSampler = sampler;
+		if (mDevice.CreateSampler(linearDesc) case .Ok(let linSampler))
+			mLinearSampler = linSampler;
 		else
 			return .Err;
 

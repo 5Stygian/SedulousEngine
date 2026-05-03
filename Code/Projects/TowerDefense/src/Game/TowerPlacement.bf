@@ -210,7 +210,6 @@ class TowerPlacement
 				let range = stats.Levels[0].Range;
 				let rangeColor = Color(255, 255, 100, 200);
 				let segments = 48;
-				let y = 0.3f; // above tile mesh height
 
 				for (int i = 0; i < segments; i++)
 				{

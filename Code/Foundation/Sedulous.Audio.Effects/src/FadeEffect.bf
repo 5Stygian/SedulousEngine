@@ -58,7 +58,6 @@ public class FadeEffect : IAudioEffect
 
 	public void Process(float* buffer, int32 frameCount, int32 sampleRate)
 	{
-		let sampleCount = frameCount * 2;
 		let timePerFrame = 1.0f / (float)sampleRate;
 
 		for (int32 i = 0; i < frameCount; i++)

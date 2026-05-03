@@ -516,7 +516,7 @@ static class ScenePageBuilder
 		});
 
 		// Wire "Add Component" button click
-		addCompBtn.OnClick.Add(new [=page, =editorContext] (btn) => {
+		addCompBtn.OnClick.Add(new (btn) => {
 			let ctx = btn.Context;
 			if (ctx == null) return;
 

@@ -411,8 +411,6 @@ class TransformGizmo
 	/// Gets the hit point on a drag plane using oriented axes.
 	private Vector3 GetOrientedDragHitPoint(Ray ray, GizmoAxis axis, Vector3 planeOrigin)
 	{
-		let axisDir = GetAxisDirection(axis);
-
 		// Pick a plane that contains the axis and is most perpendicular to the view
 		// Use the two other oriented axes as candidates for the plane normal
 		Vector3 otherA, otherB;

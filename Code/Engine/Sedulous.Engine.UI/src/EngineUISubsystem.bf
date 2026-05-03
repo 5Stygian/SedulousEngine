@@ -206,9 +206,6 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 		let mouse = inputMgr.Mouse;
 		if (mouse == null) return;
 
-		let sceneSub = Context?.GetSubsystem<SceneSubsystem>();
-		if (sceneSub == null) return;
-
 		// Find the active camera.
 		CameraComponent activeCamera = null;
 		Scene cameraScene = null;

@@ -191,7 +191,7 @@ static class AssetBrowserBuilder
 		});
 
 		// Wire rename commit -> rename file on disk and update registry
-		listAdapter.OnItemRenamed.Add(new [=listAdapter, =gridAdapter, =panel] (item, newName) => {
+		listAdapter.OnItemRenamed.Add(new (item, newName) => {
 			if (item.AbsolutePath == null || newName.Length == 0) return;
 
 			// Build new absolute path
@@ -257,7 +257,7 @@ static class AssetBrowserBuilder
 		});
 
 		// Wire grid adapter rename commit -> rename file on disk and update registry
-		gridAdapter.OnItemRenamed.Add(new [=listAdapter, =gridAdapter, =panel] (item, newName) => {
+		gridAdapter.OnItemRenamed.Add(new (item, newName) => {
 			if (item.AbsolutePath == null || newName.Length == 0) return;
 
 			let dir = scope String();
@@ -514,7 +514,7 @@ static class AssetBrowserBuilder
 		});
 
 		// Delete
-		menu.AddItem("Delete", new [=item, =adapter, =registry, =panel, =ctx] () => {
+		menu.AddItem("Delete", new () => {
 			let confirmMsg = scope String();
 			confirmMsg.AppendF("Delete '{}'?", item.Name);
 			let dialog = Dialog.Confirm("Confirm Delete", confirmMsg);
