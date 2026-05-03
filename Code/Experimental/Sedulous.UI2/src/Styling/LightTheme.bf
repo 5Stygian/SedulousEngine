@@ -156,6 +156,31 @@ public static class LightTheme
 			.Set(.CloseButtonColor, p.TextDim)
 			.Set(.CloseButtonHoverColor, p.Text);
 
+		// === ContextMenu ===
+		let menuBg = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
+		sheet.OwnDrawable(menuBg);
+		let menuHover = new RoundedRectDrawable(.(60, 120, 200, 60), 0);
+		sheet.OwnDrawable(menuHover);
+		sheet.ForType(typeof(View), "contextmenu")
+			.Set(.Background, menuBg)
+			.Set(.MenuItemHoverDrawable, menuHover)
+			.Set(.TextColor, p.Text)
+			.Set(.BorderColor, p.Border)
+			.Set(.AccentColor, Color(60, 120, 200, 60));
+
+		// === Dialog ===
+		let dialogBg = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
+		sheet.OwnDrawable(dialogBg);
+		sheet.ForType(typeof(View), "dialog")
+			.Set(.Background, dialogBg);
+
+		// === Tooltip ===
+		let tooltipBg = new RoundedRectDrawable(.(50, 55, 65, 230), 0, .(70, 75, 85, 255), 1);
+		sheet.OwnDrawable(tooltipBg);
+		sheet.ForType(typeof(View), "tooltip")
+			.Set(.Background, tooltipBg)
+			.Set(.TextColor, Color(240, 240, 245, 255));
+
 		// === Icons ===
 		RegisterIcons(sheet);
 
@@ -167,9 +192,11 @@ public static class LightTheme
 
 	private static void RegisterIcons(StyleSheet sheet)
 	{
+		let tint = Color(60, 60, 70, 255); // dark tint for light theme
+
 		void Reg(StyleProperty prop, StringView svg, StringView styleId = default)
 		{
-			let d = SVGDrawable.FromString(svg);
+			let d = SVGDrawable.FromString(svg, tint);
 			if (d != null)
 			{
 				sheet.OwnDrawable(d);

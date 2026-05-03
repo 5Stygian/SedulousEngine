@@ -293,6 +293,15 @@ public class UIContext
 		{
 			for (int i = 0; i < group.ChildCount; i++)
 				AttachView(group.GetChildAt(i));
+
+			// Also recurse into VisualChildren (e.g., Dialog's internal layout)
+			// that aren't in the regular child list.
+			for (int i = 0; i < group.VisualChildCount; i++)
+			{
+				let vc = group.GetVisualChild(i);
+				if (vc.Context != this)
+					AttachView(vc);
+			}
 		}
 	}
 
@@ -307,6 +316,14 @@ public class UIContext
 		{
 			for (int i = 0; i < group.ChildCount; i++)
 				DetachView(group.GetChildAt(i));
+
+			// Also recurse into VisualChildren that aren't regular children.
+			for (int i = 0; i < group.VisualChildCount; i++)
+			{
+				let vc = group.GetVisualChild(i);
+				if (vc.Context != null)
+					DetachView(vc);
+			}
 		}
 	}
 

@@ -198,60 +198,49 @@ Virtualized lists/trees and data model implementations.
 
 ---
 
-## Phase 6 — Overlays + Dialogs
+## Phase 6 — Overlays + Dialogs (COMPLETE)
 
-Build overlay controls on top of the PopupLayer/TooltipManager infrastructure.
+Overlay controls built on PopupLayer/TooltipManager infrastructure.
 
-- [ ] ComboBox — dropdown selection, popup list
-- [ ] Dialog — modal, auto-centered, title + content + buttons, DialogResult
-- [ ] ContextMenu — popup item list, submenus, separators
-- [ ] MenuItem — menu item for ContextMenu
-- [ ] TooltipView — themed tooltip control (infrastructure exists from Phase 0)
-- [ ] **Tests:** ComboBox selection, open/close popup
-- [ ] **Tests:** Dialog show/close/result lifecycle
-- [ ] **Tests:** ContextMenu item click, submenu open/close
-- [ ] **UI2Sandbox:** ComboBox demo, dialog demo, context menu demo, tooltip demo
+- [x] MenuItem — text-only data class with label, action, enabled, separator, submenu
+- [x] ContextMenu — popup menu with full keyboard navigation (Up/Down/Enter/Right/Left/Escape),
+      submenu support, themed MenuItemHoverDrawable, submenu arrow via ChevronCollapsedIcon,
+      explicit submenu lifecycle cleanup via stored PopupLayer reference
+- [x] Dialog — modal popup with title, content area (Grow=1), button row (JustifyContent=.End),
+      DialogResult enum, Escape closes with Cancel, static Alert/Confirm factories,
+      VisualChild pattern for internal FlexLayout
+- [x] ComboBox — dedicated ComboBoxDropdown panel (not ContextMenu) matching parent width,
+      selected item highlight, hover drawable from theme, AddItem(StringView) API,
+      keyboard navigation (Up/Down/Space/Enter/Escape)
+- [x] TooltipView — themed via StyleId "tooltip", drawable-based background, tooltip content
+      now creates Label for plain text (was missing)
+- [x] SVGDrawable — TintColor property for theme-aware icon colors (light theme uses dark tint)
+- [x] EditText — right-click context menu (Cut/Copy/Paste/Select All), suppressible via
+      ShowContextMenuOnRightClick property
+- [x] **Tests:** 23 tests — ContextMenuTests (7), DialogTests (7), ComboBoxTests (9)
+- [x] **UI2Sandbox:** Overlays tab (ComboBox, Dialog buttons, right-click ContextMenu with
+      nested submenus, tooltips with bottom/top/right/interactive/rich content),
+      Drag & Drop tab (chip reorder + drop target), Animations tab (fade/bounce/slide +
+      static transforms with hit-test verification)
 
-### Open Design Questions (Phase 6)
+**Improvements over current UI:**
+- ContextMenu has full keyboard navigation (current UI has none)
+- ComboBox uses dedicated dropdown panel instead of ContextMenu (matches width, highlights selected)
+- Submenu lifecycle: explicit PopupLayer reference cleanup (no OnDetachedFromContext needed)
+- SVGDrawable tint: one icon set for all themes, color controlled by theme
 
-**MenuItem — content-bearing vs structured:**
-MenuItem could be purely content-bearing (like Button, any View as content), or
-structured with fixed slots. Proposed structured layout:
+**Bug fixes during implementation:**
+- AttachView/DetachView now recurse through VisualChildren (not just regular children),
+  fixing focus cleanup crash when Dialog buttons were deleted without unregistering
+- Separator missing StyleId causing hardcoded dark color in light theme
+- TooltipManager was clearing content instead of creating Label for plain text tooltips
 
-```
-[Icon slot] [Primary content] [Shortcut text] [Submenu arrow]
-```
-
-- Primary content: defaults to Label (from text string), but can be any View for
-  rich items (e.g., color swatches, previews)
-- Shortcut text: separate StringView field, always right-aligned
-- Icon: optional Drawable slot (left side)
-- Submenu arrow: automatic when item has children
-
-Structured approach keeps accelerator handling simple — Shortcut is metadata on
-MenuItem (a `Shortcut` struct), not derived from content. IAcceleratorHandler walks
-the menu tree matching that field regardless of what the primary content is.
-
-Alternative: fully content-bearing MenuItem with no fixed slots. More flexible but
-accelerator/shortcut display would need a convention or separate API.
-
-**ComboBox — item content:**
-Two approaches for populating the dropdown:
-1. `AddItem(StringView)` creates a Label, `AddItem(View)` for rich content.
-   Simple, consistent with TabView's AddTab pattern.
-2. Item factory delegate `delegate View(int index)` for dynamic/virtualized content.
-
-Option 1 is simpler for Phase 6. IModel binding and cell factory can layer on top
-in Phase 5 (data controls) for virtualized scenarios.
-
-Question: does ComboBox need IModel at all in Phase 6, or can it start with a simple
-item list and gain IModel support later?
-
-**MenuBar vs MenuItem relationship:**
-MenuBar (Phase 7 Toolkit) top-level items could reuse MenuItem or be purpose-built.
-Proposed: MenuBar uses purpose-built `MenuBarItem(text, menu)` since top-level menu
-bar items are always text with a dropdown. The dropdowns contain regular MenuItems.
-This avoids forcing content-bearing complexity onto the menu bar's fixed horizontal layout.
+**Design decisions:**
+- MenuItem: text-only (no icon/shortcut slots yet). MenuBar in Phase 7 will use
+  purpose-built MenuBarItem with dropdown containing regular MenuItems.
+- ComboBox: simple AddItem(StringView) API. IModel support deferred to Phase 5.
+- MenuItemHoverDrawable: dedicated drawable property for item hover (flat for square
+  themes, rounded for rounded theme)
 
 ---
 

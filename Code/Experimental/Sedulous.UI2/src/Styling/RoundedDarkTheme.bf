@@ -195,6 +195,31 @@ public static class RoundedDarkTheme
 				.Set(.CloseButtonHoverColor, p.Text);
 		}
 
+		// === ContextMenu ===
+		let menuBg = new RoundedRectDrawable(.(45, 48, 58, 255), R, .(70, 75, 90, 255), 1);
+		sheet.OwnDrawable(menuBg);
+		let menuHover = new RoundedRectDrawable(.(60, 120, 200, 100), 3);
+		sheet.OwnDrawable(menuHover);
+		sheet.ForType(typeof(View), "contextmenu")
+			.Set(.Background, menuBg)
+			.Set(.MenuItemHoverDrawable, menuHover)
+			.Set(.TextColor, p.Text)
+			.Set(.BorderColor, Color(70, 75, 90, 255))
+			.Set(.AccentColor, Color(60, 120, 200, 100));
+
+		// === Dialog ===
+		let dialogBg = new RoundedRectDrawable(.(50, 52, 62, 255), R, .(80, 85, 100, 255), 1);
+		sheet.OwnDrawable(dialogBg);
+		sheet.ForType(typeof(View), "dialog")
+			.Set(.Background, dialogBg);
+
+		// === Tooltip ===
+		let tooltipBg = new RoundedRectDrawable(.(40, 42, 50, 230), R, .(70, 75, 85, 255), 1);
+		sheet.OwnDrawable(tooltipBg);
+		sheet.ForType(typeof(View), "tooltip")
+			.Set(.Background, tooltipBg)
+			.Set(.TextColor, p.Text);
+
 		// === Icons ===
 		RegisterIcons(sheet);
 

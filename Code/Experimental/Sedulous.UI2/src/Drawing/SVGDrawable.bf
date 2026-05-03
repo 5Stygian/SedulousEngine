@@ -11,6 +11,10 @@ public class SVGDrawable : Drawable
 {
 	private SVGDocument mDocument ~ delete _;
 
+	/// Optional tint color. When set, overrides all stroke and fill colors
+	/// in the SVG with this color. When null, uses the SVG's original colors.
+	public Color? TintColor;
+
 	public this(SVGDocument document)
 	{
 		mDocument = document;
@@ -21,6 +25,18 @@ public class SVGDrawable : Drawable
 	{
 		if (SVGLoader.Load(svgContent) case .Ok(let doc))
 			return new SVGDrawable(doc);
+		return null;
+	}
+
+	/// Create from SVG string with a tint color applied.
+	public static SVGDrawable FromString(StringView svgContent, Color tint)
+	{
+		if (SVGLoader.Load(svgContent) case .Ok(let doc))
+		{
+			let d = new SVGDrawable(doc);
+			d.TintColor = tint;
+			return d;
+		}
 		return null;
 	}
 
@@ -77,10 +93,10 @@ public class SVGDrawable : Drawable
 		else if (element.Path != null)
 		{
 			if (element.FillColor.HasValue)
-				vg.FillPath(element.Path, element.FillColor.Value);
+				vg.FillPath(element.Path, TintColor ?? element.FillColor.Value);
 
 			if (element.StrokeColor.HasValue && element.StrokeWidth > 0)
-				vg.StrokePath(element.Path, element.StrokeColor.Value, .(element.StrokeWidth));
+				vg.StrokePath(element.Path, TintColor ?? element.StrokeColor.Value, .(element.StrokeWidth));
 		}
 
 		if (element.Opacity < 1.0f)

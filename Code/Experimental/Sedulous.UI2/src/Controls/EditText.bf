@@ -99,6 +99,9 @@ public class EditText : View, ITextEditHost
 		set => mBehavior.Filter = value;
 	}
 
+	/// Whether right-click shows the Cut/Copy/Paste context menu.
+	public bool ShowContextMenuOnRightClick = true;
+
 	public int32 CursorPosition => mBehavior.CursorPosition;
 	public int32 SelectionStart => mBehavior.SelectionStart;
 	public int32 SelectionEnd => mBehavior.SelectionEnd;
@@ -520,6 +523,13 @@ public class EditText : View, ITextEditHost
 	{
 		if (!IsEffectivelyEnabled) return;
 
+		if (e.Button == .Right && ShowContextMenuOnRightClick)
+		{
+			ShowContextMenu(e.X, e.Y);
+			e.Handled = true;
+			return;
+		}
+
 		if (e.Button != .Left) return;
 
 		if (e.ClickCount <= 1)
@@ -793,6 +803,39 @@ public class EditText : View, ITextEditHost
 			mSuffixView.OnDraw(ctx);
 			ctx.VG.PopState();
 		}
+	}
+
+	// === Context menu ===
+
+	/// Show right-click context menu with Cut/Copy/Paste/Select All.
+	private void ShowContextMenu(float localX, float localY)
+	{
+		if (Context == null) return;
+
+		let menu = new ContextMenu();
+
+		if (!mReadOnly)
+		{
+			delegate void() cutAction = new () => { mBehavior.HandleKeyDown(.X, .Ctrl); };
+			menu.AddItem("Cut", cutAction, mBehavior.IsSelecting);
+		}
+
+		delegate void() copyAction = new () => { mBehavior.HandleKeyDown(.C, .Ctrl); };
+		menu.AddItem("Copy", copyAction, mBehavior.IsSelecting);
+
+		if (!mReadOnly)
+		{
+			let hasClipText = Context.Clipboard != null && Context.Clipboard.HasText;
+			delegate void() pasteAction = new () => { mBehavior.HandleKeyDown(.V, .Ctrl); };
+			menu.AddItem("Paste", pasteAction, hasClipText);
+		}
+
+		menu.AddSeparator();
+		delegate void() selectAllAction = new () => { mBehavior.HandleKeyDown(.A, .Ctrl); };
+		menu.AddItem("Select All", selectAllAction);
+
+		let screenPos = LocalToScreen(.(localX, localY));
+		menu.Show(Context, screenPos.X, screenPos.Y);
 	}
 
 	// === Helpers ===

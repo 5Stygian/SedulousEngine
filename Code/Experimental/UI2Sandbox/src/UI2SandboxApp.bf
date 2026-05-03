@@ -491,6 +491,195 @@ class UI2SandboxApp : Application
 		el3.ValidateRename = new (text) => !text.Contains("bad");
 		textInputDemo.AddView(el3, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
 
+		// === Tab 6: Overlays demo ===
+		let overlaysScroll = new ScrollView();
+		overlaysScroll.VScrollBarPolicy = .Auto;
+		tabView.AddTab("Overlays", overlaysScroll);
+
+		let overlaysDemo = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
+		overlaysDemo.Padding = .(12, 8);
+		overlaysScroll.AddView(overlaysDemo);
+
+		// --- ComboBox section ---
+		overlaysDemo.AddView(new Label("ComboBox"));
+		overlaysDemo.AddView(new Separator());
+
+		let comboBasic = new ComboBox();
+		comboBasic.AddItem("Option 1");
+		comboBasic.AddItem("Option 2");
+		comboBasic.AddItem("Option 3");
+		overlaysDemo.AddView(comboBasic, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		let comboPreselected = new ComboBox();
+		comboPreselected.AddItem("Red");
+		comboPreselected.AddItem("Green");
+		comboPreselected.AddItem("Blue");
+		comboPreselected.SelectedIndex = 1;
+		overlaysDemo.AddView(comboPreselected, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		// --- Dialog section ---
+		overlaysDemo.AddView(new Spacer(0, 4));
+		overlaysDemo.AddView(new Label("Dialog"));
+		overlaysDemo.AddView(new Separator());
+
+		let dialogRow = new FlexLayout() { Direction = .Horizontal, Spacing = 8 };
+
+		let alertBtn = new Button("Alert");
+		alertBtn.OnClick.Add(new (b) =>
+		{
+			let dlg = Dialog.Alert("Information", "This is an alert dialog.");
+			dlg.Show(mUIContext);
+		});
+		dialogRow.AddView(alertBtn);
+
+		let confirmBtn = new Button("Confirm");
+		confirmBtn.OnClick.Add(new (b) =>
+		{
+			let dlg = Dialog.Confirm("Confirm", "Are you sure you want to proceed?");
+			dlg.Show(mUIContext);
+		});
+		dialogRow.AddView(confirmBtn);
+		overlaysDemo.AddView(dialogRow);
+
+		// --- ContextMenu section ---
+		overlaysDemo.AddView(new Spacer(0, 4));
+		overlaysDemo.AddView(new Label("ContextMenu (right-click below)"));
+		overlaysDemo.AddView(new Separator());
+
+		let contextArea = new ContextMenuDemoArea();
+		overlaysDemo.AddView(contextArea, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(80)) });
+
+		// --- Tooltip section ---
+		overlaysDemo.AddView(new Spacer(0, 4));
+		overlaysDemo.AddView(new Label("Tooltips (hover below)"));
+		overlaysDemo.AddView(new Separator());
+
+		let tooltipRow = new FlexLayout() { Direction = .Horizontal, Spacing = 8 };
+		let ttBtn1 = new Button("Bottom tooltip");
+		ttBtn1.TooltipText = new String("This appears below");
+		tooltipRow.AddView(ttBtn1);
+
+		let ttBtn2 = new Button("Top tooltip");
+		ttBtn2.TooltipText = new String("This appears above");
+		ttBtn2.TooltipPlacement = .Top;
+		tooltipRow.AddView(ttBtn2);
+
+		let ttBtn3 = new Button("Right tooltip");
+		ttBtn3.TooltipText = new String("This appears on the right");
+		ttBtn3.TooltipPlacement = .Right;
+		tooltipRow.AddView(ttBtn3);
+
+		let ttBtn4 = new Button("Interactive");
+		ttBtn4.TooltipText = new String("This tooltip stays while you hover it");
+		ttBtn4.IsTooltipInteractive = true;
+		tooltipRow.AddView(ttBtn4);
+
+		let ttBtn5 = new RichTooltipButton("Rich content");
+		tooltipRow.AddView(ttBtn5);
+		overlaysDemo.AddView(tooltipRow);
+
+		// === Tab 7: Drag & Drop demo ===
+		let dndDemo = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
+		dndDemo.Padding = .(12, 8);
+		tabView.AddTab("Drag & Drop", dndDemo);
+
+		dndDemo.AddView(new Label("Drag chips to reorder, or drop onto the box"));
+		dndDemo.AddView(new Separator());
+
+		let dndRow = new FlexLayout() { Direction = .Horizontal, Spacing = 8 };
+
+		let chipContainer = new ChipReorderContainer();
+		chipContainer.Direction = .Horizontal;
+		chipContainer.Spacing = 4;
+
+		Color[?] chipColors = .(
+			.(220, 60, 60, 255), .(60, 180, 60, 255), .(60, 100, 220, 255),
+			.(220, 180, 40, 255), .(180, 60, 220, 255));
+		for (int i = 0; i < chipColors.Count; i++)
+		{
+			let chip = new DragChip(chipColors[i]);
+			chipContainer.AddView(chip, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(30)), Height = .Fixed(.Px(30)) });
+		}
+		dndRow.AddView(chipContainer);
+
+		let dropBox = new ColorDropBox();
+		dndRow.AddView(dropBox, new FlexLayout.LayoutParams() { Grow = 1, Height = .Fixed(.Px(30)) });
+		dndDemo.AddView(dndRow);
+
+		// === Tab 8: Animations & Transforms demo ===
+		let animDemo = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
+		animDemo.Padding = .(12, 8);
+		tabView.AddTab("Animations", animDemo);
+
+		// Animation target
+		animDemo.AddView(new Label("Animation Target"));
+		let animTarget = new ColorView(.(80, 160, 255, 255), 0, 30);
+		animDemo.AddView(animTarget, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(30)) });
+
+		// Animation buttons
+		let animRow = new FlexLayout() { Direction = .Horizontal, Spacing = 6 };
+
+		let fadeOutBtn = new Button("Fade Out");
+		fadeOutBtn.OnClick.Add(new (b) =>
+		{
+			mUIContext.Animations.Add(ViewAnimator.FadeOut(animTarget, 0.5f, Easing.EaseOutCubic));
+		});
+		animRow.AddView(fadeOutBtn);
+
+		let fadeInBtn = new Button("Fade In");
+		fadeInBtn.OnClick.Add(new (b) =>
+		{
+			mUIContext.Animations.Add(ViewAnimator.FadeIn(animTarget, 0.5f, Easing.EaseOutCubic));
+		});
+		animRow.AddView(fadeInBtn);
+
+		let bounceBtn = new Button("Bounce");
+		bounceBtn.OnClick.Add(new (b) =>
+		{
+			let sb = new Storyboard(.Sequential);
+			sb.Add(ViewAnimator.ScaleTo(animTarget, 1.0f, 1.3f, 0.15f, Easing.EaseOutCubic));
+			sb.Add(ViewAnimator.ScaleTo(animTarget, 1.3f, 1.0f, 0.3f, Easing.BounceOut));
+			mUIContext.Animations.Add(sb);
+		});
+		animRow.AddView(bounceBtn);
+
+		let slideBtn = new Button("Slide");
+		slideBtn.OnClick.Add(new (b) =>
+		{
+			let sb = new Storyboard(.Sequential);
+			sb.Add(ViewAnimator.TranslateX(animTarget, 0, 50, 0.3f, Easing.EaseOutCubic));
+			sb.Add(ViewAnimator.TranslateX(animTarget, 50, 0, 0.3f, Easing.EaseInCubic));
+			mUIContext.Animations.Add(sb);
+		});
+		animRow.AddView(slideBtn);
+		animDemo.AddView(animRow);
+
+		// Transform demos
+		animDemo.AddView(new Spacer(0, 8));
+		animDemo.AddView(new Label("Static Transforms (click to verify hit-testing)"));
+		animDemo.AddView(new Separator());
+
+		let transformClickLabel = new Label("Click a transformed button...");
+		let transformRow = new FlexLayout() { Direction = .Horizontal, Spacing = 16 };
+
+		let rotBtn = new Button("Rotated");
+		rotBtn.Transform = .() { Rotation = 0.15f };
+		rotBtn.OnClick.Add(new (b) => { transformClickLabel.SetText("Rotated button clicked!"); });
+		transformRow.AddView(rotBtn);
+
+		let scaleBtn = new Button("Scaled 1.2x");
+		scaleBtn.Transform = .() { Scale = .(1.2f, 1.2f) };
+		scaleBtn.OnClick.Add(new (b) => { transformClickLabel.SetText("Scaled button clicked!"); });
+		transformRow.AddView(scaleBtn);
+
+		let skewTranslateBtn = new Button("Translated");
+		skewTranslateBtn.Transform = .() { Translation = .(10, 5) };
+		skewTranslateBtn.OnClick.Add(new (b) => { transformClickLabel.SetText("Translated button clicked!"); });
+		transformRow.AddView(skewTranslateBtn);
+
+		animDemo.AddView(transformRow);
+		animDemo.AddView(transformClickLabel);
+
 		// Footer
 		let footer = new ThemedBox("panel", 0, 24);
 		main.AddView(footer, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
@@ -709,5 +898,198 @@ class ThemedBox : View
 		// Fallback: fill with resolved background color or surface.
 		let bgColor = ResolveStyleColor(.TextColor, .(50, 52, 60, 255));
 		ctx.VG.FillRect(bounds, Palette.Darken(bgColor, 0.7f));
+	}
+}
+
+/// Demo area that shows a ContextMenu on right-click.
+class ContextMenuDemoArea : View
+{
+	protected override void OnMeasure(BoxConstraints constraints)
+	{
+		MeasuredSize = .(constraints.ConstrainWidth(constraints.MaxWidth),
+			constraints.ConstrainHeight(80));
+	}
+
+	public override void OnDraw(UIDrawContext ctx)
+	{
+		let bounds = RectangleF(0, 0, Width, Height);
+		let bg = ResolveStyleColor(.BorderColor, .(50, 55, 65, 255));
+		ctx.VG.FillRoundedRect(bounds, 4, Palette.Darken(bg, 0.3f));
+		ctx.VG.StrokeRoundedRect(bounds, 4, bg, 1);
+		if (ctx.FontService != null)
+		{
+			let font = ctx.FontService.GetFont(14);
+			if (font != null)
+				ctx.VG.DrawText("Right-click for context menu", font,
+					bounds, .Center, .Middle, .(180, 185, 200, 255));
+		}
+	}
+
+	public override void OnMouseDown(MouseEventArgs e)
+	{
+		if (e.Button == .Right && Context != null)
+		{
+			let menu = new ContextMenu();
+			menu.AddItem("Cut", new () => {});
+			menu.AddItem("Copy", new () => {});
+			menu.AddItem("Paste", new () => {});
+			menu.AddSeparator();
+			let sub = menu.AddSubmenu("More");
+			sub.Submenu.AddItem("Select All", new () => {});
+			sub.Submenu.AddItem("Find", new () => {});
+			sub.Submenu.AddSeparator();
+			let nested = sub.Submenu.AddSubmenu("Even More");
+			nested.Submenu.AddItem("Nested Item 1", new () => {});
+			nested.Submenu.AddItem("Nested Item 2", new () => {});
+			menu.AddSeparator();
+			menu.AddItem("Disabled Item", new () => {}, false);
+
+			let screenPos = LocalToScreen(.(e.X, e.Y));
+			menu.Show(Context, screenPos.X, screenPos.Y);
+			e.Handled = true;
+		}
+	}
+}
+
+/// Custom drag data carrying a reference to the source chip.
+class ChipDragData : DragData
+{
+	public DragChip SourceChip;
+
+	public this(DragChip source) : base("demo/chip")
+	{
+		SourceChip = source;
+	}
+}
+
+/// Draggable colored chip implementing IDragSource.
+class DragChip : ColorView, IDragSource
+{
+	public this(Color color) : base(color, 30, 30) { }
+
+	public DragData CreateDragData()
+	{
+		return new ChipDragData(this);
+	}
+
+	public View CreateDragVisual(DragData data)
+	{
+		let panel = new Panel();
+		panel.Padding = .(6, 2);
+		let label = new Label(scope String()..AppendF("#{0:X2}{1:X2}{2:X2}", Color.R, Color.G, Color.B));
+		panel.AddView(label);
+		return panel;
+	}
+
+	public void OnDragStarted(DragData data) { Opacity = 0.4f; }
+	public void OnDragCompleted(DragData data, DragDropEffects effect, bool cancelled) { Opacity = 1.0f; }
+}
+
+/// Container that accepts chip drops and reorders by swapping colors.
+class ChipReorderContainer : FlexLayout, IDropTarget
+{
+	public DragDropEffects CanAcceptDrop(DragData data, float localX, float localY)
+	{
+		return (data.Format == "demo/chip") ? .Move : .None;
+	}
+
+	public void OnDragEnter(DragData data, float localX, float localY) { }
+	public void OnDragOver(DragData data, float localX, float localY) { }
+	public void OnDragLeave(DragData data) { }
+
+	public DragDropEffects OnDrop(DragData data, float localX, float localY)
+	{
+		if (let chipData = data as ChipDragData)
+		{
+			let sourceChip = chipData.SourceChip;
+			for (int i = 0; i < ChildCount; i++)
+			{
+				let child = GetChildAt(i);
+				if (localX >= child.Bounds.X && localX < child.Bounds.X + child.Width)
+				{
+					if (let targetChip = child as DragChip)
+					{
+						if (targetChip !== sourceChip)
+						{
+							let tempColor = sourceChip.Color;
+							sourceChip.Color = targetChip.Color;
+							targetChip.Color = tempColor;
+						}
+						return .Move;
+					}
+				}
+			}
+		}
+		return .None;
+	}
+}
+
+/// Drop target box that changes color when a chip is dropped on it.
+class ColorDropBox : View, IDropTarget
+{
+	private String mText = new .("Drop here") ~ delete _;
+	private Color mBgColor = .(50, 55, 65, 255);
+
+	protected override void OnMeasure(BoxConstraints constraints)
+	{
+		MeasuredSize = .(constraints.ConstrainWidth(constraints.MaxWidth),
+			constraints.ConstrainHeight(30));
+	}
+
+	public override void OnDraw(UIDrawContext ctx)
+	{
+		let bounds = RectangleF(0, 0, Width, Height);
+		ctx.VG.FillRoundedRect(bounds, 4, mBgColor);
+		ctx.VG.StrokeRoundedRect(bounds, 4, .(70, 75, 85, 255), 1);
+		if (ctx.FontService != null)
+		{
+			let font = ctx.FontService.GetFont(12);
+			if (font != null)
+				ctx.VG.DrawText(mText, font, bounds, .Center, .Middle, .(220, 225, 235, 255));
+		}
+	}
+
+	public DragDropEffects CanAcceptDrop(DragData data, float localX, float localY)
+	{
+		return (data.Format == "demo/chip") ? .Copy : .None;
+	}
+
+	public void OnDragEnter(DragData data, float localX, float localY) { mText.Set("Release!"); Invalidate(); }
+	public void OnDragOver(DragData data, float localX, float localY) { }
+	public void OnDragLeave(DragData data) { mText.Set("Drop here"); Invalidate(); }
+
+	public DragDropEffects OnDrop(DragData data, float localX, float localY)
+	{
+		if (let chipData = data as ChipDragData)
+		{
+			mBgColor = chipData.SourceChip.Color;
+			mText.Set("Dropped!");
+			Invalidate();
+		}
+		return .Copy;
+	}
+}
+
+/// Button that provides rich tooltip content via ITooltipProvider.
+class RichTooltipButton : Button, ITooltipProvider
+{
+	public this(StringView text) : base(text)
+	{
+		IsTooltipInteractive = true;
+	}
+
+	public View CreateTooltipContent()
+	{
+		let layout = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		layout.AddView(new Label("Rich Tooltip"));
+		layout.AddView(new Separator());
+		layout.AddView(new Label("This tooltip has multiple lines,") { StyleId = new String("label-dim") });
+		layout.AddView(new Label("a separator, and custom content.") { StyleId = new String("label-dim") });
+		let colorRow = new FlexLayout() { Direction = .Horizontal, Spacing = 4 };
+		colorRow.AddView(new ColorView(.(220, 60, 60, 255), 16, 16));
+		colorRow.AddView(new ColorView(.(60, 180, 60, 255), 16, 16));
+		colorRow.AddView(new ColorView(.(60, 60, 220, 255), 16, 16));
+		layout.AddView(colorRow);
+		return layout;
 	}
 }

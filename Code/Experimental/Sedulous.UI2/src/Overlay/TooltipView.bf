@@ -12,6 +12,7 @@ public class TooltipView : ViewGroup
 	public this()
 	{
 		Padding = .(8, 4);
+		StyleId = new String("tooltip");
 	}
 
 	/// Set custom view as tooltip content.
@@ -61,9 +62,15 @@ public class TooltipView : ViewGroup
 	{
 		let bounds = RectangleF(0, 0, Width, Height);
 
-		// Default themed tooltip background.
-		ctx.VG.FillRoundedRect(bounds, 4, .(40, 42, 50, 230));
-		ctx.VG.StrokeRoundedRect(bounds, 4, .(70, 75, 85, 255), 1);
+		// Background from theme.
+		let bg = ResolveStyleDrawable(.Background);
+		if (bg != null)
+			bg.Draw(ctx, bounds);
+		else
+		{
+			ctx.VG.FillRoundedRect(bounds, 4, .(40, 42, 50, 230));
+			ctx.VG.StrokeRoundedRect(bounds, 4, .(70, 75, 85, 255), 1);
+		}
 
 		// Draw content.
 		base.OnDraw(ctx);

@@ -39,6 +39,9 @@ public enum StyleProperty
 	/// TabView hovered tab background
 	HoverTabDrawable,
 
+	/// ContextMenu item hover background
+	MenuItemHoverDrawable,
+
 	/// Expander header background
 	HeaderDrawable,
 	/// Expander header hovered background

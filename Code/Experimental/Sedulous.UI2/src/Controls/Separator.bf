@@ -1,6 +1,7 @@
 namespace Sedulous.UI2;
 
 using Sedulous.Core.Mathematics;
+using System;
 
 /// Horizontal or vertical divider line.
 public class Separator : View
@@ -8,8 +9,8 @@ public class Separator : View
 	public Orientation Orientation = .Horizontal;
 	public float SeparatorThickness = 1;
 
-	public this() { }
-	public this(Orientation orientation) { Orientation = orientation; }
+	public this() { StyleId = new String("separator"); }
+	public this(Orientation orientation) : this() { Orientation = orientation; }
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{

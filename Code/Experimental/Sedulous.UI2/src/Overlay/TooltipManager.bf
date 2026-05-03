@@ -109,15 +109,13 @@ public class TooltipManager
 		}
 		else
 		{
-			// Fall back to plain text.
+			// Fall back to plain text label.
 			StringView text = (target.TooltipText != null) ? target.TooltipText : StringView();
 			if (text.IsEmpty)
 				return;
 
-			// Create a simple text label as content.
-			// TooltipView will draw it. For now, use VG text in OnDraw.
-			// Full Label control will be available in later phases.
-			mTooltipView.ClearContent();
+			let label = new Label(text);
+			mTooltipView.SetContent(label);
 		}
 
 		mInteractive = target.IsTooltipInteractive;
