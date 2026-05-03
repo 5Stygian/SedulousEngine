@@ -141,12 +141,42 @@ Build text editing controls on top of the TextEditingBehavior infrastructure.
 
 - [ ] EditText — single/multi-line, placeholder, read-only, max length, input filter
 - [ ] PasswordBox — masked display
-- [ ] NumericField — number input with increment/decrement (wraps EditText)
-- [ ] EditableLabel — label that becomes EditText on click (slow-click rename)
+- [ ] NumericField — number input with optional spin buttons (wraps EditText)
+- [ ] EditableLabel — label that becomes EditText on interaction (slow-click, F2)
 - [ ] **Tests:** EditText input filter, max length, submit event
 - [ ] **Tests:** NumericField value clamping, step increment
 - [ ] **Tests:** TextEditingBehavior cursor movement, selection, undo/redo, clipboard
 - [ ] **UI2Sandbox:** Text editing demo page
+
+### Open Design Questions (Phase 4)
+
+**EditText prefix/suffix decorations:**
+EditText should support optional Prefix and Suffix slots, rendered inside the field
+before/after the text area. Can be a StringView (rendered as styled text) or a View
+(for rich content like colored axis labels). NumericField inherits this from EditText.
+
+Examples:
+- Vector X component: `Prefix = colored "X" View` (red)
+- Angle input: `Suffix = "°"`
+- Currency: `Prefix = "$"`
+
+This avoids needing subclasses just for visual decoration. The editor's Vector3Editor
+composes 3 NumericFields with colored prefix Views and spin buttons off.
+
+**NumericField — spin buttons optional:**
+Rather than two separate controls, NumericField has `ShowSpinButtons = true` (default).
+Property grid editors set it false where space is tight (e.g., vector component fields).
+
+**EditableLabel usage pattern:**
+EditableLabel is a composition building block, not something to subclass. Different
+contexts use the same control with different styling:
+- ListView inline edit: EditableLabel in cell, transitions to EditText on slow-click/F2.
+  Cell styling gives it transparent background / no border to blend into the row.
+- Asset browser rename: EditableLabel below thumbnail. Same control, different layout context.
+- TreeView node rename: EditableLabel as the node's text view.
+
+The visual differences come from StyleId context, not subclassing. Only fundamentally
+different edit behavior (like PasswordBox's character masking) warrants a subclass.
 
 ---
 
@@ -161,7 +191,6 @@ Virtualized lists/trees and data model implementations.
 - [ ] ListView — virtualized, uses IModel (flat), fixed/variable height, selection, momentum
 - [ ] FlattenedTreeAdapter (port, adapted for IModel)
 - [ ] TreeView — virtualized, uses IModel (hierarchical), expand/collapse, indent
-- [ ] ComboBox — dropdown selection, backed by IModel
 - [ ] SelectionModel — single/multi selection (port)
 - [ ] GridView — virtualized flowing grid with IModel, fixed cell size
 - [ ] ListView slow-click rename — delay threshold, OnSlowClickRename event
@@ -173,7 +202,7 @@ Virtualized lists/trees and data model implementations.
 - [ ] **Tests:** FlattenedTreeAdapter expand/collapse, node count
 - [ ] **Tests:** SelectionModel single/multi select, clear
 - [ ] **Tests:** HierarchicalState capture/restore roundtrip
-- [ ] **UI2Sandbox:** ListView demo (1000 items), GridView demo, TreeView demo, ComboBox demo
+- [ ] **UI2Sandbox:** ListView demo (1000 items), GridView demo, TreeView demo
 
 ---
 
@@ -181,12 +210,56 @@ Virtualized lists/trees and data model implementations.
 
 Build overlay controls on top of the PopupLayer/TooltipManager infrastructure.
 
+- [ ] ComboBox — dropdown selection, popup list
 - [ ] Dialog — modal, auto-centered, title + content + buttons, DialogResult
 - [ ] ContextMenu — popup item list, submenus, separators
-- [ ] MenuItem — text + optional shortcut display text + action
+- [ ] MenuItem — menu item for ContextMenu
+- [ ] TooltipView — themed tooltip control (infrastructure exists from Phase 0)
+- [ ] **Tests:** ComboBox selection, open/close popup
 - [ ] **Tests:** Dialog show/close/result lifecycle
 - [ ] **Tests:** ContextMenu item click, submenu open/close
-- [ ] **UI2Sandbox:** Dialog demo, context menu demo, tooltip demo
+- [ ] **UI2Sandbox:** ComboBox demo, dialog demo, context menu demo, tooltip demo
+
+### Open Design Questions (Phase 6)
+
+**MenuItem — content-bearing vs structured:**
+MenuItem could be purely content-bearing (like Button, any View as content), or
+structured with fixed slots. Proposed structured layout:
+
+```
+[Icon slot] [Primary content] [Shortcut text] [Submenu arrow]
+```
+
+- Primary content: defaults to Label (from text string), but can be any View for
+  rich items (e.g., color swatches, previews)
+- Shortcut text: separate StringView field, always right-aligned
+- Icon: optional Drawable slot (left side)
+- Submenu arrow: automatic when item has children
+
+Structured approach keeps accelerator handling simple — Shortcut is metadata on
+MenuItem (a `Shortcut` struct), not derived from content. IAcceleratorHandler walks
+the menu tree matching that field regardless of what the primary content is.
+
+Alternative: fully content-bearing MenuItem with no fixed slots. More flexible but
+accelerator/shortcut display would need a convention or separate API.
+
+**ComboBox — item content:**
+Two approaches for populating the dropdown:
+1. `AddItem(StringView)` creates a Label, `AddItem(View)` for rich content.
+   Simple, consistent with TabView's AddTab pattern.
+2. Item factory delegate `delegate View(int index)` for dynamic/virtualized content.
+
+Option 1 is simpler for Phase 6. IModel binding and cell factory can layer on top
+in Phase 5 (data controls) for virtualized scenarios.
+
+Question: does ComboBox need IModel at all in Phase 6, or can it start with a simple
+item list and gain IModel support later?
+
+**MenuBar vs MenuItem relationship:**
+MenuBar (Phase 7 Toolkit) top-level items could reuse MenuItem or be purpose-built.
+Proposed: MenuBar uses purpose-built `MenuBarItem(text, menu)` since top-level menu
+bar items are always text with a dropdown. The dropdowns contain regular MenuItems.
+This avoids forcing content-bearing complexity onto the menu bar's fixed horizontal layout.
 
 ---
 
