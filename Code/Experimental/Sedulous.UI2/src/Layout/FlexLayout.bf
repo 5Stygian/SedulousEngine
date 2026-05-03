@@ -68,7 +68,6 @@ public class FlexLayout : ViewGroup
 			visibleCount++;
 
 			let flp = child.LayoutParams as FlexLayout.LayoutParams;
-			let margin = child.LayoutParams?.Margin ?? Thickness();
 			let grow = (flp != null) ? flp.Grow : 0;
 
 			if (grow > 0)
@@ -77,8 +76,8 @@ public class FlexLayout : ViewGroup
 				continue; // measured in pass 2
 			}
 
-			let childConstraints = BoxConstraints(0, inner.MaxWidth, 0, inner.MaxHeight).Deflate(margin);
-			child.Measure(childConstraints);
+			child.Measure(MakeChildConstraints(inner, child));
+			let margin = child.LayoutParams?.Margin ?? Thickness();
 			totalFixed += child.MeasuredSize.X + margin.TotalHorizontal;
 			maxCross = Math.Max(maxCross, child.MeasuredSize.Y + margin.TotalVertical);
 		}
@@ -133,7 +132,6 @@ public class FlexLayout : ViewGroup
 			visibleCount++;
 
 			let flp = child.LayoutParams as FlexLayout.LayoutParams;
-			let margin = child.LayoutParams?.Margin ?? Thickness();
 			let grow = (flp != null) ? flp.Grow : 0;
 
 			if (grow > 0)
@@ -142,8 +140,8 @@ public class FlexLayout : ViewGroup
 				continue;
 			}
 
-			let childConstraints = BoxConstraints(0, inner.MaxWidth, 0, inner.MaxHeight).Deflate(margin);
-			child.Measure(childConstraints);
+			child.Measure(MakeChildConstraints(inner, child));
+			let margin = child.LayoutParams?.Margin ?? Thickness();
 			totalFixed += child.MeasuredSize.Y + margin.TotalVertical;
 			maxCross = Math.Max(maxCross, child.MeasuredSize.X + margin.TotalHorizontal);
 		}

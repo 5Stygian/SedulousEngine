@@ -10,8 +10,7 @@ public static class LightTheme
 {
 	public static StyleSheet Create()
 	{
-		let p = ThemePalette.Light;
-		return BuildTheme(p);
+		return BuildTheme(.Light);
 	}
 
 	public static StyleSheet Create(ThemePalette palette)
@@ -30,15 +29,18 @@ public static class LightTheme
 
 		// === Button ===
 		let btnBg = Palette.CreateStateColors(.(220, 222, 230, 255));
+		let btnChecked = Palette.CreateStateColors(p.PrimaryAccent);
 		sheet.OwnDrawable(btnBg);
+		sheet.OwnDrawable(btnChecked);
 		sheet.ForType(typeof(View), "button")
 			.Set(.Background, btnBg)
+			.Set(.CheckedBackground, btnChecked)
 			.Set(.TextColor, Color(30, 30, 40, 255))
 			.Set(.Padding, Thickness(12, 8))
-			.Set(.CornerRadius, 4.0f);
+			.Set(.CornerRadius, 0.0f);
 
 		// === Panel ===
-		let panelBg = new RoundedRectDrawable(p.Surface, 6, p.Border, 1);
+		let panelBg = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
 		sheet.OwnDrawable(panelBg);
 		sheet.ForType(typeof(View), "panel")
 			.Set(.Background, panelBg);
@@ -51,7 +53,7 @@ public static class LightTheme
 			.Set(.TextColor, p.TextDim);
 
 		// === EditText ===
-		let editBg = new RoundedRectDrawable(p.Surface, 4, p.Border, 1);
+		let editBg = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
 		sheet.OwnDrawable(editBg);
 		sheet.ForType(typeof(View), "edittext")
 			.Set(.Background, editBg)
@@ -63,41 +65,56 @@ public static class LightTheme
 			.Set(.SelectionColor, Color(60, 120, 200, 60));
 
 		// === CheckBox ===
-		sheet.ForType(typeof(View), "checkbox")
-			.Set(.BoxColor, p.Surface)
-			.Set(.BorderColor, p.Border)
-			.Set(.CheckColor, p.PrimaryAccent)
-			.Set(.BoxSize, 18.0f)
-			.Set(.Spacing, 6.0f);
+		{
+			let cbUnchecked = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
+			let cbChecked = new RoundedRectDrawable(p.PrimaryAccent, 0, p.Border, 1);
+			sheet.OwnDrawable(cbUnchecked);
+			sheet.OwnDrawable(cbChecked);
+			sheet.ForType(typeof(View), "checkbox")
+				.Set(.BoxDrawable, cbUnchecked)
+				.Set(.CheckedBackground, cbChecked)
+				.Set(.BoxSize, 18.0f)
+				.Set(.Spacing, 6.0f);
+		}
 
 		// === RadioButton ===
-		sheet.ForType(typeof(View), "radiobutton")
-			.Set(.BoxColor, p.Surface)
-			.Set(.BorderColor, p.Border)
-			.Set(.CheckColor, p.PrimaryAccent);
+		{
+			let rbUnchecked = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
+			let rbChecked = new RoundedRectDrawable(p.PrimaryAccent, 0, p.Border, 1);
+			sheet.OwnDrawable(rbUnchecked);
+			sheet.OwnDrawable(rbChecked);
+			sheet.ForType(typeof(View), "radiobutton")
+				.Set(.BoxDrawable, rbUnchecked)
+				.Set(.CheckedBackground, rbChecked);
+		}
 
 		// === Slider ===
 		sheet.ForType(typeof(View), "slider")
-			.Set(.TrackColor, Color(210, 215, 225, 255))
-			.Set(.FillColor, p.PrimaryAccent)
-			.Set(.ThumbColor, p.PrimaryAccent)
+			.Set(.TrackDrawable, sheet.OwnColor(.(210, 215, 225, 255)))
+			.Set(.FillDrawable, sheet.OwnColor(p.PrimaryAccent))
+			.Set(.ThumbDrawable, sheet.OwnColor(p.PrimaryAccent))
 			.Set(.ThumbSize, 16.0f)
 			.Set(.TrackHeight, 4.0f);
 
 		// === ProgressBar ===
 		sheet.ForType(typeof(View), "progressbar")
-			.Set(.TrackColor, Color(210, 215, 225, 255))
-			.Set(.FillColor, p.PrimaryAccent);
+			.Set(.TrackDrawable, sheet.OwnColor(.(210, 215, 225, 255)))
+			.Set(.FillDrawable, sheet.OwnColor(p.PrimaryAccent));
 
 		// === ToggleSwitch ===
-		sheet.ForType(typeof(View), "toggleswitch")
-			.Set(.TrackColor, Color(200, 205, 215, 255))
-			.Set(.TrackOnColor, p.PrimaryAccent)
-			.Set(.KnobColor, p.Surface)
-			.Set(.BorderColor, p.Border);
+		{
+			let swOff = new RoundedRectDrawable(.(200, 205, 215, 255), 0, p.Border, 1);
+			let swOn = new RoundedRectDrawable(p.PrimaryAccent, 0, p.Border, 1);
+			sheet.OwnDrawable(swOff);
+			sheet.OwnDrawable(swOn);
+			sheet.ForType(typeof(View), "toggleswitch")
+				.Set(.TrackDrawable, swOff)
+				.Set(.TrackOnDrawable, swOn)
+				.Set(.KnobDrawable, sheet.OwnColor(p.Surface));
+		}
 
 		// === ComboBox ===
-		let comboBg = new RoundedRectDrawable(p.Surface, 4, p.Border, 1);
+		let comboBg = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
 		sheet.OwnDrawable(comboBg);
 		sheet.ForType(typeof(View), "combobox")
 			.Set(.Background, comboBg)
@@ -105,22 +122,62 @@ public static class LightTheme
 
 		// === ScrollBar ===
 		sheet.ForType(typeof(View), "scrollbar")
-			.Set(.TrackColor, Color(230, 232, 240, 150))
-			.Set(.ThumbColor, Color(160, 165, 180, 200));
+			.Set(.TrackDrawable, sheet.OwnColor(.(230, 232, 240, 150)))
+			.Set(.ThumbDrawable, sheet.OwnColor(.(160, 165, 180, 200)));
 
 		// === Separator ===
 		sheet.ForType(typeof(View), "separator")
 			.Set(.BorderColor, p.Border);
 
 		// === Expander ===
-		let expanderBg = new ColorDrawable(.(235, 238, 245, 255));
-		sheet.OwnDrawable(expanderBg);
 		sheet.ForType(typeof(View), "expander")
-			.Set(.Background, expanderBg);
+			.Set(.HeaderDrawable, sheet.OwnColor(.(235, 238, 245, 255)))
+			.Set(.HeaderHoverDrawable, sheet.OwnColor(Palette.Darken(.(235, 238, 245, 255), 0.05f)))
+			.Set(.ArrowColor, Color(80, 85, 100, 255));
+
+		// === TabView ===
+		sheet.ForType(typeof(View), "tabview")
+			.Set(.StripDrawable, sheet.OwnColor(Palette.Darken(p.Surface, 0.05f)))
+			.Set(.ContentDrawable, sheet.OwnColor(p.Surface))
+			.Set(.ActiveTabDrawable, sheet.OwnColor(p.Surface))
+			.Set(.HoverTabDrawable, sheet.OwnColor(Palette.Darken(p.Surface, 0.03f)))
+			.Set(.BorderColor, p.Border)
+			.Set(.AccentColor, p.PrimaryAccent)
+			.Set(.ActiveTabTextColor, p.Text)
+			.Set(.InactiveTabTextColor, p.TextDim)
+			.Set(.HoverTabTextColor, Palette.Darken(p.TextDim, 0.2f))
+			.Set(.CloseButtonColor, p.TextDim)
+			.Set(.CloseButtonHoverColor, p.Text);
+
+		// === Icons ===
+		RegisterIcons(sheet);
 
 		// Apply registered extensions.
 		ThemeRegistry.ApplyExtensions(sheet, p);
 
 		return sheet;
+	}
+
+	private static void RegisterIcons(StyleSheet sheet)
+	{
+		void Reg(StyleProperty prop, StringView svg, StringView styleId = default)
+		{
+			let d = SVGDrawable.FromString(svg);
+			if (d != null)
+			{
+				sheet.OwnDrawable(d);
+				if (styleId.IsEmpty)
+					sheet.ForType(typeof(View)).Set(prop, d);
+				else
+					sheet.ForType(typeof(View), styleId).Set(prop, d);
+			}
+		}
+
+		Reg(.CheckmarkIcon, ThemeIcons.Checkmark, "checkbox");
+		Reg(.RadioMarkIcon, ThemeIcons.RadioMarkSquare, "radiobutton");
+		Reg(.CloseIcon, ThemeIcons.Close, "tabview");
+		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "expander");
+		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "expander");
+		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown, "combobox");
 	}
 }

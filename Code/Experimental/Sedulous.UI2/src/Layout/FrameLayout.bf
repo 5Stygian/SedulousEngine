@@ -26,13 +26,9 @@ public class FrameLayout : ViewGroup
 
 			let margin = child.LayoutParams?.Margin ?? Thickness();
 
-			// Loosen constraints so children can be smaller than container.
-			let inner = constraints.Deflate(.(
-				Padding.Left + margin.Left,
-				Padding.Top + margin.Top,
-				Padding.Right + margin.Right,
-				Padding.Bottom + margin.Bottom)).Loosen();
-
+			// Use SizeSpec-aware constraints.
+			let inner = MakeChildConstraints(
+				constraints.Deflate(Padding), child);
 			child.Measure(inner);
 
 			maxW = Math.Max(maxW, child.MeasuredSize.X + margin.TotalHorizontal);

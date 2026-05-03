@@ -11,6 +11,9 @@ public class MouseWheelEventArgs
 	public float DeltaX;
 	public float DeltaY;
 
+	/// Modifier keys held during this event.
+	public KeyModifiers Modifiers;
+
 	/// Set by handler to stop event bubbling.
 	public bool Handled;
 
@@ -18,6 +21,7 @@ public class MouseWheelEventArgs
 	{
 		X = 0; Y = 0;
 		DeltaX = 0; DeltaY = 0;
+		Modifiers = .None;
 		Handled = false;
 	}
 }

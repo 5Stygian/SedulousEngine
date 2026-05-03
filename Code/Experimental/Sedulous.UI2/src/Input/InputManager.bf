@@ -234,7 +234,7 @@ public class InputManager
 	}
 
 	/// Process mouse wheel. Coordinates in physical pixels.
-	public void ProcessMouseWheel(float physicalX, float physicalY, float deltaX, float deltaY)
+	public void ProcessMouseWheel(float physicalX, float physicalY, float deltaX, float deltaY, KeyModifiers modifiers = .None)
 	{
 		let dpiScale = mContext.DpiScale;
 		let scaledX = physicalX / dpiScale;
@@ -245,6 +245,7 @@ public class InputManager
 		mWheelArgs.Y = scaledY;
 		mWheelArgs.DeltaX = deltaX;
 		mWheelArgs.DeltaY = deltaY;
+		mWheelArgs.Modifiers = modifiers;
 
 		// Mouse wheel bubbles up from hit target to root.
 		let root = mContext.ActiveInputRoot;

@@ -14,11 +14,19 @@ public class ViewGroup : View
 	/// Padding inside this container (space between edges and children).
 	public Thickness Padding;
 
-	/// Number of children.
+	/// Number of logical children.
 	public int ChildCount => mChildren.Count;
 
-	/// Gets the child at the given index.
+	/// Gets the logical child at the given index.
 	public View GetChildAt(int index) => mChildren[index];
+
+	/// Number of visual children (logical + internal auxiliary views like scrollbars).
+	/// Subclasses override to append internal views.
+	public virtual int VisualChildCount => mChildren.Count;
+
+	/// Gets a visual child at the given index.
+	/// Indices 0..ChildCount-1 are logical children; beyond that are internal views.
+	public virtual View GetVisualChild(int index) => (index < mChildren.Count) ? mChildren[index] : null;
 
 	/// Adds a child view with optional layout params. Returns this for fluent chaining.
 	public virtual ViewGroup AddView(View child, LayoutParams lp = null)
@@ -135,6 +143,50 @@ public class ViewGroup : View
 		return new LayoutParams();
 	}
 
+	/// Build child constraints from parent constraints and the child's LayoutParams SizeSpec.
+	/// Accounts for used space (padding, margin, consumed space).
+	///   Fixed → tight constraint at the resolved pixel size
+	///   Match → tight constraint at available space
+	///   Wrap  → loose constraint (min=0, max=available)
+	protected static BoxConstraints MakeChildConstraints(BoxConstraints parent, View child, float usedW = 0, float usedH = 0)
+	{
+		let lp = child.LayoutParams;
+		let margin = (lp != null) ? lp.Margin : Thickness();
+		let dpiScale = child.Root?.DpiScale ?? 1.0f;
+
+		let availW = Math.Max(0, parent.MaxWidth - usedW - margin.TotalHorizontal);
+		let availH = Math.Max(0, parent.MaxHeight - usedH - margin.TotalVertical);
+
+		let widthSpec = (lp != null) ? lp.Width : SizeSpec.Wrap;
+		let heightSpec = (lp != null) ? lp.Height : SizeSpec.Wrap;
+
+		float minW, maxW, minH, maxH;
+
+		switch (widthSpec)
+		{
+		case .Fixed(let unit):
+			let w = unit.Resolve(dpiScale);
+			minW = w; maxW = w;
+		case .Match:
+			minW = availW; maxW = availW;
+		case .Wrap:
+			minW = 0; maxW = availW;
+		}
+
+		switch (heightSpec)
+		{
+		case .Fixed(let unit):
+			let h = unit.Resolve(dpiScale);
+			minH = h; maxH = h;
+		case .Match:
+			minH = availH; maxH = availH;
+		case .Wrap:
+			minH = 0; maxH = availH;
+		}
+
+		return BoxConstraints(minW, maxW, minH, maxH);
+	}
+
 	/// Default measure: wraps to the largest child + padding.
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
@@ -165,9 +217,11 @@ public class ViewGroup : View
 
 	protected void DrawChildren(UIDrawContext ctx)
 	{
-		for (let child in mChildren)
+		let count = VisualChildCount;
+		for (int i = 0; i < count; i++)
 		{
-			if (child.Visibility != .Visible)
+			let child = GetVisualChild(i);
+			if (child == null || child.Visibility != .Visible)
 				continue;
 
 			// Single PushState wraps translate + transform + opacity + clip + draw.
@@ -232,11 +286,12 @@ public class ViewGroup : View
 			localPoint.X >= Width || localPoint.Y >= Height)
 			return null;
 
-		// Test children in reverse order (last drawn = topmost).
-		for (int i = mChildren.Count - 1; i >= 0; i--)
+		// Test visual children in reverse order (last drawn = topmost).
+		let count = VisualChildCount;
+		for (int i = count - 1; i >= 0; i--)
 		{
-			let child = mChildren[i];
-			if (child.Visibility != .Visible || !child.IsInteractionEnabled)
+			let child = GetVisualChild(i);
+			if (child == null || child.Visibility != .Visible || !child.IsInteractionEnabled)
 				continue;
 
 			// Translate point into child's local space.

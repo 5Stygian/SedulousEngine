@@ -111,9 +111,9 @@ class ThemeTests
 		let pad = view.ResolveStyleThickness(.Padding);
 		Test.Assert(pad.Left > 0);
 
-		// Button corner radius
+		// Button corner radius (flat themes use 0)
 		let radius = view.ResolveStyleFloat(.CornerRadius);
-		Test.Assert(radius == 4.0f);
+		Test.Assert(radius == 0.0f);
 	}
 
 	// === LightTheme ===

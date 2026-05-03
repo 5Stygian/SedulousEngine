@@ -119,6 +119,15 @@ public class StyleSheet : RefCounted
 		mOwnedResources.Add(resource);
 	}
 
+	/// Create a ColorDrawable, take ownership, and return it.
+	/// Convenience for flat themes that need many color drawables.
+	public ColorDrawable OwnColor(Color color)
+	{
+		let d = new ColorDrawable(color);
+		mOwnedDrawables.Add(d);
+		return d;
+	}
+
 	// === Resolution ===
 
 	/// Resolve a style property for a view. Walks rules in specificity order,

@@ -8,6 +8,7 @@ using Sedulous.RHI;
 using Sedulous.Shell.Input;
 using Sedulous.UI2;
 using Sedulous.UI2.Runtime;
+using Sedulous.Images;
 
 /// Minimal UI2 sandbox application. Extends Application directly (no engine).
 /// App owns UIContext and RootView. Subsystem owns rendering pipeline.
@@ -19,7 +20,10 @@ class UI2SandboxApp : Application
 	// App-owned UI state (cleaned up in OnShutdown)
 	private UIContext mUIContext;
 	private RootView mRoot;
-	private bool mIsDarkTheme = true;
+	private int32 mThemeIndex = 0; // 0=Dark, 1=Light, 2=RoundedDark
+	private OwnedImageData mTestImage ~ delete _;
+	private RepeatButton mRepeatBtn;
+	private int32 mRepeatCount;
 
 	protected override void OnInitialize(Context context)
 	{
@@ -28,7 +32,7 @@ class UI2SandboxApp : Application
 		mRoot = new RootView();
 
 		// Set default theme
-		SetTheme(true);
+		ApplyTheme();
 
 		// Create and register subsystem
 		mUI = new UI2Subsystem();
@@ -53,6 +57,9 @@ class UI2SandboxApp : Application
 		mUI.LoadFont("Roboto", fontPath, .() { PixelHeight = 16 });
 		mUI.LoadFont("Roboto", fontPath, .() { PixelHeight = 24 });
 
+		// Generate a test image for ImageView demo
+		mTestImage = GenerateCheckerboard(64, 64, 8, .(100, 140, 200, 255), .(40, 50, 70, 255));
+
 		// Build initial UI
 		BuildUI();
 
@@ -65,82 +72,268 @@ class UI2SandboxApp : Application
 		let main = new FlexLayout() { Direction = .Vertical };
 		mRoot.AddView(main);
 
-		// Header — themed panel
-		let header = new ThemedBox("panel", 0, 36);
-		main.AddView(header, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(36)) });
+		// TabView as the main navigation
+		let tabView = new TabView() { TabsClosable = false };
+		tabView.OnTabCloseRequested.Add(new (tv, idx) => { tv.RemoveTab(idx); });
+		main.AddView(tabView, new FlexLayout.LayoutParams() { Grow = 1 });
 
-		// Body: horizontal split
-		let body = new FlexLayout() { Direction = .Horizontal, Spacing = 2 };
-		main.AddView(body, new FlexLayout.LayoutParams() { Width = .Match, Grow = 1 });
+		// === Tab 1: Controls ===
+		let body = new FlexLayout() { Direction = .Horizontal, Spacing = 4 };
+		tabView.AddTab("Controls", body);
 
-		// Left panel — DockLayout demo
-		let leftPanel = new DockLayout();
-		leftPanel.Padding = .(4);
-		body.AddView(leftPanel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(250)), Height = .Match });
+		// Left panel — Controls demo
+		let leftPanel = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
+		leftPanel.Padding = .(12, 8);
+		body.AddView(leftPanel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
 
-		let dockTop = new ColorBox(.(60, 130, 60, 255), 240, 30);
-		leftPanel.AddView(dockTop, new DockLayout.LayoutParams(.Top));
+		// Buttons
+		let btnRow = new FlexLayout() { Direction = .Horizontal, Spacing = 6 };
+		btnRow.AddView(new Button("Click Me"));
+		btnRow.AddView(new Button("Disabled") { IsEnabled = false });
+		btnRow.AddView(new ToggleButton("Toggle"));
+		leftPanel.AddView(btnRow);
 
-		let dockBottom = new ColorBox(.(130, 60, 60, 255), 240, 30);
-		leftPanel.AddView(dockBottom, new DockLayout.LayoutParams(.Bottom));
+		// RepeatButton
+		let repeatRow = new FlexLayout() { Direction = .Horizontal, Spacing = 6 };
+		let repeatLabel = new Label("Count: 0");
+		let repeatBtn = new RepeatButton("Hold Me");
+		mRepeatBtn = repeatBtn;
+		repeatBtn.OnClick.Add(new (btn) =>
+		{
+			mRepeatCount++;
+			repeatLabel.SetText(scope String()..AppendF("Count: {}", mRepeatCount));
+		});
+		repeatRow.AddView(repeatBtn);
+		repeatRow.AddView(repeatLabel);
+		leftPanel.AddView(repeatRow);
 
-		let dockLeft = new ColorBox(.(60, 60, 130, 255), 50, 0);
-		leftPanel.AddView(dockLeft, new DockLayout.LayoutParams(.Left));
+		// Spacer
+		leftPanel.AddView(new Spacer(0, 4));
 
-		let dockCenter = new ThemedBox("panel");
-		leftPanel.AddView(dockCenter, new DockLayout.LayoutParams(.Fill));
+		// Toggle controls
+		leftPanel.AddView(new CheckBox("Enable sounds", true));
+		leftPanel.AddView(new CheckBox("Fullscreen"));
+		leftPanel.AddView(new ToggleSwitch("VSync"));
 
-		// Center panel — Grid demo
-		let centerPanel = new GridLayout();
-		centerPanel.Columns.Add(.Flex(1));
-		centerPanel.Columns.Add(.Flex(2));
-		centerPanel.Columns.Add(.Flex(1));
-		centerPanel.Rows.Add(.Fixed(40));
-		centerPanel.Rows.Add(.Flex(1));
-		centerPanel.Rows.Add(.Fixed(40));
-		centerPanel.ColumnSpacing = 2;
-		centerPanel.RowSpacing = 2;
-		body.AddView(centerPanel, new FlexLayout.LayoutParams() { Grow = 1, Height = .Match });
+		// Separator
+		leftPanel.AddView(new Separator());
 
-		// Fill grid cells with colored boxes
+		// Radio group
+		let radioGroup = new RadioGroup();
+		radioGroup.AddRadioButton(new RadioButton("Low"));
+		radioGroup.AddRadioButton(new RadioButton("Medium"));
+		radioGroup.AddRadioButton(new RadioButton("High"));
+		radioGroup.CheckAt(1);
+		leftPanel.AddView(radioGroup);
+
+		// Separator
+		leftPanel.AddView(new Separator());
+
+		// Slider
+		leftPanel.AddView(new Label("Volume"));
+		leftPanel.AddView(new Slider(0, 100, 75));
+
+		// Progress bar
+		leftPanel.AddView(new Label("Loading..."));
+		leftPanel.AddView(new ProgressBar() { Value = 0.65f });
+
+		// Center panel — Panel with Expanders
+		let centerPanel = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
+		centerPanel.Padding = .(8);
+		body.AddView(centerPanel, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// Themed panel containing expanders
+		let settingsPanel = new Panel();
+		settingsPanel.Padding = .(8);
+		settingsPanel.StyleId = new String("panel");
+		let settingsLayout = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		settingsPanel.AddView(settingsLayout);
+		centerPanel.AddView(settingsPanel);
+
+		let expander1 = new Expander("Graphics Settings");
+		let expanderContent1 = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		expanderContent1.AddView(new CheckBox("Anti-Aliasing"));
+		expanderContent1.AddView(new CheckBox("Shadows", true));
+		expanderContent1.AddView(new CheckBox("Bloom", true));
+		expander1.SetContent(expanderContent1);
+		settingsLayout.AddView(expander1);
+
+		let expander2 = new Expander("Audio Settings");
+		let expanderContent2 = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		expanderContent2.AddView(new Label("Master Volume"));
+		expanderContent2.AddView(new Slider(0, 100, 80));
+		expanderContent2.AddView(new Label("Music Volume"));
+		expanderContent2.AddView(new Slider(0, 100, 50));
+		expander2.SetContent(expanderContent2);
+		settingsLayout.AddView(expander2);
+
+		// Right panel — ImageView modes + Color swatches
+		let rightPanel = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		rightPanel.Padding = .(4);
+		body.AddView(rightPanel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		// ImageView demos — all ScaleType modes
+		rightPanel.AddView(new Label("None") { VAlign = .Top });
+		let imgNone = new ImageView(mTestImage);
+		imgNone.ScaleType = .None;
+		imgNone.ClipsContent = true;
+		rightPanel.AddView(imgNone, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(48)) });
+
+		rightPanel.AddView(new Label("FitCenter") { VAlign = .Top });
+		let imgFit = new ImageView(mTestImage);
+		imgFit.ScaleType = .FitCenter;
+		rightPanel.AddView(imgFit, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(48)) });
+
+		rightPanel.AddView(new Label("FillBounds") { VAlign = .Top });
+		let imgFill = new ImageView(mTestImage);
+		imgFill.ScaleType = .FillBounds;
+		rightPanel.AddView(imgFill, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(48)) });
+
+		rightPanel.AddView(new Label("CenterCrop") { VAlign = .Top });
+		let imgCrop = new ImageView(mTestImage);
+		imgCrop.ScaleType = .CenterCrop;
+		rightPanel.AddView(imgCrop, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(48)) });
+
+		// Tinted image
+		rightPanel.AddView(new Label("Tinted") { VAlign = .Top });
+		let imgTint = new ImageView(mTestImage);
+		imgTint.ScaleType = .FitCenter;
+		imgTint.Tint = .(255, 100, 100, 255);
+		rightPanel.AddView(imgTint, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(48)) });
+
+		rightPanel.AddView(new Separator());
+
+		// Color swatches
+		rightPanel.AddView(new Label("ColorView") { VAlign = .Top });
+		let swatchFlow = new FlowLayout() { Orientation = .Horizontal, HSpacing = 4, VSpacing = 4 };
+		rightPanel.AddView(swatchFlow);
+
+		Color[?] swatchColors = .(
+			.(220, 60, 60, 255), .(60, 180, 60, 255), .(60, 60, 220, 255),
+			.(220, 180, 40, 255), .(180, 60, 180, 255), .(60, 180, 180, 255),
+			.(220, 120, 60, 255), .(120, 60, 220, 255)
+		);
+		for (int i = 0; i < swatchColors.Count; i++)
+		{
+			let swatch = new ColorView(swatchColors[i], 40, 40);
+			swatchFlow.AddView(swatch);
+		}
+
+		// === Tab 2: ScrollView demo ===
+		let scrollDemo = new FlexLayout() { Direction = .Horizontal, Spacing = 8 };
+		scrollDemo.Padding = .(12, 8);
+		tabView.AddTab("ScrollView", scrollDemo);
+
+		// Overlay mode (default)
+		let overlayCol = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		overlayCol.AddView(new Label("Overlay Mode") { VAlign = .Top });
+		let scrollOverlay = new ScrollView();
+		scrollOverlay.ScrollBarMode = .Overlay;
+		let overlayContent = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		for (int i = 0; i < 30; i++)
+			overlayContent.AddView(new Label(scope String()..AppendF("Overlay item {}", i + 1)));
+		scrollOverlay.AddView(overlayContent);
+		overlayCol.AddView(scrollOverlay, new FlexLayout.LayoutParams() { Grow = 1 });
+		scrollDemo.AddView(overlayCol, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// Reserved mode
+		let reservedCol = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		reservedCol.AddView(new Label("Reserved Mode") { VAlign = .Top });
+		let scrollReserved = new ScrollView();
+		scrollReserved.ScrollBarMode = .Reserved;
+		let reservedContent = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		for (int i = 0; i < 30; i++)
+			reservedContent.AddView(new Label(scope String()..AppendF("Reserved item {}", i + 1)));
+		scrollReserved.AddView(reservedContent);
+		reservedCol.AddView(scrollReserved, new FlexLayout.LayoutParams() { Grow = 1 });
+		scrollDemo.AddView(reservedCol, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// Horizontal scroll
+		let hScrollCol = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		hScrollCol.AddView(new Label("Horizontal") { VAlign = .Top });
+		let scrollH = new ScrollView();
+		scrollH.VScrollBarPolicy = .Always;
+		scrollH.HScrollBarPolicy = .Always;
+		scrollH.ScrollBarMode = .Reserved;
+		let hContent = new FlexLayout() { Direction = .Horizontal, Spacing = 4 };
+		for (int i = 0; i < 20; i++)
+		{
+			let @box = new ColorView(Color((uint8)(60 + i * 9), (uint8)(100 + i * 5), (uint8)(180 - i * 6), 255), 60, 60);
+			hContent.AddView(@box);
+		}
+		scrollH.AddView(hContent);
+		hScrollCol.AddView(scrollH, new FlexLayout.LayoutParams() { Grow = 1 });
+		scrollDemo.AddView(hScrollCol, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// === Tab 3: Layouts demo (closable) ===
+		let layoutDemo = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		layoutDemo.Padding = .(8);
+		tabView.AddTab("Layouts", layoutDemo, true);
+
+		let gridDemo = new GridLayout();
+		gridDemo.Columns.Add(.Flex(1));
+		gridDemo.Columns.Add(.Flex(1));
+		gridDemo.Columns.Add(.Flex(1));
+		gridDemo.Rows.Add(.Flex(1));
+		gridDemo.Rows.Add(.Flex(1));
+		gridDemo.ColumnSpacing = 4;
+		gridDemo.RowSpacing = 4;
+
 		Color[?] gridColors = .(
 			.(80, 60, 60, 255), .(60, 80, 60, 255), .(60, 60, 80, 255),
-			.(70, 50, 50, 255), .(50, 70, 50, 255), .(50, 50, 70, 255),
-			.(90, 70, 70, 255), .(70, 90, 70, 255), .(70, 70, 90, 255)
+			.(70, 50, 50, 255), .(50, 70, 50, 255), .(50, 50, 70, 255)
 		);
-		for (int r = 0; r < 3; r++)
+		for (int i = 0; i < 6; i++)
 		{
-			for (int c = 0; c < 3; c++)
-			{
-				let cell = new ColorBox(gridColors[r * 3 + c]);
-				centerPanel.AddView(cell, new GridLayout.LayoutParams() { Row = (int32)r, Column = (int32)c });
-			}
+			let cell = new ColorView(gridColors[i], 0, 0);
+			gridDemo.AddView(cell, new GridLayout.LayoutParams() { Row = (int32)(i / 3), Column = (int32)(i % 3) });
 		}
+		layoutDemo.AddView(gridDemo, new FlexLayout.LayoutParams() { Grow = 1 });
 
-		// Right panel — FlowLayout demo
-		let rightPanel = new FlowLayout() { Orientation = .Horizontal, HSpacing = 4, VSpacing = 4 };
-		rightPanel.Padding = .(4);
-		body.AddView(rightPanel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)), Height = .Match });
+		// === Tab 4: Tab Placement demo (closable) ===
+		let tabPlacementDemo = new GridLayout();
+		tabPlacementDemo.Columns.Add(.Flex(1));
+		tabPlacementDemo.Columns.Add(.Flex(1));
+		tabPlacementDemo.Rows.Add(.Flex(1));
+		tabPlacementDemo.Rows.Add(.Flex(1));
+		tabPlacementDemo.ColumnSpacing = 4;
+		tabPlacementDemo.RowSpacing = 4;
+		tabView.AddTab("Tab Placement", tabPlacementDemo, true);
 
-		Color[?] flowColors = .(
-			.(100, 60, 80, 255), .(60, 100, 80, 255), .(80, 60, 100, 255),
-			.(100, 80, 60, 255), .(60, 80, 100, 255), .(80, 100, 60, 255),
-			.(90, 70, 90, 255), .(70, 90, 70, 255)
-		);
-		for (int i = 0; i < flowColors.Count; i++)
-		{
-			let size = 30 + (i % 3) * 15;
-			let @box = new ColorBox(flowColors[i], (float)size, (float)size);
-			rightPanel.AddView(@box);
-		}
+		// Top placement
+		let topTabs = new TabView() { Placement = .Top };
+		topTabs.AddTab("Top A", new Label("Top placement A"));
+		topTabs.AddTab("Top B", new Label("Top placement B"));
+		tabPlacementDemo.AddView(topTabs, new GridLayout.LayoutParams() { Row = 0, Column = 0 });
 
-		// Footer — themed panel
+		// Bottom placement
+		let bottomTabs = new TabView() { Placement = .Bottom };
+		bottomTabs.AddTab("Bot A", new Label("Bottom placement A"));
+		bottomTabs.AddTab("Bot B", new Label("Bottom placement B"));
+		tabPlacementDemo.AddView(bottomTabs, new GridLayout.LayoutParams() { Row = 0, Column = 1 });
+
+		// Left placement
+		let leftTabs = new TabView() { Placement = .Left };
+		leftTabs.AddTab("Left A", new Label("Left placement A"));
+		leftTabs.AddTab("Left B", new Label("Left placement B"));
+		tabPlacementDemo.AddView(leftTabs, new GridLayout.LayoutParams() { Row = 1, Column = 0 });
+
+		// Right placement
+		let rightTabs = new TabView() { Placement = .Right };
+		rightTabs.AddTab("Right A", new Label("Right placement A"));
+		rightTabs.AddTab("Right B", new Label("Right placement B"));
+		tabPlacementDemo.AddView(rightTabs, new GridLayout.LayoutParams() { Row = 1, Column = 1 });
+
+		// Footer
 		let footer = new ThemedBox("panel", 0, 24);
 		main.AddView(footer, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
 	}
 
 	protected override void OnInput(FrameContext frame)
 	{
+		// Update repeat button
+		mRepeatBtn?.UpdateRepeat(frame.DeltaTime);
+
 		let keyboard = Shell.InputManager.Keyboard;
 
 		if (keyboard.IsKeyPressed(.Escape))
@@ -159,19 +352,25 @@ class UI2SandboxApp : Application
 			mUIContext.DebugSettings.ShowHitTarget = !mUIContext.DebugSettings.ShowHitTarget;
 			mUIContext.DebugSettings.ShowFocusPath = !mUIContext.DebugSettings.ShowFocusPath;
 		}
+		// F5: cycle themes (Dark → Light → RoundedDark)
 		if (keyboard.IsKeyPressed(.F5))
 		{
-			mIsDarkTheme = !mIsDarkTheme;
-			SetTheme(mIsDarkTheme);
+			mThemeIndex = (mThemeIndex + 1) % 3;
+			ApplyTheme();
 		}
 	}
 
-	private void SetTheme(bool dark)
+	private void ApplyTheme()
 	{
-		let sheet = dark ? DarkTheme.Create() : LightTheme.Create();
+		StyleSheet sheet;
+		switch (mThemeIndex)
+		{
+		case 0:  sheet = DarkTheme.Create(); mPalette = .Dark;
+		case 1:  sheet = LightTheme.Create(); mPalette = .Light;
+		default: sheet = RoundedDarkTheme.Create(); mPalette = .Dark;
+		}
 		mUIContext.StyleSheet = sheet;
-		sheet.ReleaseRef(); // context owns the ref now
-		mPalette = dark ? ThemePalette.Dark : ThemePalette.Light;
+		sheet.ReleaseRef();
 	}
 
 	private ThemePalette mPalette = .Dark;
@@ -220,6 +419,26 @@ class UI2SandboxApp : Application
 			delete mUIContext;
 			mUIContext = null;
 		}
+	}
+
+	/// Generate a checkerboard image for ImageView demo.
+	private static OwnedImageData GenerateCheckerboard(int w, int h, int cellSize, Color c1, Color c2)
+	{
+		let data = new uint8[w * h * 4];
+		for (int y = 0; y < h; y++)
+		{
+			for (int x = 0; x < w; x++)
+			{
+				let cell = ((x / cellSize) + (y / cellSize)) % 2 == 0;
+				let c = cell ? c1 : c2;
+				let offset = (y * w + x) * 4;
+				data[offset] = c.R;
+				data[offset + 1] = c.G;
+				data[offset + 2] = c.B;
+				data[offset + 3] = c.A;
+			}
+		}
+		return new OwnedImageData((.)w, (.)h, .RGBA8, data);
 	}
 }
 

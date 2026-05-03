@@ -27,6 +27,9 @@ public class UIInputHelper
 	public float KeyRepeatDelay = 0.4f;
 	public float KeyRepeatRate = 0.03f;
 
+	// Current keyboard modifiers (updated each frame for mouse wheel)
+	private Sedulous.UI2.KeyModifiers mCurrentModifiers;
+
 	private static ShellKeyCode[?] sNavigationKeys = .(
 		.Tab, .Left, .Right, .Up, .Down,
 		.Home, .End, .PageUp, .PageDown,
@@ -77,6 +80,12 @@ public class UIInputHelper
 		let mouse = shellInput.Mouse;
 		let kb = shellInput.Keyboard;
 
+		// Cache modifiers for mouse wheel events
+		if (kb != null)
+			mCurrentModifiers = InputMapping.MapModifiers(kb.Modifiers);
+		else
+			mCurrentModifiers = .None;
+
 		if (mouse != null)
 			ProcessMouseInput(mouse, context);
 
@@ -104,9 +113,9 @@ public class UIInputHelper
 		ProcessMouseButton(mouse, context, .Right, ref mPrevRightDown, overrideX, overrideY);
 		ProcessMouseButton(mouse, context, .Middle, ref mPrevMiddleDown, overrideX, overrideY);
 
-		// Mouse wheel.
+		// Mouse wheel with current modifiers.
 		if (mouse.ScrollX != 0 || mouse.ScrollY != 0)
-			context.InputManager.ProcessMouseWheel(overrideX, overrideY, mouse.ScrollX, mouse.ScrollY);
+			context.InputManager.ProcessMouseWheel(overrideX, overrideY, mouse.ScrollX, mouse.ScrollY, mCurrentModifiers);
 	}
 
 	/// Process all keyboard input from a polled keyboard and route to a UIContext.

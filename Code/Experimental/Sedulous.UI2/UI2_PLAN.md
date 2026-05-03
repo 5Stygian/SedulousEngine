@@ -79,47 +79,59 @@ GridLayout center, FlowLayout right, header/footer)
 
 ## Phase 2 — Themes (COMPLETE)
 
-Dark and light themes implemented as StyleSheet factories with 12 tests passing.
+Three themes implemented as StyleSheet factories. All visual regions are drawable-based
+(ColorDrawable for flat, RoundedRectDrawable for rounded). Icons use SVGDrawable.
 
 **Theme system:**
 - ThemePalette — Seed color struct with Dark and Light presets (Primary, PrimaryAccent,
   Background, Surface, SurfaceBright, Border, Text, TextDim, Error, Success, Warning)
-- DarkTheme — Factory creating StyleSheet with dark colors, RoundedRect/StateList drawables
-  for button, panel, edittext, checkbox, radiobutton, slider, progressbar, toggleswitch,
-  combobox, scrollbar, separator, expander. Accepts custom ThemePalette.
-- LightTheme — Same structure with light colors
+- DarkTheme — Flat/squared theme with StateList drawables, no corner radii
+- LightTheme — Flat/squared with light palette, visible borders on all controls
+- RoundedDarkTheme — Consistent R=6 corner radii, pill-shaped toggle switch,
+  per-corner radius masking on TabView for placement-aware rounding
 - ThemeRegistry — Central extension registry applied to all theme factories
 - IThemeExtension — Interface for injecting custom rules into themes
+- ThemeIcons — SVG icon constants (checkmark, radio mark square/round, close,
+  chevrons, arrows). Themes register appropriate variants.
+- RoundedRectDrawable — Upgraded to per-corner CornerRadii (from VG)
 
-**Sandbox:** F5 toggles dark/light theme. Clear color and themed panels (header,
-footer, dock center) switch between dark and light appearances.
+**Drawable-based styling:** Controls resolve all visual regions as Drawables
+(Background, CheckedBackground, BoxDrawable, TrackDrawable, etc.). VG drawing
+is only used as fallback when no theme is set. Icons (checkmark, radio mark,
+close button, chevrons, arrows) are SVGDrawable, allowing resolution-independent
+rendering without subpixel artifacts.
+
+**Sandbox:** F5 cycles Dark → Light → RoundedDark themes.
 
 ---
 
-## Phase 3 — Basic Controls
+## Phase 3 — Basic Controls (COMPLETE)
 
-First batch of visible controls. Each integrates with ControlState for
-StyleSheet-driven appearance and uses the existing input infrastructure.
+All controls implemented with drawable-based theming, SVG icons, and full sandbox demo.
 
-- [ ] Button — content-bearing, background drawable, ControlState, OnClick, ICommand
-- [ ] Label — text, alignment (HAlign/VAlign), word wrap, ellipsis, max lines
-- [ ] Panel — background drawable, padding container
-- [ ] Separator — orientation, color, thickness
-- [ ] Spacer — empty spacing view
-- [ ] CheckBox — toggle with text label, OnCheckedChanged
-- [ ] RadioButton + RadioGroup — exclusive selection
-- [ ] ToggleButton — stateful button with checked background
-- [ ] ToggleSwitch — switch with track/knob
-- [ ] Slider — value range, step, orientation, drag events
-- [ ] ProgressBar — value 0-1, indeterminate mode
-- [ ] NumericField — number input with increment/decrement
-- [ ] ImageView — image display with ScaleType
-- [ ] ColorView — solid color swatch
-- [ ] Expander — collapsible container with header
-- [ ] **Tests:** Button click, CheckBox toggle, RadioGroup selection, Slider value clamping
-- [ ] **Tests:** Label measurement (wrap vs no-wrap, ellipsis)
-- [ ] **Tests:** Expander expand/collapse changes measured size
-- [ ] **UI2Sandbox:** Controls demo page with all basic controls, reactive property demo
+- [x] Button — background drawable (StateListDrawable), ControlState, OnClick
+- [x] RepeatButton — fires OnClick repeatedly while held
+- [x] Label — text, HAlign/VAlign, word wrap
+- [x] Panel — background drawable, padding container
+- [x] Separator — orientation, color, thickness
+- [x] Spacer — empty spacing view
+- [x] CheckBox — toggle with CheckedBackground + CheckmarkIcon (SVG), OnCheckedChanged
+- [x] RadioButton + RadioGroup — exclusive selection, RadioMarkIcon (square/round per theme)
+- [x] ToggleButton — checked/unchecked backgrounds from theme
+- [x] ToggleSwitch — track/knob drawables, border baked into drawable
+- [x] Slider — TrackDrawable/FillDrawable/ThumbDrawable, value range, drag
+- [x] ProgressBar — TrackDrawable/FillDrawable, value 0-1
+- [x] ImageView — image display with ScaleType (None/FitCenter/FillBounds/CenterCrop), tint
+- [x] ColorView — solid color swatch
+- [x] Expander — collapsible header with ChevronExpandedIcon/ChevronCollapsedIcon (SVG)
+- [x] ScrollView — VisualChild pattern for scrollbars, Overlay/Reserved modes,
+      horizontal+vertical scrolling, shift+wheel for horizontal, mouse drag on scrollbars
+- [x] ScrollBar — standalone scrollbar, thumb drag, page click
+- [x] TabView — tab headers with placement (Top/Bottom/Left/Right), closable tabs with
+      CloseIcon (SVG), placement-aware corner radius masking, accent indicator bar
+- [x] **Tests:** Control tests, ScrollView tests, TabView tests
+- [x] **UI2Sandbox:** Full controls demo with all controls, ScrollView modes,
+      tab placement grid, F5 theme cycling (Dark/Light/RoundedDark)
 
 ---
 
@@ -129,8 +141,10 @@ Build text editing controls on top of the TextEditingBehavior infrastructure.
 
 - [ ] EditText — single/multi-line, placeholder, read-only, max length, input filter
 - [ ] PasswordBox — masked display
+- [ ] NumericField — number input with increment/decrement (wraps EditText)
 - [ ] EditableLabel — label that becomes EditText on click (slow-click rename)
 - [ ] **Tests:** EditText input filter, max length, submit event
+- [ ] **Tests:** NumericField value clamping, step increment
 - [ ] **Tests:** TextEditingBehavior cursor movement, selection, undo/redo, clipboard
 - [ ] **UI2Sandbox:** Text editing demo page
 
@@ -138,9 +152,8 @@ Build text editing controls on top of the TextEditingBehavior infrastructure.
 
 ## Phase 5 — Data Controls
 
-Scrolling, virtualized lists/trees, and data model implementations.
+Virtualized lists/trees and data model implementations.
 
-- [ ] ScrollView + ScrollBar + MomentumHelper (port)
 - [ ] ListModel<T> — wraps List<T> as flat IModel
 - [ ] TreeModel — hierarchical IModel implementation
 - [ ] SortingProxyModel — wraps IModel with sorting
@@ -148,7 +161,6 @@ Scrolling, virtualized lists/trees, and data model implementations.
 - [ ] ListView — virtualized, uses IModel (flat), fixed/variable height, selection, momentum
 - [ ] FlattenedTreeAdapter (port, adapted for IModel)
 - [ ] TreeView — virtualized, uses IModel (hierarchical), expand/collapse, indent
-- [ ] TabView — tab headers, placement, closable tabs
 - [ ] ComboBox — dropdown selection, backed by IModel
 - [ ] SelectionModel — single/multi selection (port)
 - [ ] GridView — virtualized flowing grid with IModel, fixed cell size
@@ -161,7 +173,7 @@ Scrolling, virtualized lists/trees, and data model implementations.
 - [ ] **Tests:** FlattenedTreeAdapter expand/collapse, node count
 - [ ] **Tests:** SelectionModel single/multi select, clear
 - [ ] **Tests:** HierarchicalState capture/restore roundtrip
-- [ ] **UI2Sandbox:** ListView demo (1000 items), GridView demo, TreeView demo, TabView demo, ScrollView demo
+- [ ] **UI2Sandbox:** ListView demo (1000 items), GridView demo, TreeView demo, ComboBox demo
 
 ---
 

@@ -44,20 +44,20 @@ public static class Palette
 	/// Compute disabled variant of a color (desaturated and faded).
 	public static Color ComputeDisabled(Color baseColor)
 	{
-		let gray = (uint8)((int)(baseColor.R) * 30 / 100 + (int)(baseColor.G) * 59 / 100 + (int)(baseColor.B) * 11 / 100);
-		return .((uint8)((gray + baseColor.R) / 2),
-				 (uint8)((gray + baseColor.G) / 2),
-				 (uint8)((gray + baseColor.B) / 2),
-				 (uint8)(baseColor.A * 60 / 100));
+		let gray = (int)baseColor.R * 30 / 100 + (int)baseColor.G * 59 / 100 + (int)baseColor.B * 11 / 100;
+		return .((uint8)((gray + (int)baseColor.R) / 2),
+				 (uint8)((gray + (int)baseColor.G) / 2),
+				 (uint8)((gray + (int)baseColor.B) / 2),
+				 (uint8)((int)baseColor.A * 60 / 100));
 	}
 
 	/// Compute focused variant of a color (tinted toward accent).
 	public static Color ComputeFocused(Color baseColor, Color accentColor = .(60, 130, 220, 255))
 	{
 		return .(
-			(uint8)((baseColor.R * 80 + accentColor.R * 20) / 100),
-			(uint8)((baseColor.G * 80 + accentColor.G * 20) / 100),
-			(uint8)((baseColor.B * 80 + accentColor.B * 20) / 100),
+			(uint8)(((int)baseColor.R * 80 + (int)accentColor.R * 20) / 100),
+			(uint8)(((int)baseColor.G * 80 + (int)accentColor.G * 20) / 100),
+			(uint8)(((int)baseColor.B * 80 + (int)accentColor.B * 20) / 100),
 			baseColor.A);
 	}
 
