@@ -135,48 +135,40 @@ All controls implemented with drawable-based theming, SVG icons, and full sandbo
 
 ---
 
-## Phase 4 — Text Input
+## Phase 4 — Text Input (COMPLETE)
 
-Build text editing controls on top of the TextEditingBehavior infrastructure.
+Text editing controls built on TextEditingBehavior/ITextEditHost infrastructure.
 
-- [ ] EditText — single/multi-line, placeholder, read-only, max length, input filter
-- [ ] PasswordBox — masked display
-- [ ] NumericField — number input with optional spin buttons (wraps EditText)
-- [ ] EditableLabel — label that becomes EditText on interaction (slow-click, F2)
-- [ ] **Tests:** EditText input filter, max length, submit event
-- [ ] **Tests:** NumericField value clamping, step increment
-- [ ] **Tests:** TextEditingBehavior cursor movement, selection, undo/redo, clipboard
-- [ ] **UI2Sandbox:** Text editing demo page
+- [x] EditText — single/multi-line, placeholder, read-only, max length, input filter,
+      prefix/suffix slots (StringView or View), cursor blink, selection highlight,
+      auto-scroll, mouse wheel scroll for multiline
+- [x] PasswordBox — masked display (customizable mask char), copy/cut disabled
+- [x] NumericField — optional spin buttons (ShowSpinButtons), drawable-based button
+      backgrounds with per-corner rounding, prefix/suffix, value clamping, decimal
+      places formatting, mouse wheel increment, repeat timer, arrow key navigation
+- [x] EditableLabel — dual-mode label/editor, slow-click (0.4-1.5s) and double-click
+      entry, ValidateRename delegate, commit/cancel with text restore
+- [x] **Tests:** 31 tests — EditText (text get/set, max length, input filter, read-only,
+      cursor movement, select all, delete, PasswordBox masking/copy disabled),
+      NumericField (clamping, step, events, formatting, filter), EditableLabel
+      (mode transitions, commit/cancel, validation, unchanged rejection)
+- [x] **UI2Sandbox:** Text Input tab with all variants including vector3-style editor
+      demo with colored prefix views
 
-### Open Design Questions (Phase 4)
+**Design decisions implemented:**
+- Prefix/suffix: `SetPrefix(StringView)` / `SetPrefix(View)`, same for suffix.
+  View prefixes are laid out before drawing so Width/Height are set.
+- NumericField: `ShowSpinButtons = true` default. Spin button backgrounds are
+  SpinUpDrawable/SpinDownDrawable (StateListDrawable) from theme. Cursor switches
+  to Arrow over spin buttons.
+- EditableLabel: composition building block, styling via context not subclassing.
 
-**EditText prefix/suffix decorations:**
-EditText should support optional Prefix and Suffix slots, rendered inside the field
-before/after the text area. Can be a StringView (rendered as styled text) or a View
-(for rich content like colored axis labels). NumericField inherits this from EditText.
-
-Examples:
-- Vector X component: `Prefix = colored "X" View` (red)
-- Angle input: `Suffix = "°"`
-- Currency: `Prefix = "$"`
-
-This avoids needing subclasses just for visual decoration. The editor's Vector3Editor
-composes 3 NumericFields with colored prefix Views and spin buttons off.
-
-**NumericField — spin buttons optional:**
-Rather than two separate controls, NumericField has `ShowSpinButtons = true` (default).
-Property grid editors set it false where space is tight (e.g., vector component fields).
-
-**EditableLabel usage pattern:**
-EditableLabel is a composition building block, not something to subclass. Different
-contexts use the same control with different styling:
-- ListView inline edit: EditableLabel in cell, transitions to EditText on slow-click/F2.
-  Cell styling gives it transparent background / no border to blend into the row.
-- Asset browser rename: EditableLabel below thumbnail. Same control, different layout context.
-- TreeView node rename: EditableLabel as the node's text view.
-
-The visual differences come from StyleId context, not subclassing. Only fundamentally
-different edit behavior (like PasswordBox's character masking) warrants a subclass.
+**Bug fixes during implementation:**
+- FlexLayout grow children forced to infinite cross-axis height via Tight constraints
+- ScrollView Auto horizontal policy gave infinite width to children
+- Multiline cursor navigation skipped empty lines (no-glyph lines)
+- GlyphToCharIndex didn't account for line boundaries (trailing vs leading hit)
+- EnsureCursorVisible fought mouse wheel scrolling (now only on cursor movement)
 
 ---
 

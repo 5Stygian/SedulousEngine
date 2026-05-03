@@ -170,8 +170,22 @@ public class ScrollView : ViewGroup
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		// Measure content unconstrained to determine natural size.
-		// Scrollbars are not in mChildren so they're not iterated here.
+		// Measure content: expand on scrollable axes, constrain on non-scrollable axes.
+		// This ensures children stretch to the viewport width (not infinity) on
+		// the non-scrollable axis.
+		let barW = (VScrollBarPolicy != .Never && ScrollBarMode == .Reserved) ? ScrollBarThickness : 0;
+		let barH = (HScrollBarPolicy != .Never && ScrollBarMode == .Reserved) ? ScrollBarThickness : 0;
+		let availW = Math.Max(0, constraints.MaxWidth - Padding.TotalHorizontal - barW);
+		let availH = Math.Max(0, constraints.MaxHeight - Padding.TotalVertical - barH);
+
+		// Vertical: expand for Auto/Always so content can overflow and scroll.
+		// Horizontal: only expand for Always. Auto constrains to viewport
+		// width first — content only scrolls if explicitly sized beyond it.
+		// This prevents children like Separator from measuring to infinity.
+		let childMaxW = (HScrollBarPolicy == .Always) ? float.MaxValue : availW;
+		let childMaxH = (VScrollBarPolicy == .Never) ? availH : float.MaxValue;
+		let childConstraints = BoxConstraints(0, childMaxW, 0, childMaxH);
+
 		float maxW = 0, maxH = 0;
 		for (int i = 0; i < ChildCount; i++)
 		{
@@ -179,7 +193,7 @@ public class ScrollView : ViewGroup
 			if (child.Visibility == .Gone) continue;
 
 			let margin = child.LayoutParams?.Margin ?? Thickness();
-			child.Measure(BoxConstraints.Expand());
+			child.Measure(childConstraints.Deflate(margin));
 			maxW = Math.Max(maxW, child.MeasuredSize.X + margin.TotalHorizontal);
 			maxH = Math.Max(maxH, child.MeasuredSize.Y + margin.TotalVertical);
 		}
@@ -196,8 +210,8 @@ public class ScrollView : ViewGroup
 		float measuredH;
 		if (VScrollBarPolicy == .Never)
 		{
-			let barH = (HScrollBarPolicy != .Never && ScrollBarMode == .Reserved) ? ScrollBarThickness : 0;
-			measuredH = maxH + Padding.TotalVertical + barH;
+			let hBarH = (HScrollBarPolicy != .Never && ScrollBarMode == .Reserved) ? ScrollBarThickness : 0;
+			measuredH = maxH + Padding.TotalVertical + hBarH;
 		}
 		else
 			measuredH = constraints.MaxHeight;

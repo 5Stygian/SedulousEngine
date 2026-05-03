@@ -70,6 +70,18 @@ public static class RoundedDarkTheme
 			.Set(.CursorColor, p.PrimaryAccent)
 			.Set(.SelectionColor, Color(60, 120, 200, 80));
 
+		// === NumericField spin buttons — rounded right corners ===
+		{
+			let spinColor = Color(50, 55, 68, 255);
+			let spinUp = Palette.CreateStateRounded(spinColor, .(0, R, 0, 0));
+			let spinDown = Palette.CreateStateRounded(spinColor, .(0, 0, R, 0));
+			sheet.OwnDrawable(spinUp);
+			sheet.OwnDrawable(spinDown);
+			sheet.ForType(typeof(View), "edittext")
+				.Set(.SpinUpDrawable, spinUp)
+				.Set(.SpinDownDrawable, spinDown);
+		}
+
 		// === CheckBox — rounded ===
 		let cbBorder = Color(100, 105, 120, 255);
 		let cbUnchecked = new RoundedRectDrawable(.(30, 32, 42, 255), 3, cbBorder, 1);
@@ -210,6 +222,7 @@ public static class RoundedDarkTheme
 		Reg(.CloseIcon, ThemeIcons.Close, "tabview");
 		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "expander");
 		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "expander");
-		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown, "combobox");
+		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown);
+		Reg(.ArrowUpIcon, ThemeIcons.ArrowUp);
 	}
 }

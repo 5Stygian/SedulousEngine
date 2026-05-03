@@ -73,4 +73,16 @@ public static class Palette
 		sl.Set(.Focused, new ColorDrawable(ComputeFocused(baseColor)));
 		return sl;
 	}
+
+	/// Create a StateListDrawable with RoundedRectDrawable per state and per-corner radii.
+	public static StateListDrawable CreateStateRounded(Color baseColor, Sedulous.VG.CornerRadii radii)
+	{
+		let sl = new StateListDrawable(true);
+		sl.Set(.Normal, new RoundedRectDrawable(baseColor, radii));
+		sl.Set(.Hover, new RoundedRectDrawable(ComputeHover(baseColor), radii));
+		sl.Set(.Pressed, new RoundedRectDrawable(ComputePressed(baseColor), radii));
+		sl.Set(.Disabled, new RoundedRectDrawable(ComputeDisabled(baseColor), radii));
+		sl.Set(.Focused, new RoundedRectDrawable(ComputeFocused(baseColor), radii));
+		return sl;
+	}
 }

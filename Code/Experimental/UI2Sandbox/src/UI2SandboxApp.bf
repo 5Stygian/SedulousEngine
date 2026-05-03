@@ -54,8 +54,26 @@ class UI2SandboxApp : Application
 		// Load fonts
 		let fontPath = scope String();
 		GetAssetPath("fonts/roboto/Roboto-Regular.ttf", fontPath);
-		mUI.LoadFont("Roboto", fontPath, .() { PixelHeight = 16 });
-		mUI.LoadFont("Roboto", fontPath, .() { PixelHeight = 24 });
+		mUI.LoadFont("Roboto", fontPath, .()
+			{
+				PixelHeight = 16, FirstCodepoint = 32,
+				LastCodepoint = 255,
+				AtlasWidth = 1024,
+				AtlasHeight = 1024,
+				OversampleX = 2,
+				OversampleY = 2,
+				Padding = 2
+			});
+		mUI.LoadFont("Roboto", fontPath, .()
+			{
+				PixelHeight = 24, FirstCodepoint = 32,
+				LastCodepoint = 255,
+				AtlasWidth = 1024,
+				AtlasHeight = 1024,
+				OversampleX = 2,
+				OversampleY = 2,
+				Padding = 2
+			});
 
 		// Generate a test image for ImageView demo
 		mTestImage = GenerateCheckerboard(64, 64, 8, .(100, 140, 200, 255), .(40, 50, 70, 255));
@@ -99,10 +117,10 @@ class UI2SandboxApp : Application
 		let repeatBtn = new RepeatButton("Hold Me");
 		mRepeatBtn = repeatBtn;
 		repeatBtn.OnClick.Add(new (btn) =>
-		{
-			mRepeatCount++;
-			repeatLabel.SetText(scope String()..AppendF("Count: {}", mRepeatCount));
-		});
+			{
+				mRepeatCount++;
+				repeatLabel.SetText(scope String()..AppendF("Count: {}", mRepeatCount));
+			});
 		repeatRow.AddView(repeatBtn);
 		repeatRow.AddView(repeatLabel);
 		leftPanel.AddView(repeatRow);
@@ -212,7 +230,7 @@ class UI2SandboxApp : Application
 			.(220, 60, 60, 255), .(60, 180, 60, 255), .(60, 60, 220, 255),
 			.(220, 180, 40, 255), .(180, 60, 180, 255), .(60, 180, 180, 255),
 			.(220, 120, 60, 255), .(120, 60, 220, 255)
-		);
+			);
 		for (int i = 0; i < swatchColors.Count; i++)
 		{
 			let swatch = new ColorView(swatchColors[i], 40, 40);
@@ -282,7 +300,7 @@ class UI2SandboxApp : Application
 		Color[?] gridColors = .(
 			.(80, 60, 60, 255), .(60, 80, 60, 255), .(60, 60, 80, 255),
 			.(70, 50, 50, 255), .(50, 70, 50, 255), .(50, 50, 70, 255)
-		);
+			);
 		for (int i = 0; i < 6; i++)
 		{
 			let cell = new ColorView(gridColors[i], 0, 0);
@@ -323,6 +341,155 @@ class UI2SandboxApp : Application
 		rightTabs.AddTab("Right A", new Label("Right placement A"));
 		rightTabs.AddTab("Right B", new Label("Right placement B"));
 		tabPlacementDemo.AddView(rightTabs, new GridLayout.LayoutParams() { Row = 1, Column = 1 });
+
+		// === Tab 5: Text Input demo ===
+		let textInputScroll = new ScrollView();
+		textInputScroll.VScrollBarPolicy = .Auto;
+		tabView.AddTab("Text Input", textInputScroll);
+
+		let textInputDemo = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
+		textInputDemo.Padding = .(12, 8);
+		textInputScroll.AddView(textInputDemo);
+
+		// --- EditText section ---
+		textInputDemo.AddView(new Label("EditText"));
+		textInputDemo.AddView(new Separator());
+
+		let editBasic = new EditText();
+		editBasic.SetText("Editable text");
+		textInputDemo.AddView(editBasic, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let editPlaceholder = new EditText();
+		editPlaceholder.SetPlaceholder("Enter name...");
+		textInputDemo.AddView(editPlaceholder, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let editReadOnly = new EditText();
+		editReadOnly.SetText("Read-only text");
+		editReadOnly.IsReadOnly = true;
+		textInputDemo.AddView(editReadOnly, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let editMultiline = new EditText();
+		editMultiline.Multiline = true;
+		editMultiline.SetText("Line 1\nLine 2\nLine 3");
+		textInputDemo.AddView(editMultiline, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)), Height = .Fixed(.Px(80)) });
+
+		let editMaxLen = new EditText();
+		editMaxLen.MaxLength = 10;
+		editMaxLen.SetPlaceholder("Max 10 chars");
+		textInputDemo.AddView(editMaxLen, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let editDigits = new EditText();
+		editDigits.Filter = InputFilter.Digits();
+		editDigits.SetPlaceholder("Digits only");
+		textInputDemo.AddView(editDigits, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let editPrefix = new EditText();
+		editPrefix.SetPrefix("$");
+		editPrefix.SetText("100");
+		textInputDemo.AddView(editPrefix, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let editSuffix = new EditText();
+		editSuffix.SetSuffix("px");
+		editSuffix.SetText("16");
+		textInputDemo.AddView(editSuffix, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		// --- PasswordBox section ---
+		textInputDemo.AddView(new Spacer(0, 4));
+		textInputDemo.AddView(new Label("PasswordBox"));
+		textInputDemo.AddView(new Separator());
+
+		let pw1 = new PasswordBox();
+		pw1.SetPlaceholder("Password");
+		textInputDemo.AddView(pw1, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let pw2 = new PasswordBox();
+		pw2.PasswordChar = '\u{25CF}'; // ● bullet
+		pw2.SetPlaceholder("Custom mask");
+		textInputDemo.AddView(pw2, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		// --- NumericField section ---
+		textInputDemo.AddView(new Spacer(0, 4));
+		textInputDemo.AddView(new Label("NumericField"));
+		textInputDemo.AddView(new Separator());
+
+		let nfDefault = new NumericField();
+		nfDefault.Min = 0;
+		nfDefault.Max = 100;
+		nfDefault.Value = 42;
+		textInputDemo.AddView(nfDefault, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		let nfNoSpin = new NumericField();
+		nfNoSpin.Min = 0;
+		nfNoSpin.Max = 100;
+		nfNoSpin.ShowSpinButtons = false;
+		nfNoSpin.Value = 25;
+		textInputDemo.AddView(nfNoSpin, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		let nfConstrained = new NumericField();
+		nfConstrained.Min = -10;
+		nfConstrained.Max = 10;
+		nfConstrained.Step = 0.5;
+		nfConstrained.DecimalPlaces = 1;
+		nfConstrained.Value = 0;
+		textInputDemo.AddView(nfConstrained, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		let nfInteger = new NumericField();
+		nfInteger.Min = 0;
+		nfInteger.Max = 999;
+		nfInteger.DecimalPlaces = 0;
+		nfInteger.Value = 100;
+		textInputDemo.AddView(nfInteger, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		let nfSuffix = new NumericField();
+		nfSuffix.Min = 0;
+		nfSuffix.Max = 360;
+		nfSuffix.DecimalPlaces = 1;
+		nfSuffix.SetSuffix("\u{00B0}"); // degree sign
+		nfSuffix.Value = 90;
+		textInputDemo.AddView(nfSuffix, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(200)) });
+
+		// Vector3-style editor: 3 numeric fields with colored prefix labels
+		textInputDemo.AddView(new Label("Vector3 Editor"));
+		let vecRow = new FlexLayout() { Direction = .Horizontal, Spacing = 4 };
+
+		void AddAxisField(FlexLayout row, StringView axis, Color axisColor, double val)
+		{
+			let nf = new NumericField();
+			nf.Min = -999;
+			nf.Max = 999;
+			nf.Step = 0.1;
+			nf.DecimalPlaces = 2;
+			nf.ShowSpinButtons = false;
+			nf.Value = val;
+			let prefixView = new ColoredLabel(axis, axisColor);
+			nf.SetPrefix(prefixView);
+			row.AddView(nf, new FlexLayout.LayoutParams() { Grow = 1 });
+		}
+
+		AddAxisField(vecRow, "X", .(220, 80, 80, 255), 1.06);
+		AddAxisField(vecRow, "Y", .(80, 200, 80, 255), 0.0);
+		AddAxisField(vecRow, "Z", .(80, 120, 220, 255), 2.17);
+		textInputDemo.AddView(vecRow, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(400)) });
+
+		// --- EditableLabel section ---
+		textInputDemo.AddView(new Spacer(0, 4));
+		textInputDemo.AddView(new Label("EditableLabel (double-click to edit)"));
+		textInputDemo.AddView(new Separator());
+
+		let el1 = new EditableLabel();
+		el1.SetText("Double-click me");
+		el1.SlowClickToEdit = false;
+		textInputDemo.AddView(el1, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let el2 = new EditableLabel();
+		el2.SetText("Slow-click me");
+		el2.DoubleClickToEdit = false;
+		textInputDemo.AddView(el2, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
+
+		let el3 = new EditableLabel();
+		el3.SetText("With validation");
+		el3.ValidateRename = new (text) => !text.Contains("bad");
+		textInputDemo.AddView(el3, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(300)) });
 
 		// Footer
 		let footer = new ThemedBox("panel", 0, 24);
@@ -383,12 +550,12 @@ class UI2SandboxApp : Application
 		// Clear with theme background color.
 		let bg = mPalette.Background;
 		ColorAttachment[1] clearAttachments = .(.()
-		{
-			View = render.CurrentTextureView,
-			LoadOp = .Clear,
-			StoreOp = .Store,
-			ClearValue = ClearColor(bg.R / 255.0f, bg.G / 255.0f, bg.B / 255.0f, 1.0f)
-		});
+			{
+				View = render.CurrentTextureView,
+				LoadOp = .Clear,
+				StoreOp = .Store,
+				ClearValue = ClearColor(bg.R / 255.0f, bg.G / 255.0f, bg.B / 255.0f, 1.0f)
+			});
 		RenderPassDesc clearDesc = .() { ColorAttachments = .(clearAttachments) };
 		let clearPass = render.Encoder.BeginRenderPass(clearDesc);
 		if (clearPass != null)
@@ -439,6 +606,43 @@ class UI2SandboxApp : Application
 			}
 		}
 		return new OwnedImageData((.)w, (.)h, .RGBA8, data);
+	}
+}
+
+/// Small text label with a specific color, used as a prefix View in NumericField.
+class ColoredLabel : View
+{
+	private String mText ~ delete _;
+	private Color mColor;
+
+	public this(StringView text, Color color)
+	{
+		mText = new String(text);
+		mColor = color;
+	}
+
+	protected override void OnMeasure(BoxConstraints constraints)
+	{
+		let fontSize = ResolveStyleFloat(.FontSize, 14);
+		float w = 12, h = fontSize;
+		if (Context?.FontService != null)
+		{
+			let font = Context.FontService.GetFont(fontSize);
+			if (font != null)
+			{
+				w = font.Font.MeasureString(mText);
+				h = font.Font.Metrics.LineHeight;
+			}
+		}
+		MeasuredSize = .(constraints.ConstrainWidth(w), constraints.ConstrainHeight(h));
+	}
+
+	public override void OnDraw(UIDrawContext ctx)
+	{
+		let fontSize = ResolveStyleFloat(.FontSize, 14);
+		let font = ctx.FontService?.GetFont(fontSize);
+		if (font != null)
+			ctx.VG.DrawText(mText, font, .(0, 0, Width, Height), .Center, .Middle, mColor);
 	}
 }
 

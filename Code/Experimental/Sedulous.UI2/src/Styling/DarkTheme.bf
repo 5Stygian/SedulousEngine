@@ -66,6 +66,13 @@ public static class DarkTheme
 			.Set(.CursorColor, p.PrimaryAccent)
 			.Set(.SelectionColor, Color(60, 120, 200, 80));
 
+		// === NumericField spin buttons ===
+		let spinBg = Palette.CreateStateColors(.(50, 55, 68, 255));
+		sheet.OwnDrawable(spinBg);
+		sheet.ForType(typeof(View), "edittext")
+			.Set(.SpinUpDrawable, spinBg)
+			.Set(.SpinDownDrawable, spinBg);
+
 		// === CheckBox ===
 		let cbBorder = Color(100, 105, 120, 255);
 		let cbUnchecked = new RoundedRectDrawable(.(30, 32, 42, 255), 0, cbBorder, 1);
@@ -178,6 +185,7 @@ public static class DarkTheme
 		Reg(.CloseIcon, ThemeIcons.Close, "tabview");
 		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "expander");
 		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "expander");
-		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown, "combobox");
+		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown);
+		Reg(.ArrowUpIcon, ThemeIcons.ArrowUp);
 	}
 }

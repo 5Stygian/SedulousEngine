@@ -64,6 +64,13 @@ public static class LightTheme
 			.Set(.CursorColor, p.PrimaryAccent)
 			.Set(.SelectionColor, Color(60, 120, 200, 60));
 
+		// === NumericField spin buttons ===
+		let spinBg = Palette.CreateStateColors(Palette.Darken(p.Surface, 0.08f));
+		sheet.OwnDrawable(spinBg);
+		sheet.ForType(typeof(View), "edittext")
+			.Set(.SpinUpDrawable, spinBg)
+			.Set(.SpinDownDrawable, spinBg);
+
 		// === CheckBox ===
 		{
 			let cbUnchecked = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
@@ -178,6 +185,7 @@ public static class LightTheme
 		Reg(.CloseIcon, ThemeIcons.Close, "tabview");
 		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "expander");
 		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "expander");
-		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown, "combobox");
+		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown);
+		Reg(.ArrowUpIcon, ThemeIcons.ArrowUp);
 	}
 }

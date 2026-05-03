@@ -80,7 +80,6 @@ public class ScrollBar : View
 		let thumbDrawable = ResolveStyleDrawable(.ThumbDrawable);
 
 		let bounds = RectangleF(0, 0, Width, Height);
-		let radius = BarThickness * 0.5f;
 
 		// Track
 		if (trackDrawable != null)

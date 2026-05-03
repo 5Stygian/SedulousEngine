@@ -44,6 +44,11 @@ public enum StyleProperty
 	/// Expander header hovered background
 	HeaderHoverDrawable,
 
+	/// NumericField spin up button background
+	SpinUpDrawable,
+	/// NumericField spin down button background
+	SpinDownDrawable,
+
 	// --- Icon drawables (SVG or image) ---
 
 	/// Checkmark icon (CheckBox)
