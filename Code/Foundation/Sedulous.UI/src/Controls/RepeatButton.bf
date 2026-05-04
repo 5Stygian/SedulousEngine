@@ -16,7 +16,6 @@ public class RepeatButton : Button
 	public float RepeatInterval = 0.05f;
 
 	public this(StringView text) : base(text) { }
-	public this() : base() { }
 
 	public override void OnMouseDown(MouseEventArgs e)
 	{

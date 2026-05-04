@@ -5,14 +5,10 @@ using Sedulous.Core.Mathematics;
 
 /// Stateful button that toggles between checked and unchecked.
 /// Content-bearing - set Content for custom content, or construct with text.
-public class ToggleButton : View
+public class ToggleButton : ButtonBase
 {
 	private View mContent ~ delete _;
 	private bool mIsChecked;
-	private bool mIsPressed;
-
-	/// Per-instance background for unchecked state (owned).
-	public Drawable Background ~ delete _;
 
 	/// Per-instance background for checked state (owned).
 	public Drawable CheckedBackground ~ delete _;
@@ -38,20 +34,17 @@ public class ToggleButton : View
 
 	public Event<delegate void(ToggleButton, bool)> OnCheckedChanged ~ _.Dispose();
 
-	public this(StringView text)
+	public this(StringView text) : base()
 	{
-		IsFocusable = true;
-		IsTabStop = true;
-		StyleId = new String("button");
 		mContent = new Label(text);
 	}
 
-	public this() { IsFocusable = true; IsTabStop = true; StyleId = new String("button"); }
+	public this() : base() { }
 
 	public override ControlState GetControlState()
 	{
 		if (!IsEffectivelyEnabled) return .Disabled;
-		if (mIsPressed) return .Pressed;
+		if (IsPressed) return .Pressed;
 		if (IsFocused) return .Focused;
 		if (IsHovered) return .Hover;
 		return .Normal;
@@ -116,18 +109,7 @@ public class ToggleButton : View
 		}
 		else
 		{
-			// Unchecked: normal background from theme
-			let themeBg = ResolveStyleDrawable(.Background);
-			if (themeBg != null)
-				themeBg.Draw(ctx, bounds, state);
-			else
-			{
-				Color color = .(55, 58, 70, 255);
-				if (state == .Hover) color = Palette.ComputeHover(color);
-				else if (state == .Pressed) color = Palette.ComputePressed(color);
-				else if (state == .Disabled) color = Palette.ComputeDisabled(color);
-				ctx.VG.FillRoundedRect(bounds, radius, color);
-			}
+			DrawButtonBackground(ctx, bounds, state);
 		}
 
 		if (mContent != null)
@@ -139,20 +121,14 @@ public class ToggleButton : View
 		}
 	}
 
-	public override void OnMouseDown(MouseEventArgs e)
-	{
-		if (e.Button == .Left) { mIsPressed = true; Invalidate(); e.Handled = true; }
-	}
-
+	// Override mouse up to toggle instead of firing click
 	public override void OnMouseUp(MouseEventArgs e)
 	{
-		if (e.Button == .Left && mIsPressed)
+		if (e.Button == .Left && IsPressed)
 		{
-			mIsPressed = false;
 			if (IsHovered) IsChecked = !mIsChecked;
-			Invalidate();
-			e.Handled = true;
 		}
+		base.OnMouseUp(e);
 	}
 
 	public override void OnKeyDown(KeyEventArgs e)

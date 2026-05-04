@@ -2,64 +2,37 @@ namespace Sedulous.UI;
 
 using System;
 using Sedulous.Core.Mathematics;
+using Sedulous.Fonts;
 
-/// Content-bearing button with click event and optional ICommand binding.
-/// Construct with text for a simple text button, or set Content manually
-/// for icon, icon+text, or custom content.
-public class Button : View
+/// Text button — the most common button type.
+/// Has a Text property for direct text access. No child view overhead.
+public class Button : ButtonBase
 {
-	private View mContent ~ delete _;
-	private bool mIsPressed;
+	private String mText ~ delete _;
 
-	/// Per-instance background override (owned by this view).
-	public Drawable Background ~ delete _;
-
-	/// Optional command binding. Executed on click if CanExecute() is true.
-	public ICommand Command;
-
-	/// Click event.
-	public Event<delegate void(Button)> OnClick ~ _.Dispose();
-
-	/// The content view (owned by this button).
-	public View Content
+	/// The button text.
+	public String Text
 	{
-		get => mContent;
-		set
-		{
-			delete mContent;
-			mContent = value;
-			Invalidate();
-		}
+		get => mText;
 	}
 
-	/// Whether the button is currently pressed (visual state).
-	public bool IsPressed => mIsPressed;
+	/// Per-instance font size override. When set, overrides the style-resolved FontSize.
+	public float? FontSize;
 
-	/// Text button constructor - creates a Label as content.
-	public this(StringView text)
+	/// Text button constructor.
+	public this(StringView text) : base()
 	{
-		IsFocusable = true;
-		IsTabStop = true;
-		StyleId = new String("button");
-		mContent = new Label(text);
+		mText = new String(text);
 	}
 
-	/// Empty button - set Content manually.
-	public this()
+	/// Set the button text.
+	public void SetText(StringView text)
 	{
-		IsFocusable = true;
-		IsTabStop = true;
-		StyleId = new String("button");
-	}
-
-	public override ControlState GetControlState()
-	{
-		if (!IsEffectivelyEnabled) return .Disabled;
-		if (Command != null && !Command.CanExecute()) return .Disabled;
-		if (mIsPressed) return .Pressed;
-		if (IsFocused) return .Focused;
-		if (IsHovered) return .Hover;
-		return .Normal;
+		if (mText == null)
+			mText = new String(text);
+		else
+			mText.Set(text);
+		Invalidate();
 	}
 
 	protected override void OnMeasure(BoxConstraints constraints)
@@ -67,129 +40,49 @@ public class Button : View
 		let pad = ResolveStyleThickness(.Padding, .(12, 8));
 		let inner = constraints.Deflate(pad).Loosen();
 
-		float contentW = 0, contentH = 0;
-		if (mContent != null)
+		float textW = 0, textH = 0;
+		let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 16);
+
+		if (mText != null && mText.Length > 0 && Context?.FontService != null)
 		{
-			// Pass font context down to content for measurement
-			if (mContent.Context == null && Context != null)
-				Context.AttachView(mContent);
-			mContent.Measure(inner);
-			contentW = mContent.MeasuredSize.X;
-			contentH = mContent.MeasuredSize.Y;
+			let font = Context.FontService.GetFont(fontSize);
+			if (font != null)
+			{
+				textW = font.Font.MeasureString(mText);
+				textH = font.Font.Metrics.LineHeight;
+			}
 		}
+		else
+			textH = fontSize;
 
 		MeasuredSize = .(
-			constraints.ConstrainWidth(contentW + pad.TotalHorizontal),
-			constraints.ConstrainHeight(contentH + pad.TotalVertical));
-	}
-
-	protected override void OnLayout(float left, float top, float width, float height)
-	{
-		if (mContent == null) return;
-
-		let pad = ResolveStyleThickness(.Padding, .(12, 8));
-		let contentW = width - pad.TotalHorizontal;
-		let contentH = height - pad.TotalVertical;
-
-		// Center content within padding
-		let cw = mContent.MeasuredSize.X;
-		let ch = mContent.MeasuredSize.Y;
-		let cx = pad.Left + (contentW - cw) * 0.5f;
-		let cy = pad.Top + (contentH - ch) * 0.5f;
-		mContent.Layout(cx, cy, cw, ch);
+			constraints.ConstrainWidth(Math.Min(textW, inner.MaxWidth) + pad.TotalHorizontal),
+			constraints.ConstrainHeight(Math.Min(textH, inner.MaxHeight) + pad.TotalVertical));
 	}
 
 	public override void OnDraw(UIDrawContext ctx)
 	{
 		let bounds = RectangleF(0, 0, Width, Height);
 		let state = GetControlState();
-		let radius = ResolveStyleFloat(.CornerRadius, 4);
 
-		// Background: per-instance -> theme drawable -> fallback
-		if (Background != null)
+		DrawButtonBackground(ctx, bounds, state);
+
+		// Draw text
+		if (mText != null && mText.Length > 0 && ctx.FontService != null)
 		{
-			Background.Draw(ctx, bounds, state);
-		}
-		else
-		{
-			let themeBg = ResolveStyleDrawable(.Background);
-			if (themeBg != null)
+			let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 16);
+			let font = ctx.FontService.GetFont(fontSize);
+			if (font != null)
 			{
-				themeBg.Draw(ctx, bounds, state);
+				let pad = ResolveStyleThickness(.Padding, .(12, 8));
+				var textColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
+				if (state == .Disabled)
+					textColor = Palette.ComputeDisabled(textColor);
+
+				let textRect = RectangleF(pad.Left, pad.Top,
+					Width - pad.TotalHorizontal, Height - pad.TotalVertical);
+				ctx.VG.DrawText(mText, font, textRect, .Center, .Middle, textColor);
 			}
-			else
-				DrawDefaultBackground(ctx, bounds, state, radius);
-		}
-
-		// Draw content
-		if (mContent != null)
-		{
-			ctx.VG.PushState();
-			ctx.VG.Translate(mContent.Bounds.X, mContent.Bounds.Y);
-			mContent.OnDraw(ctx);
-			ctx.VG.PopState();
-		}
-	}
-
-	private void DrawDefaultBackground(UIDrawContext ctx, RectangleF bounds, ControlState state, float radius)
-	{
-		Color bg = .(55, 58, 70, 255);
-		switch (state)
-		{
-		case .Hover:    bg = Palette.ComputeHover(bg);
-		case .Pressed:  bg = Palette.ComputePressed(bg);
-		case .Disabled: bg = Palette.ComputeDisabled(bg);
-		case .Focused:  bg = Palette.ComputeFocused(bg);
-		default:
-		}
-
-		if (radius > 0)
-			ctx.VG.FillRoundedRect(bounds, radius, bg);
-		else
-			ctx.VG.FillRect(bounds, bg);
-	}
-
-	/// Fire the click event and execute command if bound.
-	public void FireClick()
-	{
-		if (!IsEffectivelyEnabled) return;
-		if (Command != null && !Command.CanExecute()) return;
-
-		OnClick(this);
-		Command?.Execute();
-	}
-
-	public override void OnMouseDown(MouseEventArgs e)
-	{
-		if (e.Button == .Left)
-		{
-			mIsPressed = true;
-			Invalidate();
-			e.Handled = true;
-		}
-	}
-
-	public override void OnMouseUp(MouseEventArgs e)
-	{
-		if (e.Button == .Left && mIsPressed)
-		{
-			mIsPressed = false;
-			Invalidate();
-
-			// Fire click if mouse is still over this button
-			if (IsHovered)
-				FireClick();
-
-			e.Handled = true;
-		}
-	}
-
-	public override void OnKeyDown(KeyEventArgs e)
-	{
-		if (e.Key == .Return || e.Key == .Space)
-		{
-			FireClick();
-			e.Handled = true;
 		}
 	}
 }

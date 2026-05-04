@@ -137,6 +137,18 @@ class UISandboxApp : Application, IDockableWindowHost
 		btnRow.AddView(new ToggleButton("Toggle"));
 		leftPanel.AddView(btnRow);
 
+		// ContentButton (custom content: icon + text)
+		let contentBtnRow = new FlexLayout() { Direction = .Horizontal, Spacing = 6 };
+		let iconTextLayout = new FlexLayout() { Direction = .Horizontal, Spacing = 6, AlignItems = .Center };
+		iconTextLayout.AddView(new ColorView(.(80, 180, 80, 255), 12, 12));
+		iconTextLayout.AddView(new Label("Icon + Text"));
+		contentBtnRow.AddView(new ContentButton(iconTextLayout));
+		let multiLineContent = new FlexLayout() { Direction = .Vertical, Spacing = 2, AlignItems = .Center };
+		multiLineContent.AddView(new Label("Line 1") { FontSize = 12 });
+		multiLineContent.AddView(new Label("Line 2") { FontSize = 10 });
+		contentBtnRow.AddView(new ContentButton(multiLineContent));
+		leftPanel.AddView(contentBtnRow);
+
 		// RepeatButton
 		let repeatRow = new FlexLayout() { Direction = .Horizontal, Spacing = 6 };
 		let repeatLabel = new Label("Count: 0");
