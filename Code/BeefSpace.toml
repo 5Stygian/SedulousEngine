@@ -2,7 +2,7 @@ FileVersion = 1
 Locked = ["Bulkan", "cgltf-Beef", "cimgui-Beef", "Nuklear-Beef", "Dxc-Beef", "glslang-Beef", "SDL3", "SPIRV-Cross", "stb_image-Beef", "stb_truetype-Beef", "stb_vorbis-Beef", "dr_libs-Beef", "ufbx-Beef", "Win32", "joltc-Beef", "SDL3_image", "recastnavigation-Beef"]
 
 [Workspace]
-StartupProject = "GUISandbox"
+StartupProject = "UI2Sandbox"
 
 [Projects]
 "Sedulous.RHI" = {Path = "Foundation/Sedulous.RHI"}
@@ -233,3 +233,9 @@ Experimental = []
 "Experimental/UI2" = ["Sedulous.UI2", "Sedulous.UI2.Tests", "Sedulous.UI2.Shell", "Sedulous.UI2.Toolkit", "UI2Sandbox", "Sedulous.UI2.Runtime"]
 "Foundation/Messaging" = ["Sedulous.Messaging", "Sedulous.Messaging.Runtime", "Sedulous.Messaging.Tests"]
 Projects = ["TowerDefense"]
+
+[Configs.Test.Win32]
+ConfigSelections = {"Sedulous.UI2.Toolkit.Tests" = {Config = "Test"}}
+
+[Configs.Test.Win64]
+ConfigSelections = {"Sedulous.UI2.Toolkit.Tests" = {Config = "Test"}}
