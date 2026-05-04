@@ -1,0 +1,20 @@
+FileVersion = 1
+
+[Project]
+Name = "UISandbox"
+StartupObject = "UISandbox.Program"
+
+[Dependencies]
+corlib = "*"
+"Sedulous.UI" = "*"
+"Sedulous.UI.Toolkit" = "*"
+"Sedulous.UI.Runtime" = "*"
+"Sedulous.Runtime.Client" = "*"
+"Sedulous.Runtime" = "*"
+"Sedulous.Core.Mathematics" = "*"
+"Sedulous.RHI" = "*"
+"Sedulous.Shell" = "*"
+"Sedulous.Images.STB" = "*"
+"Sedulous.Images.SDL" = "*"
+"Sedulous.Fonts" = "*"
+"Sedulous.Fonts.TTF" = "*"

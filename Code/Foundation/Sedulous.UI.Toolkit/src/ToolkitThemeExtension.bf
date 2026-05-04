@@ -1,87 +1,125 @@
-namespace Sedulous.LegacyUI.Toolkit;
+namespace Sedulous.UI.Toolkit;
 
-using Sedulous\.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
-/// Registers default theme colors for all Sedulous.LegacyUI.Toolkit controls.
-/// Register before creating UISubsystem:
-///   Theme.RegisterExtension(new ToolkitThemeExtension());
+/// Registers default theme styles for all Sedulous.UI.Toolkit controls.
+/// Register before creating themes:
+///   ThemeRegistry.RegisterExtension(new ToolkitThemeExtension());
 public class ToolkitThemeExtension : IThemeExtension
 {
-	public void Apply(Theme theme)
+	public void Apply(StyleSheet sheet, ThemePalette p)
 	{
-		let p = theme.Palette;
 		let isDark = p.Background.R < 128;
 
-		// === SplitView ===
-		theme.SetColor("SplitView.Divider", isDark ? Palette.Lighten(p.Surface, 0.1f) : Palette.Darken(p.Surface, 0.1f));
-		theme.SetColor("SplitView.DividerHover", isDark ? Palette.Lighten(p.Surface, 0.25f) : Palette.Darken(p.Surface, 0.2f));
-		theme.SetColor("SplitView.Grip", isDark ? .(100, 105, 120, 180) : .(160, 165, 180, 180));
-		theme.SetDimension("SplitView.DividerSize", 6);
-
-		// === Toolbar ===
-		theme.SetColor("Toolbar.Background", isDark ? Palette.Darken(p.Surface, 0.15f) : Palette.Darken(p.Surface, 0.05f));
-		theme.SetColor("Toolbar.Border", p.Border);
-		theme.SetColor("Toolbar.ButtonHover", isDark ? Palette.Lighten(p.Surface, 0.15f) : Palette.Darken(p.Surface, 0.1f));
-		theme.SetColor("Toolbar.ButtonPressed", isDark ? Palette.Lighten(p.Surface, 0.05f) : Palette.Darken(p.Surface, 0.15f));
-		theme.SetColor("Toolbar.ToggleOn", isDark ? Palette.Darken(p.PrimaryAccent, 0.3f) : Palette.Lighten(p.PrimaryAccent, 0.3f));
-		theme.SetColor("Toolbar.Separator", p.Border);
-
-		// === StatusBar ===
-		theme.SetColor("StatusBar.Background", isDark ? Palette.Darken(p.Surface, 0.2f) : Palette.Darken(p.Surface, 0.05f));
-		theme.SetColor("StatusBar.Border", p.Border);
-		theme.SetColor("StatusBar.Text", isDark ? .(p.Text.R, p.Text.G, p.Text.B, 200) : p.Text);
-
-		// === MenuBar ===
-		theme.SetColor("MenuBar.Background", isDark ? Palette.Darken(p.Surface, 0.15f) : p.Surface);
-		theme.SetColor("MenuBar.Border", p.Border);
-		theme.SetColor("MenuBar.Text", p.Text);
-		theme.SetColor("MenuBar.ItemHover", isDark ? Palette.Lighten(p.Surface, 0.15f) : Palette.Darken(p.Surface, 0.08f));
-
-		// === ColorPicker ===
-		theme.SetColor("ColorPicker.Background", p.Surface);
-		theme.SetColor("ColorPicker.Border", p.Border);
-		theme.SetColor("ColorPicker.Indicator", .White);
-
-		// === DraggableTreeView ===
-		theme.SetColor("DraggableTreeView.DropIndicator", p.PrimaryAccent);
-
-		// === PropertyGrid ===
-		theme.SetColor("PropertyGrid.Background", p.Surface);
-		theme.SetColor("PropertyGrid.Label", p.Text);
-		theme.SetColor("PropertyGrid.CategoryBackground", isDark ? Palette.Darken(p.Surface, 0.1f) : Palette.Darken(p.Surface, 0.03f));
-		theme.SetColor("PropertyGrid.Divider", p.Border);
-		theme.SetColor("PropertyGrid.RowBackground", p.Surface);
-		theme.SetColor("PropertyGrid.RowAlt", isDark ? Palette.Lighten(p.Surface, 0.03f) : Palette.Darken(p.Surface, 0.02f));
-
 		// === DockManager ===
-		theme.SetColor("DockManager.Background", p.Background);
-
-		// === DockTabGroup ===
-		theme.SetColor("DockTabGroup.Background", isDark ? Palette.Darken(p.Surface, 0.15f) : p.Surface);
-		theme.SetColor("DockTabGroup.ActiveTab", p.Surface);
-		theme.SetColor("DockTabGroup.InactiveTab", isDark ? Palette.Darken(p.Surface, 0.15f) : Palette.Darken(p.Surface, 0.05f));
-		theme.SetColor("DockTabGroup.ActiveText", p.Text);
-		theme.SetColor("DockTabGroup.InactiveText", .(p.Text.R, p.Text.G, p.Text.B, 153));
-		theme.SetColor("DockTabGroup.Border", p.Border);
-
-		// === DockSplit ===
-		theme.SetColor("DockSplit.Divider", p.Border);
-		theme.SetColor("DockSplit.DividerHover", p.PrimaryAccent);
-
-		// === DockableWindow ===
-		theme.SetColor("DockableWindow.Background", p.Surface);
-		theme.SetColor("DockableWindow.Border", p.Border);
-
-		// === DockZoneIndicator ===
-		theme.SetColor("DockZone.Indicator", .(p.PrimaryAccent.R, p.PrimaryAccent.G, p.PrimaryAccent.B, 80));
-		theme.SetColor("DockZone.Border", p.PrimaryAccent);
+		sheet.ForType(typeof(View), "dockmanager")
+			.Set(.Background, sheet.OwnColor(p.Background));
 
 		// === DockablePanel ===
-		theme.SetColor("DockablePanel.HeaderBackground", isDark ? Palette.Darken(p.Surface, 0.1f) : Palette.Darken(p.Surface, 0.05f));
-		theme.SetColor("DockablePanel.HeaderText", p.Text);
-		theme.SetColor("DockablePanel.ContentBackground", p.Surface);
-		theme.SetColor("DockablePanel.CloseButton", .(p.Text.R, p.Text.G, p.Text.B, 150));
-		theme.SetColor("DockablePanel.CloseButtonHover", p.Error);
+		{
+			let headerBg = isDark ? Palette.Darken(p.Surface, 0.1f) : Palette.Darken(p.Surface, 0.05f);
+			let headerDrawable = new RoundedRectDrawable(headerBg, 0);
+			sheet.OwnDrawable(headerDrawable);
+			sheet.ForType(typeof(View), "dockablepanel")
+				.Set(.HeaderDrawable, headerDrawable)
+				.Set(.ContentDrawable, sheet.OwnColor(p.Surface))
+				.Set(.TextColor, p.Text)
+				.Set(.Background, sheet.OwnColor(p.Surface))
+				.Set(.CloseButtonColor, Color(p.Text.R, p.Text.G, p.Text.B, 150))
+				.Set(.CloseButtonHoverColor, p.Error);
+		}
+
+		// === DockTabGroup ===
+		{
+			let tabBg = isDark ? Palette.Darken(p.Surface, 0.15f) : Palette.Darken(p.Surface, 0.08f);
+			let activeTab = isDark ? p.Surface : Palette.Lighten(p.Surface, 0.03f);
+			let hoverTab = isDark ? Palette.Lighten(tabBg, 0.05f) : Palette.Darken(p.Surface, 0.04f);
+			let inactiveText = Color(p.Text.R, p.Text.G, p.Text.B, 153);
+
+			sheet.ForType(typeof(View), "docktabgroup")
+				.Set(.StripDrawable, sheet.OwnColor(tabBg))
+				.Set(.ContentDrawable, sheet.OwnColor(p.Surface))
+				.Set(.ActiveTabDrawable, sheet.OwnColor(activeTab))
+				.Set(.HoverTabDrawable, sheet.OwnColor(hoverTab))
+				.Set(.ActiveTabTextColor, p.Text)
+				.Set(.InactiveTabTextColor, inactiveText)
+				.Set(.HoverTabTextColor, Palette.Lighten(inactiveText, 0.3f))
+				.Set(.BorderColor, p.Border)
+				.Set(.AccentColor, p.PrimaryAccent)
+				.Set(.CloseButtonColor, inactiveText)
+				.Set(.CloseButtonHoverColor, p.Error);
+		}
+
+		// === DockSplit ===
+		{
+			let divColor = isDark ? Palette.Lighten(p.Surface, 0.1f) : Palette.Darken(p.Surface, 0.1f);
+			let divHover = isDark ? Palette.Lighten(p.Surface, 0.25f) : Palette.Darken(p.Surface, 0.2f);
+			sheet.ForType(typeof(View), "docksplit")
+				.Set(.BorderColor, divColor)
+				.Set(.AccentColor, divHover);
+		}
+
+		// === DockableWindow ===
+		{
+			let dwBg = new RoundedRectDrawable(p.Surface, 0, p.Border, 1);
+			sheet.OwnDrawable(dwBg);
+			sheet.ForType(typeof(View), "dockablewindow")
+				.Set(.Background, dwBg);
+		}
+
+		// === MenuBar ===
+		{
+			let menuBg = isDark ? Palette.Darken(p.Surface, 0.15f) : p.Surface;
+			sheet.ForType(typeof(View), "menubar")
+				.Set(.Background, sheet.OwnColor(menuBg))
+				.Set(.TextColor, p.Text)
+				.Set(.BorderColor, p.Border);
+		}
+
+		// === Toolbar ===
+		{
+			let toolbarBg = isDark ? Palette.Darken(p.Surface, 0.15f) : Palette.Darken(p.Surface, 0.05f);
+			let toggleOn = isDark ? Palette.Darken(p.PrimaryAccent, 0.3f) : Palette.Lighten(p.PrimaryAccent, 0.3f);
+			sheet.ForType(typeof(View), "toolbar")
+				.Set(.Background, sheet.OwnColor(toolbarBg))
+				.Set(.BorderColor, p.Border)
+				.Set(.SelectionColor, toggleOn);
+		}
+
+		// === StatusBar ===
+		{
+			let statusBg = isDark ? Palette.Darken(p.Surface, 0.2f) : Palette.Darken(p.Surface, 0.05f);
+			sheet.ForType(typeof(View), "statusbar")
+				.Set(.Background, sheet.OwnColor(statusBg))
+				.Set(.BorderColor, p.Border)
+				.Set(.TextColor, isDark ? Color(p.Text.R, p.Text.G, p.Text.B, 200) : p.Text);
+		}
+
+		// === SplitView ===
+		{
+			let divColor = isDark ? Palette.Lighten(p.Surface, 0.1f) : Palette.Darken(p.Surface, 0.1f);
+			let divHover = isDark ? Palette.Lighten(p.Surface, 0.25f) : Palette.Darken(p.Surface, 0.2f);
+			sheet.ForType(typeof(View), "splitview")
+				.Set(.BorderColor, divColor)
+				.Set(.AccentColor, divHover)
+				.Set(.TextDimColor, isDark ? Color(100, 105, 120, 180) : Color(160, 165, 180, 180));
+		}
+
+		// === BreadcrumbBar ===
+		sheet.ForType(typeof(View), "breadcrumbbar")
+			.Set(.Background, sheet.OwnColor(isDark ? Palette.Darken(p.Surface, 0.1f) : p.Surface))
+			.Set(.TextColor, p.Text)
+			.Set(.AccentColor, p.PrimaryAccent);
+
+		// === ColorPicker ===
+		sheet.ForType(typeof(View), "colorpicker")
+			.Set(.Background, sheet.OwnColor(p.Surface))
+			.Set(.BorderColor, p.Border);
+
+		// === PropertyGrid ===
+		sheet.ForType(typeof(View), "propertygrid")
+			.Set(.Background, sheet.OwnColor(p.Surface))
+			.Set(.BorderColor, p.Border);
 	}
 }

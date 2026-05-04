@@ -1,7 +1,7 @@
-namespace Sedulous.LegacyUI.Toolkit;
+namespace Sedulous.UI.Toolkit;
 
 using System;
-using Sedulous\.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
 /// A dockable window that wraps a DockablePanel.
@@ -21,6 +21,7 @@ public class DockableWindow : ViewGroup, IDockableWindow
 
 	public this(DockablePanel panel)
 	{
+		StyleId = new String("dockablewindow");
 		mPanel = panel;
 		if (panel != null)
 			AddView(panel);
@@ -28,21 +29,21 @@ public class DockableWindow : ViewGroup, IDockableWindow
 
 	// === Measure / Layout ===
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		let w = wSpec.Resolve(250);
-		let h = hSpec.Resolve(200);
+		let w = constraints.ConstrainWidth(250);
+		let h = constraints.ConstrainHeight(200);
 
 		if (mPanel != null)
-			mPanel.Measure(.Exactly(w), .Exactly(h));
+			mPanel.Measure(BoxConstraints.Tight(w, h));
 
 		MeasuredSize = .(w, h);
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
 		if (mPanel != null)
-			mPanel.Layout(0, 0, right - left, bottom - top);
+			mPanel.Layout(0, 0, width, height);
 	}
 
 	// === Drawing ===
@@ -52,12 +53,13 @@ public class DockableWindow : ViewGroup, IDockableWindow
 		if (!IsOSWindow)
 		{
 			// Virtual mode: draw background and border.
-			if (!ctx.TryDrawDrawable("DockableWindow.Background", .(0, 0, Width, Height), .Normal))
-			{
-				let bgColor = ctx.Theme?.Palette.Surface ?? .(42, 44, 54, 255);
-				ctx.VG.FillRoundedRect(.(0, 0, Width, Height), 4, bgColor);
-			}
-			let borderColor = ctx.Theme?.Palette.Border ?? .(65, 70, 85, 255);
+			let bgDrawable = ResolveStyleDrawable(.Background);
+			if (bgDrawable != null)
+				bgDrawable.Draw(ctx, .(0, 0, Width, Height));
+			else
+				ctx.VG.FillRect(.(0, 0, Width, Height), .(42, 44, 54, 255));
+
+			let borderColor = ResolveStyleColor(.BorderColor, .(65, 70, 85, 255));
 			ctx.VG.StrokeRect(.(0, 0, Width, Height), borderColor, 2);
 		}
 
@@ -86,7 +88,7 @@ public class DockableWindow : ViewGroup, IDockableWindow
 		let panel = mPanel;
 		if (panel != null)
 		{
-			DetachView(panel);
+			RemoveView(panel);
 			mPanel = null;
 		}
 		return panel;

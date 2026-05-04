@@ -1,10 +1,8 @@
-namespace Sedulous.LegacyUI.Toolkit;
+namespace Sedulous.UI.Toolkit;
 
 using System;
-using Sedulous\.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
-
-using internal Sedulous.LegacyUI
 
 /// Content panel with title bar, close button, and drag support for docking.
 /// Implements IDragSource so it can be dragged to dock/float positions.
@@ -32,7 +30,7 @@ public class DockablePanel : ViewGroup, IDragSource
 	public void SetTitle(StringView title)
 	{
 		mTitle.Set(title);
-		InvalidateVisual();
+		Invalidate();
 	}
 
 	public bool Closable
@@ -51,7 +49,7 @@ public class DockablePanel : ViewGroup, IDragSource
 		mContent = content;
 		if (content != null)
 			AddView(content, lp);
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	/// Save the current dock position for re-docking after floating.
@@ -61,42 +59,41 @@ public class DockablePanel : ViewGroup, IDragSource
 		mLastRelativeToId = (relativeTo != null) ? relativeTo.Id : .Invalid;
 	}
 
-	public this() { }
+	public this() { StyleId = new String("dockablepanel"); }
 
 	public this(StringView title)
 	{
+		StyleId = new String("dockablepanel");
 		mTitle.Set(title);
 	}
 
 	public this(StringView title, View content)
 	{
+		StyleId = new String("dockablepanel");
 		mTitle.Set(title);
 		SetContent(content);
 	}
 
 	// === Layout ===
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
 		float contentH = 0;
 		if (mContent != null && mContent.Visibility != .Gone)
 		{
-			mContent.Measure(wSpec, .Unspecified());
+			mContent.Measure(BoxConstraints.Expand());
 			contentH = mContent.MeasuredSize.Y;
 		}
-		MeasuredSize = .(wSpec.Resolve(0), hSpec.Resolve(HeaderHeight + contentH));
+		MeasuredSize = .(constraints.ConstrainWidth(0), constraints.ConstrainHeight(HeaderHeight + contentH));
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
-		let w = right - left;
-		let h = bottom - top;
-
 		if (mContent != null && mContent.Visibility != .Gone)
 		{
-			let contentH = h - HeaderHeight;
-			mContent.Measure(.Exactly(w), .Exactly(contentH));
-			mContent.Layout(0, HeaderHeight, w, contentH);
+			let contentH = height - HeaderHeight;
+			mContent.Measure(BoxConstraints.Tight(width, contentH));
+			mContent.Layout(0, HeaderHeight, width, contentH);
 		}
 	}
 
@@ -107,11 +104,11 @@ public class DockablePanel : ViewGroup, IDragSource
 		let w = Width;
 
 		// Header background.
-		if (!ctx.TryDrawDrawable("DockablePanel.Header", .(0, 0, w, HeaderHeight), .Normal))
-		{
-			let headerBg = ctx.Theme?.GetColor("DockablePanel.HeaderBackground", .(40, 44, 55, 255)) ?? .(40, 44, 55, 255);
-			ctx.VG.FillRect(.(0, 0, w, HeaderHeight), headerBg);
-		}
+		let headerDrawable = ResolveStyleDrawable(.HeaderDrawable);
+		if (headerDrawable != null)
+			headerDrawable.Draw(ctx, .(0, 0, w, HeaderHeight));
+		else
+			ctx.VG.FillRect(.(0, 0, w, HeaderHeight), .(40, 44, 55, 255));
 
 		// Header text.
 		if (ctx.FontService != null)
@@ -119,7 +116,7 @@ public class DockablePanel : ViewGroup, IDragSource
 			let font = ctx.FontService.GetFont(12);
 			if (font != null)
 			{
-				let textColor = ctx.Theme?.GetColor("DockablePanel.HeaderText") ?? ctx.Theme?.Palette.Text ?? .(220, 225, 235, 255);
+				let textColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
 				ctx.VG.DrawText(mTitle, font, .(8, 0, w - 30, HeaderHeight), .Left, .Middle, textColor);
 			}
 		}
@@ -130,22 +127,18 @@ public class DockablePanel : ViewGroup, IDragSource
 			let cx = w - 14;
 			let cy = HeaderHeight * 0.5f;
 			let sz = 4.0f;
-			let closeRect = RectangleF(cx - sz - 2, cy - sz - 2, sz * 2 + 4, sz * 2 + 4);
 
-			if (!ctx.TryDrawDrawable("DockablePanel.CloseIcon", closeRect, .Normal))
-			{
-				let closeColor = ctx.Theme?.GetColor("DockablePanel.CloseButton", .(180, 185, 200, 150)) ?? .(180, 185, 200, 150);
-				ctx.VG.DrawLine(.(cx - sz, cy - sz), .(cx + sz, cy + sz), closeColor, 1.5f);
-				ctx.VG.DrawLine(.(cx + sz, cy - sz), .(cx - sz, cy + sz), closeColor, 1.5f);
-			}
+			let closeColor = ResolveStyleColor(.CloseButtonColor, .(180, 185, 200, 150));
+			ctx.VG.DrawLine(.(cx - sz, cy - sz), .(cx + sz, cy + sz), closeColor, 1.5f);
+			ctx.VG.DrawLine(.(cx + sz, cy - sz), .(cx - sz, cy + sz), closeColor, 1.5f);
 		}
 
 		// Content background.
-		if (!ctx.TryDrawDrawable("DockablePanel.ContentBackground", .(0, HeaderHeight, w, Height - HeaderHeight), .Normal))
-		{
-			let contentBg = ctx.Theme?.GetColor("DockablePanel.ContentBackground") ?? ctx.Theme?.Palette.Surface ?? .(42, 44, 54, 255);
-			ctx.VG.FillRect(.(0, HeaderHeight, w, Height - HeaderHeight), contentBg);
-		}
+		let contentDrawable = ResolveStyleDrawable(.ContentDrawable);
+		if (contentDrawable != null)
+			contentDrawable.Draw(ctx, .(0, HeaderHeight, w, Height - HeaderHeight));
+		else
+			ctx.VG.FillRect(.(0, HeaderHeight, w, Height - HeaderHeight), .(42, 44, 54, 255));
 
 		DrawChildren(ctx);
 	}
@@ -202,15 +195,25 @@ public class DockablePanel : ViewGroup, IDragSource
 				// Floating panel: move the actual window during drag.
 				// Dim + disable interaction so DockManager underneath receives drop events.
 				panelData.SourceWindow = fw;
-				fw.Alpha = 0.5f;
+				fw.Opacity = 0.5f;
 				fw.IsInteractionEnabled = false;
 
-				// Capture where the user clicked relative to the window's origin.
-				// DragDropManager.LastScreenX/Y hold the start position (window-relative).
+				// Capture drag offset so the window follows the cursor at the grab point.
 				if (Context?.DragDropManager != null)
 				{
-					panelData.DragOffsetX = Context.DragDropManager.LastScreenX;
-					panelData.DragOffsetY = Context.DragDropManager.LastScreenY;
+					if (fw.IsOSWindow)
+					{
+						// OS windows: use absolute screen position (host moves with global coords).
+						panelData.DragOffsetX = Context.DragDropManager.LastScreenX;
+						panelData.DragOffsetY = Context.DragDropManager.LastScreenY;
+					}
+					else
+					{
+						// Virtual windows: offset relative to window's top-left.
+						let windowPos = fw.LocalToScreen(.(0, 0));
+						panelData.DragOffsetX = Context.DragDropManager.LastScreenX - windowPos.X;
+						panelData.DragOffsetY = Context.DragDropManager.LastScreenY - windowPos.Y;
+					}
 					Context.DragDropManager.AdornerOffsetX = 0;
 					Context.DragDropManager.AdornerOffsetY = 0;
 				}
@@ -219,7 +222,7 @@ public class DockablePanel : ViewGroup, IDragSource
 		}
 
 		// Docked panel: dim while dragging.
-		Alpha = 0.4f;
+		Opacity = 0.4f;
 		if (Context?.DragDropManager != null)
 		{
 			Context.DragDropManager.AdornerOffsetX = -30;
@@ -229,7 +232,7 @@ public class DockablePanel : ViewGroup, IDragSource
 
 	public void OnDragCompleted(DragData data, DragDropEffects effect, bool cancelled)
 	{
-		Alpha = 1.0f;
+		Opacity = 1.0f;
 
 		// Restore floating window state only when cancelled.
 		// On successful drop (.Move), the DockableWindow was already destroyed
@@ -240,7 +243,7 @@ public class DockablePanel : ViewGroup, IDragSource
 			{
 				if (panelData.SourceWindow != null)
 				{
-					panelData.SourceWindow.Alpha = 1.0f;
+					panelData.SourceWindow.Opacity = 1.0f;
 					panelData.SourceWindow.IsInteractionEnabled = true;
 				}
 			}

@@ -1,8 +1,8 @@
-namespace Sedulous.LegacyUI.Toolkit;
+namespace Sedulous.UI.Toolkit;
 
 using System;
 using System.Collections;
-using Sedulous\.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
 /// Multi-window docking system. Manages a tree of DockSplits, DockTabGroups,
@@ -24,6 +24,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 
 	public this()
 	{
+		StyleId = new String("dockmanager");
 		mZoneIndicator = new DockZoneIndicator();
 		mZoneIndicator.Visibility = .Gone;
 	}
@@ -31,7 +32,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 	public ~this()
 	{
 		// Don't call CloseAllDockableWindows() here - during destruction,
-		// UIContext services are already gone and DetachSubtree -> UnregisterElement
+		// UIContext services are already gone and DetachView -> UnregisterElement
 		// would access freed memory. Dockable windows live in PopupLayer and are
 		// cleaned up by UIContext's tree destruction; panels inside them are owned
 		// by DockableWindow (via AddView) and deleted by its ViewGroup destructor.
@@ -93,7 +94,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		var target = relativeTo;
 		if (relativeToId.IsValid && Context != null)
 		{
-			let resolved = Context.GetElementById(relativeToId);
+			let resolved = Context.GetViewById(relativeToId);
 			if (resolved != null && !resolved.IsPendingDeletion)
 				target = resolved;
 			else
@@ -149,7 +150,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 					AddView(group);
 				}
 			}
-			InvalidateLayout();
+			Invalidate();
 			return;
 		}
 
@@ -162,7 +163,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 	{
 		RemoveFromTree(panel);
 		CleanupEmptyNodes();
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	/// Float a panel at the given position.
@@ -195,7 +196,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		}
 
 		CleanupEmptyNodes();
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	/// Close a panel (undock and delete).
@@ -234,7 +235,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		// Try to dock at last known position.
 		View relativeTo = null;
 		if (panel.mLastRelativeToId.IsValid && Context != null)
-			relativeTo = Context.GetElementById(panel.mLastRelativeToId);
+			relativeTo = Context.GetViewById(panel.mLastRelativeToId);
 
 		if (relativeTo != null)
 			DockPanelRelativeTo(panel, panel.mLastDockPosition, relativeTo);
@@ -310,7 +311,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			if (mRootNode != null)
 			{
 				// Detach root BEFORE SetChildren.
-				DetachView(mRootNode);
+				RemoveView(mRootNode);
 
 				bool panelFirst = (position == .Left || position == .Top);
 				if (panelFirst)
@@ -332,7 +333,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			let parent = target.Parent;
 			if (parent === this)
 			{
-				DetachView(target);
+				RemoveView(target);
 				if (panelFirst)
 					split.SetChildren(group, target);
 				else
@@ -347,8 +348,8 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 				bool isFirst = (parentSplit.First === target);
 				let otherChild = isFirst ? parentSplit.Second : parentSplit.First;
 
-				parentSplit.DetachView(target);
-				if (otherChild != null) parentSplit.DetachView(otherChild);
+				parentSplit.RemoveView(target);
+				if (otherChild != null) parentSplit.RemoveView(otherChild);
 
 				if (panelFirst)
 					split.SetChildren(group, target);
@@ -362,7 +363,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			}
 		}
 
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	private void RemoveFromTree(DockablePanel panel)
@@ -377,7 +378,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		// Direct child of DockManager (root).
 		if (panel.Parent === this && mRootNode === panel)
 		{
-			DetachView(panel);
+			RemoveView(panel);
 			mRootNode = null;
 			return;
 		}
@@ -399,7 +400,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 	{
 		if (oldNode === mRootNode)
 		{
-			DetachView(oldNode);
+			RemoveView(oldNode);
 			mRootNode = newNode;
 			AddView(newNode);
 		}
@@ -409,8 +410,8 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			bool isFirst = (parentSplit.First === oldNode);
 			let other = isFirst ? parentSplit.Second : parentSplit.First;
 
-			parentSplit.DetachView(oldNode);
-			if (other != null) parentSplit.DetachView(other);
+			parentSplit.RemoveView(oldNode);
+			if (other != null) parentSplit.RemoveView(other);
 
 			if (isFirst)
 				parentSplit.SetChildren(newNode, other);
@@ -436,8 +437,8 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			let first = split.First;
 			let second = split.Second;
 
-			if (second != null) split.DetachView(second);
-			if (first != null) split.DetachView(first);
+			if (second != null) split.RemoveView(second);
+			if (first != null) split.RemoveView(first);
 
 			// Recursively clean the detached children.
 			let cleanFirst = (first != null) ? CleanupNode(first) : null;
@@ -458,7 +459,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			{
 				if (split === mRootNode)
 				{
-					DetachView(split);
+					RemoveView(split);
 					QueueDeleteNode(split);
 					AddView(cleanFirst);
 				}
@@ -469,7 +470,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			{
 				if (split === mRootNode)
 				{
-					DetachView(split);
+					RemoveView(split);
 					QueueDeleteNode(split);
 					AddView(cleanSecond);
 				}
@@ -479,7 +480,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			{
 				if (split === mRootNode)
 				{
-					DetachView(split);
+					RemoveView(split);
 					QueueDeleteNode(split);
 				}
 				return null;
@@ -491,7 +492,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			{
 				if (tabGroup === mRootNode)
 				{
-					DetachView(tabGroup);
+					RemoveView(tabGroup);
 					QueueDeleteNode(tabGroup);
 				}
 				return null;
@@ -511,31 +512,30 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 
 	// === Layout / Drawing ===
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		let w = wSpec.Resolve(0);
-		let h = hSpec.Resolve(0);
+		let w = constraints.ConstrainWidth(0);
+		let h = constraints.ConstrainHeight(0);
 
 		if (mRootNode != null)
-			mRootNode.Measure(.Exactly(w), .Exactly(h));
+			mRootNode.Measure(BoxConstraints.Tight(w, h));
 
 		MeasuredSize = .(w, h);
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
 		if (mRootNode != null)
-			mRootNode.Layout(0, 0, right - left, bottom - top);
+			mRootNode.Layout(0, 0, width, height);
 	}
 
 	public override void OnDraw(UIDrawContext ctx)
 	{
-		let bounds = RectangleF(0, 0, Width, Height);
-		if (!ctx.TryDrawDrawable("DockManager.Background", bounds, .Normal))
-		{
-			let bgColor = ctx.Theme?.GetColor("DockManager.Background") ?? ctx.Theme?.Palette.Background ?? .(30, 30, 35, 255);
-			ctx.VG.FillRect(bounds, bgColor);
-		}
+		let bgDrawable = ResolveStyleDrawable(.Background);
+		if (bgDrawable != null)
+			bgDrawable.Draw(ctx, .(0, 0, Width, Height));
+		else
+			ctx.VG.FillRect(.(0, 0, Width, Height), .(30, 30, 35, 255));
 
 		DrawChildren(ctx);
 
@@ -571,13 +571,13 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			{
 				if (Root?.PopupLayer != null)
 				{
+					// UI2 InputManager already normalizes to logical coords - no DPI division needed.
 					let screenX = Context.DragDropManager.LastScreenX;
 					let screenY = Context.DragDropManager.LastScreenY;
-					let dpi = Context.DpiScale;
 					Root.PopupLayer.UpdatePopupPosition(
 						panelData.SourceWindow,
-						(screenX - panelData.DragOffsetX) / dpi,
-						(screenY - panelData.DragOffsetY) / dpi);
+						screenX - panelData.DragOffsetX,
+						screenY - panelData.DragOffsetY);
 				}
 			}
 		}
@@ -620,7 +620,7 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 				if (panelData.SourceWindow != null)
 				{
 					// Already floating - just restore and keep at current position.
-					panelData.SourceWindow.Alpha = 1.0f;
+					panelData.SourceWindow.Opacity = 1.0f;
 					panelData.SourceWindow.IsInteractionEnabled = true;
 				}
 				else

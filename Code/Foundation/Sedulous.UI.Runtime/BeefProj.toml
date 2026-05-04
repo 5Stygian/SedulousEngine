@@ -1,0 +1,23 @@
+FileVersion = 1
+
+[Project]
+Name = "Sedulous.UI.Runtime"
+TargetType = "BeefLib"
+StartupObject = "Sedulous.UI.Runtime.Program"
+
+[Dependencies]
+corlib = "*"
+"Sedulous.UI" = "*"
+"Sedulous.UI.Shell" = "*"
+"Sedulous.Runtime" = "*"
+"Sedulous.Core" = "*"
+"Sedulous.Core.Mathematics" = "*"
+"Sedulous.VG" = "*"
+"Sedulous.VG.Renderer" = "*"
+"Sedulous.RHI" = "*"
+"Sedulous.Shell" = "*"
+"Sedulous.Shaders" = "*"
+"Sedulous.Fonts" = "*"
+"Sedulous.Fonts.TTF" = "*"
+"Sedulous.Images" = "*"
+"Sedulous.Profiler" = "*"
