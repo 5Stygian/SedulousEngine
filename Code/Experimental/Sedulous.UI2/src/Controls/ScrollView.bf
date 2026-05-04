@@ -26,6 +26,11 @@ public class ScrollView : ViewGroup
 	private float mContentHeight;
 	private MomentumHelper mMomentum = .();
 
+	// Drag-to-scroll state.
+	private bool mDragging;
+	private float mDragLastX;
+	private float mDragLastY;
+
 	// Scrollbars (owned as visual elements, not in mChildren)
 	private ScrollBar mVBar;
 	private ScrollBar mHBar;
@@ -76,6 +81,12 @@ public class ScrollView : ViewGroup
 
 	/// Maximum vertical scroll.
 	public float MaxScrollY => Math.Max(0, mContentHeight - ViewportHeight);
+
+	/// Total content width (as measured during layout).
+	public float ContentWidth => mContentWidth;
+
+	/// Total content height (as measured during layout).
+	public float ContentHeight => mContentHeight;
 
 	/// Visible viewport width (minus scrollbar if visible in Reserved mode).
 	public float ViewportWidth
@@ -167,6 +178,60 @@ public class ScrollView : ViewGroup
 
 	/// Scroll to bottom.
 	public void ScrollToBottom() { ScrollY = MaxScrollY; mMomentum.Stop(); }
+
+	/// Scroll to the left edge.
+	public void ScrollToLeft() { ScrollX = 0; mMomentum.Stop(); }
+
+	/// Scroll to the right edge.
+	public void ScrollToRight() { ScrollX = MaxScrollX; mMomentum.Stop(); }
+
+	/// Scroll by a delta amount, clamping to valid range.
+	public void ScrollBy(float dx, float dy)
+	{
+		ScrollX = mScrollX + dx;
+		ScrollY = mScrollY + dy;
+	}
+
+	/// Scroll to make the given child view visible within the viewport.
+	/// Walks the parent chain from child up to this ScrollView's content to compute offset.
+	public void ScrollToView(View child)
+	{
+		if (child == null) return;
+
+		// Compute the child's position relative to this ScrollView's content area.
+		float offsetX = 0;
+		float offsetY = 0;
+		var current = child;
+		while (current != null && current !== this)
+		{
+			offsetX += current.Bounds.X;
+			offsetY += current.Bounds.Y;
+			current = current.Parent;
+		}
+
+		if (current == null) return; // child is not a descendant
+
+		// Add back the current scroll offset since child bounds are laid out
+		// at scroll-adjusted positions.
+		offsetX += mScrollX;
+		offsetY += mScrollY;
+
+		// Adjust horizontal scroll to make child visible.
+		let childRight = offsetX + child.Width;
+		if (offsetX < mScrollX)
+			ScrollX = offsetX;
+		else if (childRight > mScrollX + ViewportWidth)
+			ScrollX = childRight - ViewportWidth;
+
+		// Adjust vertical scroll to make child visible.
+		let childBottom = offsetY + child.Height;
+		if (offsetY < mScrollY)
+			ScrollY = offsetY;
+		else if (childBottom > mScrollY + ViewportHeight)
+			ScrollY = childBottom - ViewportHeight;
+
+		mMomentum.Stop();
+	}
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
@@ -319,6 +384,53 @@ public class ScrollView : ViewGroup
 			if (MomentumEnabled)
 				mMomentum.VelocityY = -e.DeltaY * scrollAmount * 3;
 			e.Handled = true;
+		}
+	}
+
+	public override void OnMouseDown(MouseEventArgs e)
+	{
+		if (e.Button == .Left && (MaxScrollX > 0 || MaxScrollY > 0))
+		{
+			let screenX = Context?.InputManager?.MouseX ?? 0;
+			let screenY = Context?.InputManager?.MouseY ?? 0;
+			let local = ScreenToLocal(.(screenX, screenY));
+
+			mDragging = true;
+			mDragLastX = local.X;
+			mDragLastY = local.Y;
+			mMomentum.Stop();
+			Context?.FocusManager.SetCapture(this);
+		}
+	}
+
+	public override void OnMouseMove(MouseEventArgs e)
+	{
+		if (mDragging)
+		{
+			let screenX = Context?.InputManager?.MouseX ?? 0;
+			let screenY = Context?.InputManager?.MouseY ?? 0;
+			let local = ScreenToLocal(.(screenX, screenY));
+
+			let dx = mDragLastX - local.X;
+			let dy = mDragLastY - local.Y;
+
+			if (Math.Abs(dx) > 1 || Math.Abs(dy) > 1)
+			{
+				ScrollBy(dx, dy);
+				mMomentum.VelocityX = dx * 60;
+				mMomentum.VelocityY = dy * 60;
+				mDragLastX = local.X;
+				mDragLastY = local.Y;
+			}
+		}
+	}
+
+	public override void OnMouseUp(MouseEventArgs e)
+	{
+		if (mDragging)
+		{
+			mDragging = false;
+			Context?.FocusManager.ReleaseCapture();
 		}
 	}
 

@@ -299,7 +299,7 @@ class ControlTests
 		Test.Assert(!sw.IsChecked);
 
 		bool toggled = false;
-		sw.OnToggled.Add(new [&toggled] (s, v) => { toggled = true; });
+		sw.OnCheckedChanged.Add(new [&toggled] (s, v) => { toggled = true; });
 
 		let args = scope MouseEventArgs();
 		args.Set(10, 10, .Left);

@@ -39,7 +39,7 @@ public class RadioButton : View
 
 	public Event<delegate void(RadioButton, bool)> OnCheckedChanged ~ _.Dispose();
 
-	public this() { IsFocusable = true; IsTabStop = true; StyleId = new String("radiobutton"); }
+	public this() { IsFocusable = true; IsTabStop = true; Cursor = .Hand; StyleId = new String("radiobutton"); }
 	public this(StringView text) : this() { mText = new String(text); }
 
 	protected override void OnMeasure(BoxConstraints constraints)
@@ -129,6 +129,7 @@ public class RadioButton : View
 
 	public override void OnMouseDown(MouseEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Button == .Left && !mIsChecked)
 		{
 			IsChecked = true;
@@ -138,6 +139,7 @@ public class RadioButton : View
 
 	public override void OnKeyDown(KeyEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if ((e.Key == .Space || e.Key == .Return) && !mIsChecked)
 		{
 			IsChecked = true;

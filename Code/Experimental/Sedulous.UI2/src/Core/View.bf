@@ -184,6 +184,12 @@ public abstract class View
 	}
 
 	/// Converts screen (root-relative) coordinates to local coordinates.
+	/// Note: This uses layout Bounds only and does not account for ViewTransform
+	/// (translation, rotation, scale). This is correct for normal use because
+	/// mouse events go through HitTest first, which applies inverse transforms
+	/// to identify the hit target. For views with non-identity transforms, the
+	/// coordinates will be relative to the untransformed layout position — this
+	/// matches the local coordinate space that OnDraw receives.
 	public Vector2 ScreenToLocal(Vector2 screen)
 	{
 		var result = screen;
@@ -389,6 +395,40 @@ public abstract class View
 					parentGroup.RemoveView(this, false);
 			IsPendingDeletion = false;
 		});
+	}
+
+	/// Queue removal from parent AND deletion (deferred to next drain point).
+	/// After this call the view will be deleted — do not reference it.
+	public void QueueDestroy()
+	{
+		if (Context == null || IsPendingDeletion) return;
+		IsPendingDeletion = true;
+		Context.MutationQueue.QueueAction(new () =>
+		{
+			if (Parent != null)
+				if (let parentGroup = Parent as ViewGroup)
+					parentGroup.RemoveView(this, true);
+				else
+					delete this;
+			else
+				delete this;
+		});
+	}
+
+	/// Walk up the parent chain to find a ScrollView ancestor and scroll
+	/// to make this view visible within it.
+	public void ScrollIntoView()
+	{
+		var parent = Parent;
+		while (parent != null)
+		{
+			if (let sv = parent as ScrollView)
+			{
+				sv.ScrollToView(this);
+				return;
+			}
+			parent = parent.Parent;
+		}
 	}
 
 	// === Destructor ===

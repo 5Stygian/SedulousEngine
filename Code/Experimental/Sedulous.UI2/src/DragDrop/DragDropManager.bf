@@ -276,6 +276,8 @@ public class DragDropManager
 	}
 
 	/// Update the adorner's position to follow the cursor.
+	/// screenX/screenY are in logical (DPI-scaled) coordinates — InputManager
+	/// normalizes physical pixels to logical before calling into DragDropManager.
 	private void UpdateAdornerPosition(float screenX, float screenY)
 	{
 		if (mAdorner == null || mAdornerPopupLayer == null) return;

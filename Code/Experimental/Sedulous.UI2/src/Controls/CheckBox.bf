@@ -37,7 +37,7 @@ public class CheckBox : View
 	/// Fired when checked state changes.
 	public Event<delegate void(CheckBox, bool)> OnCheckedChanged ~ _.Dispose();
 
-	public this() { IsFocusable = true; IsTabStop = true; StyleId = new String("checkbox"); }
+	public this() { IsFocusable = true; IsTabStop = true; Cursor = .Hand; StyleId = new String("checkbox"); }
 	public this(StringView text) : this() { mText = new String(text); }
 	public this(StringView text, bool isChecked) : this(text) { mIsChecked = isChecked; }
 
@@ -142,6 +142,7 @@ public class CheckBox : View
 
 	public override void OnMouseDown(MouseEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Button == .Left)
 		{
 			IsChecked = !mIsChecked;
@@ -151,6 +152,7 @@ public class CheckBox : View
 
 	public override void OnKeyDown(KeyEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Key == .Space || e.Key == .Return)
 		{
 			IsChecked = !mIsChecked;

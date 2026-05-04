@@ -20,17 +20,38 @@ public enum ScaleType
 /// Displays an image with configurable scaling.
 public class ImageView : View
 {
+	private IImageData mImage;
+	private ScaleType mScaleType = .FitCenter;
+
 	/// The image to display (not owned).
-	public IImageData Image;
+	public IImageData Image
+	{
+		get => mImage;
+		set
+		{
+			if (mImage == value) return;
+			mImage = value;
+			Invalidate();
+		}
+	}
 
 	/// How the image is scaled to fit bounds.
-	public ScaleType ScaleType = .FitCenter;
+	public ScaleType ScaleType
+	{
+		get => mScaleType;
+		set
+		{
+			if (mScaleType == value) return;
+			mScaleType = value;
+			Invalidate();
+		}
+	}
 
 	/// Tint color applied to the image.
 	public Color Tint = .White;
 
 	public this() { }
-	public this(IImageData image) { Image = image; }
+	public this(IImageData image) { mImage = image; }
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{

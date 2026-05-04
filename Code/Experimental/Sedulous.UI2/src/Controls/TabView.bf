@@ -64,14 +64,18 @@ public class TabView : ViewGroup
 	/// Fired when a tab's close button is clicked. Handler should call RemoveTab.
 	public Event<delegate void(TabView, int32)> OnTabCloseRequested ~ _.Dispose();
 
+	/// Minimum width for each tab header.
+	public float MinTabWidth = 50;
+
 	public this()
 	{
 		IsFocusable = true;
+		ClipsContent = true;
 		StyleId = new String("tabview");
 	}
 
-	/// Add a tab with title and content view.
-	public void AddTab(StringView title, View content, bool closable = false)
+	/// Add a tab with title and content view. Returns the index of the added tab.
+	public int32 AddTab(StringView title, View content, bool closable = false)
 	{
 		var item = TabItem();
 		item.Title = new String(title);
@@ -79,11 +83,14 @@ public class TabView : ViewGroup
 		item.IsClosable = closable || TabsClosable;
 		mTabs.Add(item);
 
+		let index = (int32)(mTabs.Count - 1);
 		content.Visibility = .Gone;
 		AddView(content);
 
 		if (mSelectedIndex < 0)
 			SelectedIndex = 0;
+
+		return index;
 	}
 
 	/// Remove a tab by index.
@@ -362,6 +369,7 @@ public class TabView : ViewGroup
 					tabW = font.Font.MeasureString(tab.Title) + 24;
 				if (tab.IsClosable)
 					tabW += CloseButtonSize + 4;
+				tabW = Math.Max(MinTabWidth, tabW);
 				mTabRects.Add(.(xPos, stripY, tabW, TabHeight));
 				xPos += tabW;
 			}

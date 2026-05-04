@@ -55,6 +55,7 @@ public class Button : View
 	public override ControlState GetControlState()
 	{
 		if (!IsEffectivelyEnabled) return .Disabled;
+		if (Command != null && !Command.CanExecute()) return .Disabled;
 		if (mIsPressed) return .Pressed;
 		if (IsFocused) return .Focused;
 		if (IsHovered) return .Hover;

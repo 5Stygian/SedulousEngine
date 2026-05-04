@@ -33,7 +33,7 @@ public class Expander : ViewGroup
 
 	public Event<delegate void(Expander, bool)> OnExpandedChanged ~ _.Dispose();
 
-	public this() { IsFocusable = true; StyleId = new String("expander"); }
+	public this() { IsFocusable = true; Cursor = .Hand; StyleId = new String("expander"); }
 	public this(StringView headerText) : this() { mHeaderText = new String(headerText); }
 
 	/// Set the expandable body content.
@@ -51,6 +51,20 @@ public class Expander : ViewGroup
 
 	/// Toggle expansion.
 	public void Toggle() { IsExpanded = !mIsExpanded; }
+
+	/// Expand the content.
+	public void Expand() { IsExpanded = true; }
+
+	/// Collapse the content.
+	public void Collapse() { IsExpanded = false; }
+
+	/// Set the header text.
+	public void SetHeaderText(StringView text)
+	{
+		if (mHeaderText == null) mHeaderText = new String(text);
+		else mHeaderText.Set(text);
+		Invalidate();
+	}
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
@@ -147,6 +161,7 @@ public class Expander : ViewGroup
 
 	public override void OnMouseDown(MouseEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Handled || e.Button != .Left) return;
 
 		// Get mouse position in our local space via InputManager screen coords.
@@ -163,6 +178,7 @@ public class Expander : ViewGroup
 
 	public override void OnKeyDown(KeyEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		switch (e.Key)
 		{
 		case .Space, .Return: Toggle(); e.Handled = true;

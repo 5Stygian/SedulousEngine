@@ -35,7 +35,7 @@ public class Slider : View
 	public Event<delegate void(Slider)> OnDragStarted ~ _.Dispose();
 	public Event<delegate void(Slider)> OnDragEnded ~ _.Dispose();
 
-	public this() { IsFocusable = true; IsTabStop = true; StyleId = new String("slider"); }
+	public this() { IsFocusable = true; IsTabStop = true; Cursor = .Hand; StyleId = new String("slider"); }
 	public this(float min, float max, float value = 0) : this() { mMin = min; mMax = max; mValue = Math.Clamp(value, min, max); }
 
 	protected override void OnMeasure(BoxConstraints constraints)
@@ -125,6 +125,7 @@ public class Slider : View
 
 	public override void OnMouseDown(MouseEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Button == .Left)
 		{
 			mDragging = true;
@@ -157,6 +158,7 @@ public class Slider : View
 
 	public override void OnKeyDown(KeyEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		let range = mMax - mMin;
 		let smallStep = (mStep > 0) ? mStep : range * 0.05f;
 

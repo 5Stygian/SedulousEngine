@@ -22,7 +22,7 @@ public class ToggleSwitch : View
 			if (mIsChecked == value) return;
 			mIsChecked = value;
 			Invalidate();
-			OnToggled(this, mIsChecked);
+			OnCheckedChanged(this, mIsChecked);
 		}
 	}
 
@@ -37,9 +37,9 @@ public class ToggleSwitch : View
 		}
 	}
 
-	public Event<delegate void(ToggleSwitch, bool)> OnToggled ~ _.Dispose();
+	public Event<delegate void(ToggleSwitch, bool)> OnCheckedChanged ~ _.Dispose();
 
-	public this() { IsFocusable = true; IsTabStop = true; StyleId = new String("toggleswitch"); }
+	public this() { IsFocusable = true; IsTabStop = true; Cursor = .Hand; StyleId = new String("toggleswitch"); }
 	public this(StringView text) : this() { mText = new String(text); }
 
 	protected override void OnMeasure(BoxConstraints constraints)
@@ -108,11 +108,13 @@ public class ToggleSwitch : View
 
 	public override void OnMouseDown(MouseEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Button == .Left) { IsChecked = !mIsChecked; e.Handled = true; }
 	}
 
 	public override void OnKeyDown(KeyEventArgs e)
 	{
+		if (!IsEffectivelyEnabled) return;
 		if (e.Key == .Space || e.Key == .Return) { IsChecked = !mIsChecked; e.Handled = true; }
 	}
 }
