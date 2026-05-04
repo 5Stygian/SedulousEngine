@@ -36,8 +36,8 @@ using Sedulous.Audio;
 using Sedulous.Audio.Decoders;
 using Sedulous.Physics;
 
-using Sedulous.Engine.UI;
-using Sedulous.UI;
+using Sedulous.Engine.LegacyUI;
+using Sedulous.LegacyUI;
 using Sedulous.Shell;
 using Sedulous.Images;
 
@@ -1210,7 +1210,7 @@ class SandboxApp : EngineApplication
 		TryAddWorldUIContent();
 
 		// ==================== UI Debug ====================
-		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
+		let uiSub = Context.GetSubsystem<EngineLegacyUISubsystem>();
 
 		// F1 toggles UI debug bounds overlay.
 		if (mShell.InputManager.Keyboard.IsKeyPressed(.F1) && uiSub?.UIContext != null)
@@ -1744,7 +1744,7 @@ class SandboxApp : EngineApplication
 
 	private void SetupScreenUI()
 	{
-		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
+		let uiSub = Context.GetSubsystem<EngineLegacyUISubsystem>();
 		if (uiSub?.ScreenView == null) return;
 
 		let root = uiSub.ScreenView.Root;

@@ -15,8 +15,8 @@ using Sedulous.Images.STB;
 using Sedulous.Images.SDL;
 using Sedulous.Messaging.Runtime;
 using Sedulous.Engine;
-using Sedulous.Engine.UI;
-using Sedulous.UI;
+using Sedulous.Engine.LegacyUI;
+using Sedulous.LegacyUI;
 
 class TowerDefenseApp : EngineApplication
 {
@@ -209,7 +209,7 @@ class TowerDefenseApp : EngineApplication
 
 	private void SetupUI()
 	{
-		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
+		let uiSub = Context.GetSubsystem<EngineLegacyUISubsystem>();
 		if (uiSub?.ScreenView == null)
 			return;
 

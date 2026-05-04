@@ -1,7 +1,7 @@
-namespace Sedulous.UI.Toolkit;
+namespace Sedulous.LegacyUI.Toolkit;
 
 using System;
-using Sedulous.UI;
+using Sedulous\.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// A dockable window that wraps a DockablePanel.

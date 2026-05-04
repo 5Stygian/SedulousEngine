@@ -2,10 +2,10 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
-using internal Sedulous.UI;
+using internal Sedulous.LegacyUI;
 
 /// A flow-layout grid view for the asset browser tile/grid mode.
 /// Fixed-size cells arranged in rows, wrapping on container width.

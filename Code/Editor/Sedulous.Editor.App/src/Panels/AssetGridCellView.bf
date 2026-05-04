@@ -1,7 +1,7 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// View for a single cell in the asset browser grid/tile mode.

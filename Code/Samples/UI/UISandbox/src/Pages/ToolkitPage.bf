@@ -1,8 +1,8 @@
 namespace UISandbox;
 
 using System;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Core.Mathematics;
 
 /// Demo page: Toolkit controls - SplitView, Toolbar, MenuBar, StatusBar,
@@ -29,7 +29,7 @@ class ToolkitPage : DemoPage
 			rightPane.AddView(rightLabel);
 
 			split.SetPanes(leftPane, rightPane);
-			mLayout.AddView(split, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 60 });
+			mLayout.AddView(split, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 60 });
 		}
 
 		AddSeparator();
@@ -47,7 +47,7 @@ class ToolkitPage : DemoPage
 				msg.AppendF("Grid: {}", v ? "ON" : "OFF");
 				mDemo.ClickLabel?.SetText(msg);
 			});
-			mLayout.AddView(toolbar, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 30 });
+			mLayout.AddView(toolbar, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 30 });
 		}
 
 		AddSeparator();
@@ -64,7 +64,7 @@ class ToolkitPage : DemoPage
 			editMenu.AddItem("Undo", new () => { mDemo.ClickLabel?.SetText("Edit > Undo"); });
 			editMenu.AddItem("Redo", new () => { mDemo.ClickLabel?.SetText("Edit > Redo"); });
 
-			mLayout.AddView(menuBar, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 28 });
+			mLayout.AddView(menuBar, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 28 });
 		}
 
 		AddSeparator();
@@ -74,7 +74,7 @@ class ToolkitPage : DemoPage
 			statusBar.SetText("Ready");
 			statusBar.AddSection("Ln 1, Col 1");
 			statusBar.AddSection("UTF-8");
-			mLayout.AddView(statusBar, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 24 });
+			mLayout.AddView(statusBar, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 24 });
 		}
 
 		AddSeparator();
@@ -91,7 +91,7 @@ class ToolkitPage : DemoPage
 			grid.AddProperty(new Vector3Editor("Position", .(1.0f, 2.5f, -3.0f), category: "Transform"));
 			grid.AddProperty(new Vector3Editor("Scale", .(1.0f, 1.0f, 1.0f), min: 0.001f, max: 100, category: "Transform"));
 			grid.AddProperty(new RangeEditor("Intensity", 0.5f, 0, 10, category: "Lighting"));
-			mLayout.AddView(grid, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 350 });
+			mLayout.AddView(grid, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 350 });
 		}
 
 		AddSeparator();
@@ -99,7 +99,7 @@ class ToolkitPage : DemoPage
 		{
 			let picker = new ColorPicker();
 			picker.SetColor(.(100, 180, 220, 255));
-			mLayout.AddView(picker, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 200 });
+			mLayout.AddView(picker, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 200 });
 		}
 	}
 }

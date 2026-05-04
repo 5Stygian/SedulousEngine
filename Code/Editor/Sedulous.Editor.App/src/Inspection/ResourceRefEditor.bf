@@ -1,8 +1,8 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Resources;
 using Sedulous.Serialization;

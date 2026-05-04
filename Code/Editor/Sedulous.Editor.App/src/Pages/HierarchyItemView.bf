@@ -1,6 +1,6 @@
 namespace Sedulous.Editor.App;
 
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Fonts;
 using System;

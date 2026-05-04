@@ -1,7 +1,7 @@
 namespace Sedulous.Editor.Core;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 
 /// Base interface for all editor pages (scene editors, asset editors, etc.).
 /// Pages appear as tabs in the editor. Each has its own undo stack and dirty state.

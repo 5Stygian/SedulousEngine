@@ -91,7 +91,7 @@ what to render and where.
 - NavMesh building, crowd management, obstacle avoidance
 - NavAgent and NavObstacle components
 
-### UI Framework (Sedulous.UI)
+### UI Framework (Sedulous.LegacyUI)
 - Android-inspired retained-mode: View/ViewGroup/RootView hierarchy
 - MeasureSpec layout system
 - Theme system with drawable-based skinning
@@ -99,7 +99,7 @@ what to render and where.
 - Animation, overlays, popups, dialogs
 - Runs headless for tests -- no engine dependency
 
-### UI Toolkit (Sedulous.UI.Toolkit)
+### UI Toolkit (Sedulous.LegacyUI.Toolkit)
 - DockManager with dockable OS windows
 - SplitView, MenuBar, StatusBar, Toolbar
 - PropertyGrid with transactional editing (BeginEdit/EndEdit for undo)
@@ -173,11 +173,11 @@ directory for them to recompile.
 
 ```
 Code/
-  Foundation/          -- Core libraries (RHI, Shell, VG, UI, Physics, Audio, etc.)
-  Engine/              -- Engine.Core (scene model) + subsystems (Input, Physics, Render, UI, etc.)
+  Foundation/          -- Core libraries (RHI, Shell, VG, LegacyUI, Physics, Audio, etc.)
+  Engine/              -- Engine.Core (scene model) + subsystems (Input, Physics, Render, LegacyUI, etc.)
   Editor/              -- Editor core + application
   Samples/             -- EngineSandbox, UISandbox, RHI samples, etc.
-  Deprecated/          -- Sedulous.GUI (replaced by Sedulous.UI stack)
+  Deprecated/          -- Sedulous.GUI (replaced by Sedulous.LegacyUI stack)
   Dependencies/        -- Third-party bindings (Bulkan, SDL3, Jolt, Recast, etc.)
 
 Documentation/

@@ -2,7 +2,7 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// Scrollable log view with level-based color coding and auto-scroll.
@@ -197,7 +197,7 @@ class LogView : ViewGroup
 
 			// Color indicator strip
 			row.AddView(new ColorStrip(), new LinearLayout.LayoutParams() {
-				Width = 4, Height = Sedulous.UI.LayoutParams.MatchParent
+				Width = 4, Height = Sedulous.LegacyUI.LayoutParams.MatchParent
 			});
 
 			// Message text
@@ -205,7 +205,7 @@ class LogView : ViewGroup
 			label.FontSize = mOwner.mFontSize;
 			label.VAlign = .Middle;
 			row.AddView(label, new LinearLayout.LayoutParams() {
-				Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1
+				Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1
 			});
 
 			return row;

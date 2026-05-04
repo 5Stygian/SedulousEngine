@@ -7,8 +7,8 @@ using Sedulous.Core.Mathematics;
 using Sedulous.RHI;
 using Sedulous.Runtime.Client;
 using Sedulous.Runtime;
-using Sedulous.UI;
-using Sedulous.UI.Runtime;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Runtime;
 using Sedulous.Fonts;
 using Sedulous.Audio;
 using Sedulous.Audio.SDL3;
@@ -41,7 +41,7 @@ class AudioSandboxApp : Application
 	private bool mIsPlaying = false;
 
 	// UI system
-	private UISubsystem mUI;
+	private LegacyUISubsystem mUI;
 
 	// UI Elements (for updating)
 	private Label mNowPlayingLabel;
@@ -62,7 +62,7 @@ class AudioSandboxApp : Application
 		// Initialize UI subsystem
 		UIRegistry.RegisterBuiltins();
 
-		mUI = new UISubsystem();
+		mUI = new LegacyUISubsystem();
 		context.RegisterSubsystem(mUI);
 
 		String shaderPath = scope .();

@@ -2,8 +2,8 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Resources;
 using Sedulous.Editor.Core;
 
@@ -1043,7 +1043,7 @@ class BreadcrumbBar : LinearLayout
 				arrow.SetText("  >  ");
 				arrow.FontSize = 10;
 				arrow.TextColor = .(100, 105, 120, 255);
-				AddView(arrow, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+				AddView(arrow, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			}
 
 			let segIndex = i;
@@ -1054,7 +1054,7 @@ class BreadcrumbBar : LinearLayout
 			btn.OnClick.Add(new (b) => {
 				OnSegmentClicked(segIndex);
 			});
-			AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+			AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		}
 
 		InvalidateLayout();

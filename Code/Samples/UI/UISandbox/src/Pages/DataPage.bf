@@ -1,7 +1,7 @@
 namespace UISandbox;
 
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Core.Mathematics;
 using System;
 using System.Collections;
@@ -64,12 +64,12 @@ class DataPage : DemoPage
 		{
 			let sv = new ScrollView();
 			sv.VScrollPolicy = .Auto;
-			mLayout.AddView(sv, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 120 });
+			mLayout.AddView(sv, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 120 });
 
 			let content = new LinearLayout();
 			content.Orientation = .Vertical;
 			content.Spacing = 4;
-			sv.AddView(content, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent });
+			sv.AddView(content, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 			for (int i = 0; i < 20; i++)
 			{
@@ -77,7 +77,7 @@ class DataPage : DemoPage
 				let text = scope String();
 				text.AppendF("Scrollable item {}", i + 1);
 				label.SetText(text);
-				content.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 22 });
+				content.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 22 });
 			}
 		}
 
@@ -88,7 +88,7 @@ class DataPage : DemoPage
 			let list = new ListView();
 			list.ItemHeight = 22;
 			list.Adapter = mListAdapter;
-			mLayout.AddView(list, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 180 });
+			mLayout.AddView(list, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 180 });
 		}
 
 		AddSeparator();
@@ -98,7 +98,7 @@ class DataPage : DemoPage
 			let tree = new TreeView();
 			tree.ItemHeight = 22;
 			tree.SetAdapter(mTreeAdapter);
-			mLayout.AddView(tree, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 150 });
+			mLayout.AddView(tree, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 150 });
 		}
 
 		AddSeparator();
@@ -109,7 +109,7 @@ class DataPage : DemoPage
 			let dragTree = new DraggableTreeView();
 			dragTree.ItemHeight = 22;
 			dragTree.SetAdapter(mReorderAdapter);
-			mLayout.AddView(dragTree, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 150 });
+			mLayout.AddView(dragTree, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 150 });
 		}
 	}
 }

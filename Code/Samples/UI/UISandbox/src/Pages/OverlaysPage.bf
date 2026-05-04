@@ -1,6 +1,6 @@
 namespace UISandbox;
 
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 using System;
 using System;
@@ -27,7 +27,7 @@ class OverlaysPage : DemoPage
 		{
 			let copyLabel = new CopyableLabel();
 			copyLabel.SetText("Right-click to copy this text");
-			mLayout.AddView(copyLabel, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 30 });
+			mLayout.AddView(copyLabel, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 30 });
 		}
 
 		AddSeparator();
@@ -36,7 +36,7 @@ class OverlaysPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 8;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 36 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 36 });
 
 			for (let info in scope (TooltipPlacement, StringView)[]((.Bottom, "Bottom"), (.Top, "Top"), (.Left, "Left"), (.Right, "Right")))
 			{
@@ -46,7 +46,7 @@ class OverlaysPage : DemoPage
 				btn.SetText(text);
 				btn.TooltipText = new String(text);
 				btn.TooltipPlacement = info.0;
-				row.AddView(btn, new LinearLayout.LayoutParams() { Height =  Sedulous.UI.LayoutParams.MatchParent });
+				row.AddView(btn, new LinearLayout.LayoutParams() { Height =  Sedulous.LegacyUI.LayoutParams.MatchParent });
 			}
 		}
 
@@ -56,7 +56,7 @@ class OverlaysPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 8;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 48 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 48 });
 
 			let iv = new RichTooltipImageView();
 			iv.Image = demo.Checkerboard;
@@ -70,7 +70,7 @@ class OverlaysPage : DemoPage
 			let desc = new Label();
 			desc.SetText("Hover image for rich tooltip");
 			desc.VAlign = .Middle;
-			row.AddView(desc, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height =  Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+			row.AddView(desc, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height =  Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 		}
 
 		AddSeparator();
@@ -79,7 +79,7 @@ class OverlaysPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 8;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 26 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 26 });
 
 			for (let text in StringView[]("Online", "Active", "Ready"))
 			{

@@ -1,8 +1,8 @@
-namespace Sedulous.UI.Toolkit;
+namespace Sedulous.LegacyUI.Toolkit;
 
 using System;
 using System.Collections;
-using Sedulous.UI;
+using Sedulous\.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// Multi-window docking system. Manages a tree of DockSplits, DockTabGroups,

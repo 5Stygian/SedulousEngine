@@ -3,8 +3,8 @@ namespace Sedulous.Editor.App;
 using System;
 using System.IO;
 using System.Collections;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Resources;
 using Sedulous.Core.Mathematics;
 

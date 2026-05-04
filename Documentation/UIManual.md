@@ -1,4 +1,4 @@
-# Sedulous.UI - Usage Manual
+# Sedulous.LegacyUI - Usage Manual
 
 ## ScrollView and Layout Weights
 

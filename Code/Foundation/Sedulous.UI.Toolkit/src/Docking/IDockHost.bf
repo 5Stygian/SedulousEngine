@@ -1,6 +1,6 @@
-namespace Sedulous.UI.Toolkit;
+namespace Sedulous.LegacyUI.Toolkit;
 
-using Sedulous.UI;
+using Sedulous\.LegacyUI;
 
 /// Interface for the docking system host that manages floating panels.
 /// Implemented by DockManager.

@@ -2,9 +2,9 @@ namespace Sedulous.Editor.App;
 
 using System;
 using Sedulous.Core.Mathematics;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Shell.Input;
-using Sedulous.UI.Viewport;
+using Sedulous.LegacyUI.Viewport;
 
 /// Camera input handler for viewport views.
 /// Handles RMB fly, Alt+LMB orbit, MMB pan, scroll zoom.

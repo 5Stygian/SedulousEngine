@@ -12,12 +12,12 @@ using Sedulous.Fonts;
 using Sedulous.Fonts.TTF;
 using Sedulous.VG;
 using Sedulous.VG.Renderer;
-using Sedulous.UI;
-using Sedulous.UI.Shell;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Shell;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Editor.Core;
-using Sedulous.UI.Viewport;
+using Sedulous.LegacyUI.Viewport;
 using Sedulous.Profiler;
 using Sedulous.Engine.Core;
 using Sedulous.Core;
@@ -126,7 +126,7 @@ class EditorApplication : Application, IDockableWindowHost
 		mClipboard = new ShellClipboardAdapter(Shell.Clipboard);
 
 		// UI context
-		Sedulous.UI.Theme.RegisterExtension(new ToolkitThemeExtension());
+		Sedulous.LegacyUI.Theme.RegisterExtension(new ToolkitThemeExtension());
 		mUIContext = new UIContext();
 		mUIContext.FontService = mFontService;
 		mUIContext.Clipboard = mClipboard;
@@ -156,7 +156,7 @@ class EditorApplication : Application, IDockableWindowHost
 		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Audio.AudioSubsystem(mResourceSystem));
 		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Navigation.NavigationSubsystem());
 
-		let uiSub = new Sedulous.Engine.UI.EngineUISubsystem();
+		let uiSub = new Sedulous.Engine.LegacyUI.EngineLegacyUISubsystem();
 		uiSub.Device = Device;
 		uiSub.Window = Window;
 		uiSub.Shell = Shell;

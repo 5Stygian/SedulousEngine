@@ -2,8 +2,8 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Editor.Core;
 using Sedulous.Resources;
@@ -70,15 +70,15 @@ class ImportDialog : Dialog
 		sourceLabel.SetText("Source:");
 		sourceLabel.FontSize = 11;
 		sourceLabel.TextColor = .(140, 145, 165, 255);
-		sourceRow.AddView(sourceLabel, new LinearLayout.LayoutParams() { Width = 50, Height = Sedulous.UI.LayoutParams.MatchParent });
+		sourceRow.AddView(sourceLabel, new LinearLayout.LayoutParams() { Width = 50, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 		let sourcePath = new Label();
 		sourcePath.SetText(mPreview.SourcePath);
 		sourcePath.FontSize = 11;
 		sourcePath.Ellipsis = true;
-		sourceRow.AddView(sourcePath, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+		sourceRow.AddView(sourcePath, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
-		content.AddView(sourceRow, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 18 });
+		content.AddView(sourceRow, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 18 });
 
 		// Output directory
 		let outputRow = new LinearLayout();
@@ -89,20 +89,20 @@ class ImportDialog : Dialog
 		outputLabel.SetText("Output:");
 		outputLabel.FontSize = 11;
 		outputLabel.TextColor = .(140, 145, 165, 255);
-		outputRow.AddView(outputLabel, new LinearLayout.LayoutParams() { Width = 50, Height = Sedulous.UI.LayoutParams.MatchParent });
+		outputRow.AddView(outputLabel, new LinearLayout.LayoutParams() { Width = 50, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 		let outputPath = new Label();
 		outputPath.SetText(mOutputDir);
 		outputPath.FontSize = 11;
 		outputPath.Ellipsis = true;
-		outputRow.AddView(outputPath, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+		outputRow.AddView(outputPath, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
-		content.AddView(outputRow, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 18 });
+		content.AddView(outputRow, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 18 });
 
 		// Separator
 		let sep = new Panel();
 		sep.Background = new ColorDrawable(.(60, 65, 80, 255));
-		content.AddView(sep, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 1 });
+		content.AddView(sep, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 1 });
 
 		// Items header
 		let headerRow = new LinearLayout();
@@ -117,7 +117,7 @@ class ImportDialog : Dialog
 			for (let check in mItemChecks)
 				check.IsChecked = val;
 		});
-		headerRow.AddView(selectAllCheck, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.WrapContent, Height = Sedulous.UI.LayoutParams.MatchParent });
+		headerRow.AddView(selectAllCheck, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.WrapContent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 		let countLabel = new Label();
 		let countText = scope String();
@@ -126,9 +126,9 @@ class ImportDialog : Dialog
 		countLabel.FontSize = 10;
 		countLabel.TextColor = .(120, 125, 140, 255);
 		countLabel.HAlign = .Right;
-		headerRow.AddView(countLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+		headerRow.AddView(countLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
-		content.AddView(headerRow, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 22 });
+		content.AddView(headerRow, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 22 });
 
 		// Item list (scrollable)
 		let itemList = new LinearLayout();
@@ -144,14 +144,14 @@ class ImportDialog : Dialog
 			let check = new CheckBox();
 			check.IsChecked = item.Selected;
 			mItemChecks.Add(check);
-			itemRow.AddView(check, new LinearLayout.LayoutParams() { Width = 20, Height = Sedulous.UI.LayoutParams.MatchParent });
+			itemRow.AddView(check, new LinearLayout.LayoutParams() { Width = 20, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 			// Type label
 			let typeLabel = new Label();
 			typeLabel.SetText(item.TypeLabel);
 			typeLabel.FontSize = 10;
 			typeLabel.TextColor = .(140, 160, 200, 255);
-			itemRow.AddView(typeLabel, new LinearLayout.LayoutParams() { Width = 90, Height = Sedulous.UI.LayoutParams.MatchParent });
+			itemRow.AddView(typeLabel, new LinearLayout.LayoutParams() { Width = 90, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 			// Name + extension
 			let nameLabel = new Label();
@@ -160,15 +160,15 @@ class ImportDialog : Dialog
 			nameLabel.SetText(nameText);
 			nameLabel.FontSize = 11;
 			nameLabel.Ellipsis = true;
-			itemRow.AddView(nameLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+			itemRow.AddView(nameLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
-			itemList.AddView(itemRow, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 20 });
+			itemList.AddView(itemRow, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 20 });
 		}
 
 		// Wrap item list in a ScrollView for many items
 		let scrollView = new ScrollView();
-		scrollView.AddView(itemList, new LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.WrapContent });
-		content.AddView(scrollView, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 0, Weight = 1 });
+		scrollView.AddView(itemList, new LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.WrapContent });
+		content.AddView(scrollView, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 0, Weight = 1 });
 
 		SetContent(content);
 	}

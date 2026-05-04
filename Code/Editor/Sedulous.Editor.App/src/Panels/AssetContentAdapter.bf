@@ -3,8 +3,8 @@ namespace Sedulous.Editor.App;
 using System;
 using System.IO;
 using System.Collections;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Resources;
 using Sedulous.Core.Mathematics;
 
@@ -459,20 +459,20 @@ class AssetContentItemView : LinearLayout
 		mIconLabel = new Label();
 		mIconLabel.FontSize = 11;
 		mIconLabel.TextColor = .(140, 145, 165, 255);
-		AddView(mIconLabel, new LayoutParams() { Width = 20, Height = Sedulous.UI.LayoutParams.MatchParent });
+		AddView(mIconLabel, new LayoutParams() { Width = 20, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 		// Name (editable label - acts as plain label, switches to edit on BeginEdit)
 		mNameLabel = new EditableLabel();
 		mNameLabel.FontSize = 12;
 		mNameLabel.TextColor = .(200, 205, 220, 255);
-		AddView(mNameLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+		AddView(mNameLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
 		// Registry badge
 		mBadgeLabel = new Label();
 		mBadgeLabel.FontSize = 9;
 		mBadgeLabel.TextColor = .(80, 160, 80, 255);
 		mBadgeLabel.HAlign = .Right;
-		AddView(mBadgeLabel, new LayoutParams() { Width = Sedulous.UI.LayoutParams.WrapContent, Height = Sedulous.UI.LayoutParams.MatchParent });
+		AddView(mBadgeLabel, new LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.WrapContent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 	}
 
 	public void Bind(AssetContentItem item)

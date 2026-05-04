@@ -1,7 +1,7 @@
 namespace UISandbox;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// Demo page: CheckBox, RadioButton, ToggleSwitch, ProgressBar, Slider,
@@ -17,7 +17,7 @@ class ControlsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 12;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 24 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 24 });
 			let cb = new CheckBox(); cb.SetText("Check me"); row.AddView(cb);
 			let sw = new ToggleSwitch(); sw.SetText("Switch"); row.AddView(sw);
 		}
@@ -34,21 +34,21 @@ class ControlsPage : DemoPage
 			group.AddRadioButton(r2);
 			group.AddRadioButton(r3);
 			group.CheckAt(0);
-			mLayout.AddView(group, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 22 });
+			mLayout.AddView(group, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 22 });
 		}
 
 		AddSection("ProgressBar");
 		{
 			mProgressBar = new ProgressBar();
 			mProgressBar.Progress = 0;
-			mLayout.AddView(mProgressBar, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 12 });
+			mLayout.AddView(mProgressBar, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 12 });
 		}
 
 		AddSection("Slider");
 		{
 			let slider = new Slider();
 			slider.Min = 0; slider.Max = 100; slider.Value = 40;
-			mLayout.AddView(slider, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 24 });
+			mLayout.AddView(slider, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 24 });
 		}
 
 		AddSection("ToggleButton");
@@ -56,11 +56,11 @@ class ControlsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 6;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 30 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 30 });
 			let tb1 = new ToggleButton(); tb1.SetText("Bold");
 			let tb2 = new ToggleButton(); tb2.SetText("Italic");
-			row.AddView(tb1, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
-			row.AddView(tb2, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+			row.AddView(tb1, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
+			row.AddView(tb2, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		}
 
 		AddSection("ComboBox");
@@ -69,7 +69,7 @@ class ControlsPage : DemoPage
 			combo.AddItem("Apple"); combo.AddItem("Banana");
 			combo.AddItem("Cherry"); combo.AddItem("Date");
 			combo.SelectedIndex = 0;
-			mLayout.AddView(combo, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 30 });
+			mLayout.AddView(combo, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 30 });
 		}
 
 		AddSection("NumericField");
@@ -77,16 +77,16 @@ class ControlsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 8;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 28 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 28 });
 
 			let numField = new NumericField();
 			numField.Min = 0; numField.Max = 100; numField.Value = 42; numField.Step = 1;
-			row.AddView(numField, new LinearLayout.LayoutParams() { Width = 120, Height = Sedulous.UI.LayoutParams.MatchParent });
+			row.AddView(numField, new LinearLayout.LayoutParams() { Width = 120, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 			let numFieldDec = new NumericField();
 			numFieldDec.Min = 0; numFieldDec.Max = 1; numFieldDec.Value = 0.5;
 			numFieldDec.Step = 0.05; numFieldDec.DecimalPlaces = 2;
-			row.AddView(numFieldDec, new LinearLayout.LayoutParams() { Width = 120, Height = Sedulous.UI.LayoutParams.MatchParent });
+			row.AddView(numFieldDec, new LinearLayout.LayoutParams() { Width = 120, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		}
 
 		AddSection("EditableLabel");
@@ -94,23 +94,23 @@ class ControlsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 8;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 24 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 24 });
 
 			let editableLabel = new EditableLabel();
 			editableLabel.SetText("Double-click or slow-click to rename");
-			row.AddView(editableLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+			row.AddView(editableLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
 			let editBtn = new Button();
 			editBtn.SetText("Edit");
 			editBtn.OnClick.Add(new (b) => {
 				editableLabel.BeginEdit();
 			});
-			row.AddView(editBtn, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+			row.AddView(editBtn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 			let statusLabel = new Label();
 			statusLabel.FontSize = 11;
 			statusLabel.TextColor = .(140, 145, 165, 255);
-			mLayout.AddView(statusLabel, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 18 });
+			mLayout.AddView(statusLabel, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 18 });
 
 			editableLabel.OnRenameCommitted.Add(new (label, newText) => {
 				statusLabel.SetText(scope $"Renamed to: {newText}");
@@ -126,8 +126,8 @@ class ControlsPage : DemoPage
 			expander.SetHeaderText("Expandable Section");
 			let content = new Label();
 			content.SetText("Hidden content revealed!");
-			expander.SetContent(content, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 24 });
-			mLayout.AddView(expander, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent });
+			expander.SetContent(content, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 24 });
+			mLayout.AddView(expander, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		}
 
 		AddSection("TabView");
@@ -135,13 +135,13 @@ class ControlsPage : DemoPage
 			let tabRow = new LinearLayout();
 			tabRow.Orientation = .Vertical;
 			tabRow.Spacing = 4;
-			mLayout.AddView(tabRow, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 110 });
+			mLayout.AddView(tabRow, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 110 });
 
 			let tabs = new TabView();
 			tabs.AddTab("Tab 1", new Label() { }..SetText("Content of Tab 1"));
 			tabs.AddTab("Tab 2", new Label() { }..SetText("Content of Tab 2"));
 			tabs.AddTab("Tab 3", new Label() { }..SetText("Content of Tab 3"));
-			tabRow.AddView(tabs, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 80 });
+			tabRow.AddView(tabs, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 80 });
 
 			let placeBtn = new Button();
 			placeBtn.SetText("Placement: Top");

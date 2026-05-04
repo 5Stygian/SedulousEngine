@@ -20,7 +20,7 @@ using Sedulous.Engine.Physics;
 using Sedulous.Engine.Animation;
 using Sedulous.Engine.Audio;
 using Sedulous.Engine.Navigation;
-using Sedulous.Engine.UI;
+using Sedulous.Engine.LegacyUI;
 using Sedulous.Engine.Render;
 using Sedulous.Renderer;
 using Sedulous.Engine.Renderer;
@@ -299,7 +299,7 @@ abstract class EngineApplication : IDisposable
 		mContext.RegisterSubsystem(new AnimationSubsystem(mResourceSystem));  //  100
 		mContext.RegisterSubsystem(new AudioSubsystem(mResourceSystem));      //  200
 		mContext.RegisterSubsystem(new NavigationSubsystem());   //  300
-		let uiSub = new EngineUISubsystem();
+		let uiSub = new EngineLegacyUISubsystem();
 		uiSub.Device = mDevice;
 		uiSub.Window = mWindow;
 		uiSub.Shell = mShell;

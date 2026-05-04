@@ -1,6 +1,6 @@
 namespace UISandbox;
 
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// Demo page: EditText, PasswordBox, filters, read-only, multiline.
@@ -12,14 +12,14 @@ class TextEditingPage : DemoPage
 		{
 			let edit = new EditText();
 			edit.SetPlaceholder("Type here...");
-			mLayout.AddView(edit, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 28 });
+			mLayout.AddView(edit, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 28 });
 		}
 
 		AddSection("PasswordBox");
 		{
 			let pw = new PasswordBox();
 			pw.SetPlaceholder("Password...");
-			mLayout.AddView(pw, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 28 });
+			mLayout.AddView(pw, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 28 });
 		}
 
 		AddSection("Filtered Input");
@@ -27,17 +27,17 @@ class TextEditingPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 6;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 28 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 28 });
 
 			let digits = new EditText();
 			digits.SetPlaceholder("Digits only");
 			digits.Filter = InputFilter.Digits();
-			row.AddView(digits, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+			row.AddView(digits, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
 			let maxLen = new EditText();
 			maxLen.SetPlaceholder("Max 8 chars");
 			maxLen.MaxLength = 8;
-			row.AddView(maxLen, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+			row.AddView(maxLen, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 		}
 
 		AddSection("Read-only");
@@ -45,7 +45,7 @@ class TextEditingPage : DemoPage
 			let ro = new EditText();
 			ro.SetText("Read-only text (try to edit)");
 			ro.IsReadOnly = true;
-			mLayout.AddView(ro, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 28 });
+			mLayout.AddView(ro, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 28 });
 		}
 
 		AddSection("Multiline");
@@ -53,7 +53,7 @@ class TextEditingPage : DemoPage
 			let multi = new EditText();
 			multi.Multiline = true;
 			multi.SetPlaceholder("Multi-line text...");
-			mLayout.AddView(multi, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 120 });
+			mLayout.AddView(multi, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 120 });
 		}
 	}
 }

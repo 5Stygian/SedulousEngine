@@ -2,7 +2,7 @@ namespace Sedulous.Editor.Core;
 
 using System;
 using Sedulous.Engine.Core;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI.Toolkit;
 
 /// Custom inspector for a specific component type.
 /// Plugins register these to override the default reflection-based inspector.

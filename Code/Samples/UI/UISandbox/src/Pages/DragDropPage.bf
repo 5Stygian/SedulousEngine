@@ -1,6 +1,6 @@
 namespace UISandbox;
 
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// Demo page: Drag-and-drop with reorderable chips and drop target.
@@ -14,12 +14,12 @@ class DragDropPage : DemoPage
 		let row = new LinearLayout();
 		row.Orientation = .Horizontal;
 		row.Spacing = 8;
-		mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.UI.LayoutParams.MatchParent, Height = 36 });
+		mLayout.AddView(row, new LinearLayout.LayoutParams() { Width =  Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 36 });
 
 		let container = new ChipReorderContainer();
 		container.Orientation = .Horizontal;
 		container.Spacing = 4;
-		row.AddView(container, new LinearLayout.LayoutParams() { Height =  Sedulous.UI.LayoutParams.MatchParent });
+		row.AddView(container, new LinearLayout.LayoutParams() { Height =  Sedulous.LegacyUI.LayoutParams.MatchParent });
 
 		Color[?] chipColors = .(
 			.(220, 60, 60, 255), .(60, 180, 60, 255), .(60, 100, 220, 255),
@@ -31,10 +31,10 @@ class DragDropPage : DemoPage
 			chip.Color = chipColors[i];
 			chip.PreferredWidth = 30;
 			chip.PreferredHeight = 30;
-			container.AddView(chip, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+			container.AddView(chip, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		}
 
 		let dropBox = new ColorDropBox();
-		row.AddView(dropBox, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+		row.AddView(dropBox, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 	}
 }

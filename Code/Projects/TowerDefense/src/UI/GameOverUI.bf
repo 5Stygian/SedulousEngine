@@ -1,7 +1,7 @@
 namespace TowerDefense;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Messaging;
 

@@ -1,4 +1,4 @@
-# Sedulous.UI - Game UI Framework Plan
+# Sedulous.LegacyUI - Game UI Framework Plan
 
 Plan for a retained-mode game UI framework built on `Sedulous.VG`, with XML
 authoring and code-first authoring both first-class. Designed to replace
@@ -59,15 +59,15 @@ more game-loop-friendly choice - usually the Android one.
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Samples                                                             │
 │  UISandbox - gallery/showcase; grows as each phase lands.            │
-│  Uses Sedulous.UI.Runtime directly (no engine required).             │
+│  Uses Sedulous.LegacyUI.Runtime directly (no engine required).             │
 ├──────────────────────────────────────────────────────────────────────┤
-│  Sedulous.Engine.UI                                                  │
+│  Sedulous.Engine.LegacyUI                                                  │
 │  - Full engine integration: scene hooks, resource system wiring      │
 │  - WorldSpaceUIComponent + manager (3D-anchored UI)                  │
 │  - Default IDockableWindowHost using engine windows                  │
-│  - Builds on Sedulous.UI.Runtime's subsystem                         │
+│  - Builds on Sedulous.LegacyUI.Runtime's subsystem                         │
 ├──────────────────────────────────────────────────────────────────────┤
-│  Sedulous.UI.Runtime      Sedulous.UI.Toolkit    Sedulous.UI.Gamekit │
+│  Sedulous.LegacyUI.Runtime      Sedulous.LegacyUI.Toolkit    Sedulous.LegacyUI.Gamekit │
 │  - UISubsystem            - Dock manager         - HUD widgets       │
 │    (owns UIContext +      - Dockable windows     - Radial gauges     │
 │     VGContext +           - PropertyGrid         - Action bars       │
@@ -78,7 +78,7 @@ more game-loop-friendly choice - usually the Android one.
 │  - InputMapping                                                      │
 │  Depends on: Sedulous.Runtime + Sedulous.Shell                       │
 ├──────────────────────────────────────────────────────────────────────┤
-│  Sedulous.UI                         Sedulous.UI.Resources           │
+│  Sedulous.LegacyUI                         Sedulous.LegacyUI.Resources           │
 │  - View hierarchy, layout,           - ThemeResource                 │
 │    input routing (internal)          - UILayoutResource              │
 │  - Theme / Drawable system           - XML serializers               │
@@ -87,7 +87,7 @@ more game-loop-friendly choice - usually the Android one.
 │  - Animation, drag-drop, overlays                                    │
 │  - Walks tree, draws to VGContext                                    │
 │                                                                      │
-│  Sedulous.UI.Tests (xUnit-style tests mirroring UI's folders)        │
+│  Sedulous.LegacyUI.Tests (xUnit-style tests mirroring UI's folders)        │
 │  - A phase isn't complete until its tests pass.                      │
 ├──────────────────────────────────────────────────────────────────────┤
 │  Sedulous.VG, Sedulous.Fonts, Sedulous.Images,                    │
@@ -103,49 +103,49 @@ dedicated UI renderer. This is the existing engine pattern.
 
 ### Why this split
 
-- **`Sedulous.UI`** (core) depends only on CPU-side libraries (VG, Fonts,
+- **`Sedulous.legacyUI`** (core) depends only on CPU-side libraries (VG, Fonts,
   ImageData, Xml). Walks the tree and draws into a caller-provided
   `VGContext`. Layout, input routing, adapters, animation, overlays are
   all pure logic - testable headless. Does **not** know about Shell, OS
   input, or engine subsystems.
 
-- **`Sedulous.UI.Runtime`** provides the `UISubsystem` + Shell integration
+- **`Sedulous.LegacyUI.Runtime`** provides the `UISubsystem` + Shell integration
   (input helper, clipboard adapter, input mapping). This is what standalone
   apps - including `UISandbox` - use. Depends on `Sedulous.Runtime` +
   `Sedulous.Shell`, but **not** on `Sedulous.Engine.*`. Follows the
   existing `Sedulous.GUI.Runtime` precedent.
 
-- **`Sedulous.UI.Toolkit`** builds advanced/tooling widgets on top of core
+- **`Sedulous.LegacyUI.Toolkit`** builds advanced/tooling widgets on top of core
   UI - dock manager, dockable windows, property grid, data grid, UI tree
   inspector, and anything an editor-style app needs. Separated so games
   that don't need tools don't pull in the overhead.
 
-- **`Sedulous.UI.Gamekit`** builds game-focused widgets on top of core UI
+- **`Sedulous.LegacyUI.Gamekit`** builds game-focused widgets on top of core UI
   - HUD bars, radial gauges, action bars, nameplates, damage numbers,
   floating anchors. Separated so tooling apps don't pull in game-specific
   visuals.
 
-- **`Sedulous.UI.Resources`** wraps UI domain types as `IResource`
+- **`Sedulous.LegacyUI.Resources`** wraps UI domain types as `IResource`
   implementations, mirroring the project's pattern (`Sedulous.Fonts` /
   `Sedulous.Fonts.Resources`, etc.). Themes and UI XML layouts go through
   the engine's resource pipeline (async loading, caching, hot reload).
 
-- **`Sedulous.UI.Tests`** is a dedicated test project that mirrors the
+- **`Sedulous.LegacyUI.Tests`** is a dedicated test project that mirrors the
   source tree's folder structure (Tests/Core, Tests/Layout, Tests/Input,
   Tests/Drawing, Tests/Animation, Tests/Overlay, Tests/Data, etc.).
   **A phase is not complete until its tests pass.** Tests are written
   alongside the phase's code, not deferred.
 
-- **`Sedulous.Engine.UI`** adds full engine integration on top of
-  `Sedulous.UI.Runtime`: scene components (world-space UI), resource
+- **`Sedulous.Engine.LegacyUI`** adds full engine integration on top of
+  `Sedulous.LegacyUI.Runtime`: scene components (world-space UI), resource
   system registration, and the default `IDockableWindowHost` using engine
   windows. Apps that need scene-integrated UI pull this in; apps that just
-  need a screen-space overlay can stop at `Sedulous.UI.Runtime`.
+  need a screen-space overlay can stop at `Sedulous.LegacyUI.Runtime`.
 
 ### UISandbox
 
 Lives at `Code/Samples/UI/UISandbox/`, mirroring `VGSandbox`'s layout.
-Uses `Sedulous.Runtime.Client.Application` + `Sedulous.UI.Runtime` -
+Uses `Sedulous.Runtime.Client.Application` + `Sedulous.LegacyUI.Runtime` -
 does **not** require the full engine. **Established in Phase 1 along with
 the Runtime subsystem** - the sandbox is a running, rendering app from
 the first phase, and every later phase simply grows it. No big-bang
@@ -450,7 +450,7 @@ public class LayoutParams
 
 public class LinearLayout : ViewGroup
 {
-    public class LayoutParams : Sedulous.UI.LayoutParams
+    public class LayoutParams : Sedulous.LegacyUI.LayoutParams
     {
         public float Weight;       // proportional distribution
         public Gravity Gravity;    // cross-axis alignment per child
@@ -1195,7 +1195,7 @@ public interface IDockableWindowHost
 ```
 
 Bridge between docking/floating system and the app's window provider.
-Default `Sedulous.Engine.UI` impl creates real engine windows. Apps can
+Default `Sedulous.Engine.LegacyUI` impl creates real engine windows. Apps can
 provide a virtual implementation (in-game window).
 
 ## 13. Drag and Drop
@@ -1562,7 +1562,7 @@ views red -> green by percentile.
 
 ## 22. Resource Integration
 
-UI resource types live in `Sedulous.UI.Resources`:
+UI resource types live in `Sedulous.LegacyUI.Resources`:
 
 - **`ThemeResource`** - wraps a loaded `Theme`. Listens for underlying
   file changes for runtime theme reloads.
@@ -1578,11 +1578,11 @@ UI resource types live in `Sedulous.UI.Resources`:
 
 A phase is **not complete** until all three conditions hold:
 
-1. **Code merged** - the phase's features land in `Sedulous.UI` (and
+1. **Code merged** - the phase's features land in `Sedulous.LegacyUI` (and
    `.Runtime` / `.Toolkit` / `.Gamekit` / `.Resources` / `.Engine.UI` as
    appropriate).
-2. **Tests passing** - `Sedulous.UI.Tests` has test coverage for the
-   phase's features, and `BeefBuild -project=Sedulous.UI.Tests` runs
+2. **Tests passing** - `Sedulous.LegacyUI.Tests` has test coverage for the
+   phase's features, and `BeefBuild -project=Sedulous.LegacyUI.Tests` runs
    clean. Tests are written alongside the feature, not deferred.
 3. **UISandbox updated** - `UISandbox` gains a new demo page / section
    exercising the phase's features. Layout can be refactored to match
@@ -1618,7 +1618,7 @@ ToggleButton, ToggleSwitch, RepeatButton, ProgressBar, Slider,
 TabView, ComboBox), Expander, NumericField, legacy comparison
 adoption, focus stack, ImageView ScaleType, theme fixes.
 
-Phase 10 included: Sedulous.UI.Shell bridge library (InputMapping,
+Phase 10 included: Sedulous.LegacyUI.Shell bridge library (InputMapping,
 UIInputHelper with text input emulation, ShellClipboardAdapter),
 TextEditingBehavior + ITextEditHost, EditText (single + multiline),
 PasswordBox, UndoStack, InputFilter, IClipboard, focus stack for
@@ -1634,7 +1634,7 @@ Phase 13 included: DragDropManager state machine, IDragSource/
 IDropTarget, DragData, DragAdorner, DPI wiring from Shell window,
 View.ToLocal, UIContext multi-window readiness properties.
 
-Phase 14 (in progress): Sedulous.UI.Toolkit library with:
+Phase 14 (in progress): Sedulous.LegacyUI.Toolkit library with:
 - ✅ ToolkitThemeExtension (isDark-aware theme config)
 - ✅ SplitView (resizable two-pane, draggable divider, min pane enforcement)
 - ✅ Toolbar (ToolbarItem/Button/Separator/Toggle)
@@ -1653,7 +1653,7 @@ Phase 14 (in progress): Sedulous.UI.Toolkit library with:
 - 🔲 FileBrowser / AssetBrowser (see below)
 - 🔲 UI Tree Inspector (follow-up)
 
-Sedulous.UI.Gamekit project created (empty, ready for game-specific
+Sedulous.LegacyUI.Gamekit project created (empty, ready for game-specific
 controls).
 
 Demo reorganized into tabbed pages (TabView with .Left placement):
@@ -1694,7 +1694,7 @@ a typical first phase but concludes with a running, demoable sandbox
 - every subsequent phase then just adds capability to an already-working
 app.
 
-**Code (`Sedulous.UI` - core data model):**
+**Code (`Sedulous.LegacyUI` - core data model):**
 - `View` / `ViewGroup` / `RootView` hierarchy
 - `ViewId` (atomic counter), `ElementHandle<T>`, `Registry` on `UIContext`
 - `MutationQueue` + `IsPendingDeletion` flag + `UIPhase` tracking
@@ -1715,7 +1715,7 @@ app.
 - Reverse-order hit test in `ViewGroup` (no input routing yet - just the
   hit-test primitive; actual event routing lands Phase 3)
 
-**Code (`Sedulous.UI.Runtime` - real subsystem from day one):**
+**Code (`Sedulous.LegacyUI.Runtime` - real subsystem from day one):**
 - `UISubsystem` extends `Sedulous.Runtime.Subsystem` (UpdateOrder = 400,
   matching `GUISubsystem`). Owns:
   - `UIContext` (the view tree + registry + mutation queue)
@@ -1733,7 +1733,7 @@ app.
 **Code (UISandbox - running app):**
 - `Code/Samples/UI/UISandbox/` created, mirrors `VGSandbox` layout
 - `Application` subclass that creates `UISubsystem` via
-  `Sedulous.UI.Runtime`
+  `Sedulous.LegacyUI.Runtime`
 - Shows a composed layout: a vertical `LinearLayout` filling the window,
   containing a horizontal `LinearLayout` with weighted `ColorView`
   children, and nested `FrameLayout` demonstrating Gravity
@@ -1742,7 +1742,7 @@ app.
 - Static - no interactivity yet, but visually confirms the framework
   pipeline end-to-end
 
-**Tests (`Sedulous.UI.Tests/Core`, `/Layout`, `/Registry`, `/Mutation`,
+**Tests (`Sedulous.LegacyUI.Tests/Core`, `/Layout`, `/Registry`, `/Mutation`,
 `/Runtime`):**
 - Layout correctness: LinearLayout weights, FrameLayout gravity
 - MeasureSpec semantics (Unspecified / AtMost / Exactly + `Resolve`)
@@ -1768,7 +1768,7 @@ fields for colors/drawables; theme retrofit comes in Phase 4. Since the
 sandbox is already running, each new widget and layout is added as a new
 demo page.
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - **Drawable system:**
   - `Drawable` base + state-aware overload
   - Concrete: `ColorDrawable`, `RoundedRectDrawable`, `NineSliceDrawable`
@@ -1791,7 +1791,7 @@ demo page.
   `ShowDrawablePadding`, `ShowZOrder` - pay for themselves immediately
   while building later widgets
 
-**Tests (`Sedulous.UI.Tests/Drawing`, `/Layout`, `/Core`):**
+**Tests (`Sedulous.LegacyUI.Tests/Drawing`, `/Layout`, `/Core`):**
 - `NineSliceDrawable` with and without `Expand` (DrawablePadding correct)
 - `StateListDrawable` state priority resolution with fallback
 - `LayerDrawable` per-layer insets
@@ -1819,7 +1819,7 @@ With the runtime subsystem already established, this phase turns buttons
 into buttons, makes hover/focus work, and wires `Sedulous.Shell` events
 through to the tree.
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `InputManager` with pooled event args (`MouseEventArgs`,
   `MouseWheelEventArgs`, `KeyEventArgs`, `TextInputEventArgs`)
 - Hit-testing (top-down through tree, reverse-order in ViewGroup)
@@ -1844,13 +1844,13 @@ through to the tree.
 - `Button.OnClick` event, focus ring rendering
 - **Debug overlays:** `ShowHitTarget`, `ShowFocusPath`, `ShowTabOrder`
 
-**Code (`Sedulous.UI.Runtime`):**
+**Code (`Sedulous.LegacyUI.Runtime`):**
 - `UIInputHelper` - real `Sedulous.Shell` event -> `InputManager` wiring
   (was stubbed in Phase 1)
 - `InputMapping` - Shell `KeyCode` -> UI `KeyCode` translation
 - `UISubsystem` feeds pumped events into `InputManager` each frame
 
-**Tests (`Sedulous.UI.Tests/Input`, `/Focus`, `/Runtime`):**
+**Tests (`Sedulous.LegacyUI.Tests/Input`, `/Focus`, `/Runtime`):**
 - Hit-test finds topmost overlapping view
 - Hover state stable across synthetic mouse events
 - Click count logic: double-click requires both time + distance threshold
@@ -1871,7 +1871,7 @@ through to the tree.
 - "Events" page showing a live log of routed events (capture/target/bubble
   phases, Handled state)
 
-**Tests (`Sedulous.UI.Tests/Input`, `/Focus`):**
+**Tests (`Sedulous.LegacyUI.Tests/Input`, `/Focus`):**
 - Hit-test finds topmost overlapping view
 - Hover state stable across synthetic mouse events
 - Click count logic: double-click requires both time + distance threshold
@@ -1895,7 +1895,7 @@ through to the tree.
 > **Status: ✅ COMPLETE** - Theme XML parser deferred to Phase 6. Theme
 > XML round-trip test deferred with it.
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `Theme` with typed flat dictionaries (Color, Dimension, Padding,
   Drawable, String, Font)
 - `Palette` struct with `Lighten`/`Darken`/`Desaturate`/`Compute*` helpers
@@ -1904,14 +1904,14 @@ through to the tree.
   this pattern)
 - Built-in `DarkTheme` + `LightTheme` factories
 - `IThemeExtension` static registry with `Theme.RegisterExtension`
-- Theme XML parser in `Sedulous.UI` (uses `Sedulous.Xml`)
+- Theme XML parser in `Sedulous.LegacyUI` (uses `Sedulous.Xml`)
 - Runtime theme switching (deferred via mutation queue, triggers
   `InvalidateLayout` on next frame)
 - Border thickness / padding changes call `InvalidateLayout`
 - `UIDrawContext` gains theme-key-based overloads
   (`FillBackground("Button.Background")`)
 
-**Tests (`Sedulous.UI.Tests/Theming`):**
+**Tests (`Sedulous.LegacyUI.Tests/Theming`):**
 - Palette `ComputeHover` / `ComputePressed` / `ComputeDisabled` produce
   expected values
 - `IThemeExtension` applied after base init, can inject new keys
@@ -1934,15 +1934,15 @@ through to the tree.
 
 Declarative UIs, file-I/O-free (parsing only).
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `UIRegistry` with view + property registration
-- XML -> view tree loader in `Sedulous.UI`
+- XML -> view tree loader in `Sedulous.LegacyUI`
 - Implicit `LayoutParams` subclass dispatch from parent type
 - `{Binding Path}` syntax (one-way only)
 - `x:Name` code-behind references
 - `<Include Source=...>` composition
 
-**Tests (`Sedulous.UI.Tests/Xml`):**
+**Tests (`Sedulous.LegacyUI.Tests/Xml`):**
 - Round-trip: code-built tree ≡ tree built from XML string that
   describes it (structural equality)
 - `LayoutParams` subclass correctly chosen from parent type
@@ -1962,15 +1962,15 @@ Declarative UIs, file-I/O-free (parsing only).
 > (needs engine FileWatcher). `<Include Source=...>` in layout XML
 > deferred (needs file I/O resolution path).
 
-`Sedulous.UI.Resources` wraps Phase 4 & 5 parsers as engine resources.
+`Sedulous.LegacyUI.Resources` wraps Phase 4 & 5 parsers as engine resources.
 
-**Code (`Sedulous.UI.Resources`):**
+**Code (`Sedulous.LegacyUI.Resources`):**
 - `ThemeResource` + `UILayoutResource`
 - Serializers registered with `SerializerProvider`
 - Resource change listener hooks for hot reload
 - (Engine-side registration deferred to Phase 7)
 
-**Tests (`Sedulous.UI.Tests/Resources`):**
+**Tests (`Sedulous.LegacyUI.Tests/Resources`):**
 - `ThemeResource` loads + hot-reloads from mock filesystem
 - `UILayoutResource` republishes to listeners on file change
 - Dependency tracking: layout referencing theme reloads when theme changes
@@ -1984,10 +1984,10 @@ Declarative UIs, file-I/O-free (parsing only).
 
 > **Status: ✅ COMPLETE**
 
-Renamed `Sedulous.Engine.GUI` -> `Sedulous.Engine.UI`. Full engine
+Renamed `Sedulous.Engine.GUI` -> `Sedulous.Engine.LegacyUI`. Full engine
 integration with screen-space and world-space UI.
 
-**Code (`Sedulous.Engine.UI`):**
+**Code (`Sedulous.Engine.LegacyUI`):**
 - `EngineUISubsystem` (ISceneAware, IWindowAware, UpdateOrder 400)
   owns shared UIContext, FontService, ScreenUIView, WorldUIPass
 - `ScreenUIView` implements `IRenderOverlay` - renders VG geometry
@@ -2008,7 +2008,7 @@ integration with screen-space and world-space UI.
 - Hit-test fix: `IsHitTestVisible` per-view only, `IsInteractionEnabled`
   blocks entire subtree
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `UIContext.SetTheme(theme, ownsTheme)` - explicit ownership flag,
   replaces property setter. Enables safe theme sharing across contexts.
 
@@ -2024,7 +2024,7 @@ integration with screen-space and world-space UI.
 
 ## Phase 8 - Scrolling
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `MomentumHelper` struct (kinetic friction-decay scroll)
 - `ScrollBar` standalone view (independently themeable, owned outside
   `mChildren`)
@@ -2033,7 +2033,7 @@ integration with screen-space and world-space UI.
 - Cascading visibility recompute when both axes are Auto
 - `View.ScrollIntoView()` walks up to nearest scrollable ancestor
 
-**Tests (`Sedulous.UI.Tests/Scrolling`):**
+**Tests (`Sedulous.LegacyUI.Tests/Scrolling`):**
 - `MomentumHelper` velocity decay curve matches expected exponential
 - Snap to zero below `StopThreshold`
 - `ScrollView` negative-offset layout: child bounds correct at various
@@ -2053,7 +2053,7 @@ integration with screen-space and world-space UI.
 
 `ListView` + `TreeView` powered by adapters.
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `IListAdapter` interface with multi-view-type support
 - `ITreeAdapter` interface
 - `FlattenedTreeAdapter` (tree -> flat virtualizable list)
@@ -2066,7 +2066,7 @@ integration with screen-space and world-space UI.
 - `TreeView` (uses `FlattenedTreeAdapter` to reuse `ListView` virtualization)
 - **Debug overlay:** `ShowRecyclerStats`
 
-**Tests (`Sedulous.UI.Tests/Data`):**
+**Tests (`Sedulous.LegacyUI.Tests/Data`):**
 - `ViewRecycler` reuses views (ReusedCount increments, CreatedCount stops)
 - Multi-view-type adapter: views returned to correct pool
 - `ListView` fixed-height visible range matches expected O(1) formula
@@ -2083,7 +2083,7 @@ integration with screen-space and world-space UI.
 
 ## Phase 10 - Text editing
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `TextEditingBehavior` + `ITextEditHost` interface
 - `InputFilter` (None/Digits/HexDigits/Custom)
 - `UndoStack` with fixed capacity + 1.0s coalescing window for char-insert
@@ -2103,7 +2103,7 @@ integration with screen-space and world-space UI.
 - Context menu lookup walks parent chain
 - ContextMenu populated on right-click (Phase 11 brings the actual menu)
 
-**Tests (`Sedulous.UI.Tests/Editing`):**
+**Tests (`Sedulous.LegacyUI.Tests/Editing`):**
 - UTF-8-aware navigation: Ctrl+Right skips multi-byte sequences correctly
 - Word boundary state machine on various inputs
 - Anchor+caret model: Shift+arrow extends; arrow collapses
@@ -2120,7 +2120,7 @@ integration with screen-space and world-space UI.
 
 ## Phase 11 - Overlays / popups / dialogs / menus / tooltips
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `PopupLayer` with three-state hit-test (empty/normal/modal)
 - `PopupEntry` with `OwnsView` flag
 - `PopupPositioner` static helpers
@@ -2138,7 +2138,7 @@ integration with screen-space and world-space UI.
 - Render order: tree -> backdrop -> popups -> drag adorner
 - Modal focus trap via `ModalManager` registered as service
 
-**Tests (`Sedulous.UI.Tests/Overlay`):**
+**Tests (`Sedulous.LegacyUI.Tests/Overlay`):**
 - `PopupLayer` three-state hit-test (empty -> null, normal -> child,
   modal -> self)
 - `PopupEntry.OwnsView` flag: true deletes on close, false detaches
@@ -2156,7 +2156,7 @@ integration with screen-space and world-space UI.
 
 ## Phase 12 - Animation + transitions
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `Animation` base class with virtual `Apply(t)` and `ElementHandle<View>` target
 - Concrete: `FloatAnimation`, `ColorAnimation`, `Vector2Animation`,
   `ThicknessAnimation`, `RectangleAnimation`
@@ -2174,7 +2174,7 @@ integration with screen-space and world-space UI.
 - Style transitions on state change (hover/press fade-in)
 - **Debug overlays:** `ShowLayoutInvalidation`, `ShowPerfHotspots`
 
-**Tests (`Sedulous.UI.Tests/Animation`):**
+**Tests (`Sedulous.LegacyUI.Tests/Animation`):**
 - Animation progress: t=0 -> from, t=1 -> to, eased in between
 - AutoReverse + RepeatCount semantics
 - Storyboard Sequential: children start at correct times, complete in order
@@ -2190,7 +2190,7 @@ integration with screen-space and world-space UI.
 
 ## Phase 13 - Drag and drop
 
-**Code (`Sedulous.UI`):**
+**Code (`Sedulous.LegacyUI`):**
 - `DragData` (format-string keyed dictionary)
 - `IDragSource` / `IDropTarget` interfaces (symmetric)
 - `DragDropEffects` enum (Copy/Move/Link)
@@ -2204,7 +2204,7 @@ integration with screen-space and world-space UI.
 - Cross-window drag: adorner stays in originating PopupLayer
 - Drag-source lookup walks parent chain
 
-**Tests (`Sedulous.UI.Tests/DragDrop`):**
+**Tests (`Sedulous.LegacyUI.Tests/DragDrop`):**
 - State machine: Idle -> Potential -> Active with threshold
 - Drag cancelled if threshold not met within mouse-up window
 - Drop walks parent chain including source (for reorder)
@@ -2221,7 +2221,7 @@ integration with screen-space and world-space UI.
 Now that the core framework is complete, spin up the two supporting
 libraries and the final polish items.
 
-**Code (`Sedulous.UI.Toolkit`):**
+**Code (`Sedulous.LegacyUI.Toolkit`):**
 - `DockManager` (binary split tree + tab groups)
 - `DockablePanel`, `DockableWindow` (uses `IDockableWindowHost`)
 - `PropertyGrid` (delegate getter/setter + type enum + custom editor)
@@ -2232,14 +2232,14 @@ libraries and the final polish items.
   dirty flags / binding sources / recycler stats). Built entirely from
   framework primitives - eats its own dog food.
 
-**Code (`Sedulous.UI.Gamekit`):**
+**Code (`Sedulous.LegacyUI.Gamekit`):**
 - HUD widgets: `HealthBar`, `ManaBar`, `StaminaBar`
 - `RadialGauge`, `ActionBar`, `Minimap`
 - `Nameplate`, `DamageNumber` (floating + animated)
 - `WorldSpaceAnchor` view (base for world-anchored UI; actual scene
-  attachment lives in `Sedulous.Engine.UI`'s `WorldSpaceUIComponent`)
+  attachment lives in `Sedulous.Engine.LegacyUI`'s `WorldSpaceUIComponent`)
 
-**Code (`Sedulous.UI` + `Sedulous.UI.Runtime`):**
+**Code (`Sedulous.LegacyUI` + `Sedulous.LegacyUI.Runtime`):**
 - Gamepad navigation:
   - DPad -> focus traversal (uses focus model from Phase 3)
   - A button -> activate focused control
@@ -2248,9 +2248,9 @@ libraries and the final polish items.
   field + a way to export a tree description)
 
 **Tests:**
-- `Sedulous.UI.Tests/Toolkit/` - DockManager split/merge, PropertyGrid
+- `Sedulous.LegacyUI.Tests/Toolkit/` - DockManager split/merge, PropertyGrid
   field enumeration, DataGrid column resize math
-- `Sedulous.UI.Tests/Gamekit/` - HealthBar value clamping, RadialGauge
+- `Sedulous.LegacyUI.Tests/Gamekit/` - HealthBar value clamping, RadialGauge
   angle math
 
 **UISandbox (gallery finale):**
@@ -2268,7 +2268,7 @@ libraries and the final polish items.
 
 All design decisions resolved; ready to start.
 
-**Philosophy: sandbox runs from Phase 1.** `Sedulous.UI.Runtime` and
+**Philosophy: sandbox runs from Phase 1.** `Sedulous.LegacyUI.Runtime` and
 `UISandbox` are established on day one - the sandbox is a running,
 rendering app from the first phase. Every later phase just grows the
 framework while the sandbox keeps working. No "big bang" moment where
@@ -2281,7 +2281,7 @@ everything suddenly needs to integrate.
 5. **Phase 6** (resource integration) - COMPLETE
 6. **Phases 8-9** (scrolling + virtualization) - COMPLETE
 7. **Phase 11** (overlays + controls + legacy adoption) - COMPLETE
-8. **Phase 10** (text editing + Sedulous.UI.Shell) - COMPLETE
+8. **Phase 10** (text editing + Sedulous.LegacyUI.Shell) - COMPLETE
 9. **Phase 12** (animation + transitions) - COMPLETE
 10. **Phase 13** (drag and drop + DPI wiring) - COMPLETE
 11. **Phase 7** (engine integration) - deferred until enough UI
@@ -2332,7 +2332,7 @@ everything suddenly needs to integrate.
 
 **✅ COMPLETE.** Screen-space and world-space UI both working.
 
-- Renamed `Sedulous.Engine.GUI` -> `Sedulous.Engine.UI`
+- Renamed `Sedulous.Engine.GUI` -> `Sedulous.Engine.LegacyUI`
 - `EngineUISubsystem` (ISceneAware, IWindowAware, UpdateOrder 400)
 - `ScreenUIView` as `IRenderOverlay` after 3D scene blit
 - `UIComponent` + `UIComponentManager` - per-component UIContext,
@@ -2355,7 +2355,7 @@ everything suddenly needs to integrate.
 
 ## Files
 
-### Sedulous.UI
+### Sedulous.LegacyUI
 
 ```
 src/
@@ -2511,7 +2511,7 @@ src/
     MomentumHelper.bf
 ```
 
-### Sedulous.UI.Resources
+### Sedulous.LegacyUI.Resources
 
 ```
 src/
@@ -2522,9 +2522,9 @@ src/
   UIResourceTypeIds.bf
 ```
 
-### Sedulous.UI.Runtime
+### Sedulous.LegacyUI.Runtime
 
-Depends on `Sedulous.UI`, `Sedulous.Runtime`, `Sedulous.Shell`,
+Depends on `Sedulous.LegacyUI`, `Sedulous.Runtime`, `Sedulous.Shell`,
 `Sedulous.VG.Renderer`, `Sedulous.Fonts.TTF`.
 
 ```
@@ -2535,9 +2535,9 @@ src/
   InputMapping.bf          // shell KeyCode -> UI KeyCode
 ```
 
-### Sedulous.UI.Toolkit
+### Sedulous.LegacyUI.Toolkit
 
-Depends on `Sedulous.UI`.
+Depends on `Sedulous.LegacyUI`.
 
 ```
 src/
@@ -2562,9 +2562,9 @@ src/
     UIInspector.bf         // debug tree + properties panel
 ```
 
-### Sedulous.UI.Gamekit
+### Sedulous.LegacyUI.Gamekit
 
-Depends on `Sedulous.UI`.
+Depends on `Sedulous.LegacyUI`.
 
 ```
 src/
@@ -2582,10 +2582,10 @@ src/
     DamageNumber.bf
 ```
 
-### Sedulous.UI.Tests
+### Sedulous.LegacyUI.Tests
 
-Depends on `Sedulous.UI`, `Sedulous.UI.Runtime`, `Sedulous.UI.Toolkit`,
-`Sedulous.UI.Gamekit`, `Sedulous.UI.Resources`, xUnit-style test harness.
+Depends on `Sedulous.LegacyUI`, `Sedulous.LegacyUI.Runtime`, `Sedulous.LegacyUI.Toolkit`,
+`Sedulous.LegacyUI.Gamekit`, `Sedulous.LegacyUI.Resources`, xUnit-style test harness.
 
 ```
 src/
@@ -2609,9 +2609,9 @@ src/
   Gamekit/        // HealthBar, RadialGauge math
 ```
 
-### Sedulous.Engine.UI
+### Sedulous.Engine.LegacyUI
 
-Depends on `Sedulous.UI`, `Sedulous.UI.Shell`, `Sedulous.Engine.Core`,
+Depends on `Sedulous.LegacyUI`, `Sedulous.LegacyUI.Shell`, `Sedulous.Engine.Core`,
 `Sedulous.Engine.Render`, `Sedulous.Scenes`, `Sedulous.Renderer`,
 `Sedulous.VG`, `Sedulous.VG.Renderer`, `Sedulous.Fonts`, `Sedulous.Shaders`,
 `Sedulous.RHI`, `Sedulous.Materials`, engine layer.
@@ -2627,8 +2627,8 @@ src/
 
 ### Samples/UI/UISandbox
 
-Depends on `Sedulous.Runtime.Client`, `Sedulous.UI`, `Sedulous.UI.Runtime`,
-`Sedulous.UI.Toolkit`, `Sedulous.UI.Gamekit`, `Sedulous.UI.Resources`,
+Depends on `Sedulous.Runtime.Client`, `Sedulous.LegacyUI`, `Sedulous.LegacyUI.Runtime`,
+`Sedulous.LegacyUI.Toolkit`, `Sedulous.LegacyUI.Gamekit`, `Sedulous.LegacyUI.Resources`,
 `Sedulous.VG.Renderer`.
 
 ```
@@ -2708,7 +2708,7 @@ behaviors becomes necessary.
 ## Legacy Comparison: Items Worth Adopting
 
 Detailed comparison of current implementation against BansheeBeef's
-legacy Sedulous.UI. Items organized by priority. Pick selectively -
+legacy Sedulous.LegacyUI. Items organized by priority. Pick selectively -
 not everything needs to be adopted.
 
 ### Critical (load-bearing for correctness)

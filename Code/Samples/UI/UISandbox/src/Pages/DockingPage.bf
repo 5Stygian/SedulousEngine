@@ -1,8 +1,8 @@
 namespace UISandbox;
 
 using System;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Core.Mathematics;
 
 /// Demo page: Docking system with multiple panels.
@@ -24,9 +24,9 @@ class DockingPage : DemoPage
 
 		mDockManager = new DockManager();
 		mDockManager.DockableWindowHost = demo.DockableWindowHost;
-		AddView(mDockManager, new Sedulous.UI.LayoutParams() {
-			Width = Sedulous.UI.LayoutParams.MatchParent,
-			Height = Sedulous.UI.LayoutParams.MatchParent
+		AddView(mDockManager, new Sedulous.LegacyUI.LayoutParams() {
+			Width = Sedulous.LegacyUI.LayoutParams.MatchParent,
+			Height = Sedulous.LegacyUI.LayoutParams.MatchParent
 		});
 
 		// Add initial panels.

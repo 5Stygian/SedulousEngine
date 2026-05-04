@@ -1,6 +1,6 @@
 namespace UISandbox;
 
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 using System;
 
@@ -21,7 +21,7 @@ class DemoPage : ScrollView
 		mLayout.Orientation = .Vertical;
 		mLayout.Padding = .(12);
 		mLayout.Spacing = 6;
-		AddView(mLayout, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent });
+		AddView(mLayout, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent });
 	}
 
 	protected void AddSection(StringView title)
@@ -29,19 +29,19 @@ class DemoPage : ScrollView
 		let label = new Label();
 		label.SetText(title);
 		label.StyleId = new String("SectionLabel");
-		mLayout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 22 });
+		mLayout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 22 });
 	}
 
 	protected void AddSeparator()
 	{
 		let sep = new Separator();
-		mLayout.AddView(sep, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 1 });
+		mLayout.AddView(sep, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 1 });
 	}
 
 	protected void AddLabel(StringView text)
 	{
 		let label = new Label();
 		label.SetText(text);
-		mLayout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 22 });
+		mLayout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 22 });
 	}
 }

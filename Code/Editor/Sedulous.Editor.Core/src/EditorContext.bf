@@ -4,8 +4,8 @@ using System;
 using System.Collections;
 using Sedulous.Runtime;
 using Sedulous.Shell;
-using Sedulous.UI.Toolkit;
-using Sedulous.UI;
+using Sedulous.LegacyUI.Toolkit;
+using Sedulous.LegacyUI;
 using Sedulous.Engine.Core.Resources;
 using Sedulous.Resources;
 

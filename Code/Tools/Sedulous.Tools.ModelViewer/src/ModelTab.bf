@@ -16,8 +16,8 @@ using Sedulous.Textures.Resources;
 using Sedulous.Animation;
 using Sedulous.Animation.Resources;
 using Sedulous.Resources;
-using Sedulous.UI.Viewport;
-using Sedulous.UI;
+using Sedulous.LegacyUI.Viewport;
+using Sedulous.LegacyUI;
 
 /// Per-tab state for a loaded model.
 class ModelTab
@@ -59,8 +59,8 @@ class ModelTab
 	public bool AnimLoop = true;
 
 	// Per-tab UI (ContentPanel owns toolbar + viewport + anim toolbar)
-	public Sedulous.UI.LinearLayout ContentPanel;  // vertical: top toolbar + viewport + anim toolbar
-	public Sedulous.UI.Viewport.ViewportView Viewport;
+	public Sedulous.LegacyUI.LinearLayout ContentPanel;  // vertical: top toolbar + viewport + anim toolbar
+	public Sedulous.LegacyUI.Viewport.ViewportView Viewport;
 	public ComboBox AnimComboBox;
 	public Button PlayPauseBtn;
 	public Label ScaleValueLabel;

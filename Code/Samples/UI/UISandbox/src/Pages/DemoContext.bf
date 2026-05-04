@@ -1,14 +1,14 @@
 namespace UISandbox;
 
-using Sedulous.UI;
-using Sedulous.UI.Runtime;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Runtime;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Images;
 
 /// Shared resources for demo pages.
 class DemoContext
 {
-	public UISubsystem UI;
+	public LegacyUISubsystem UI;
 	public OwnedImageData Checkerboard;
 	public OwnedImageData ButtonNormal;
 	public OwnedImageData ButtonPressed;

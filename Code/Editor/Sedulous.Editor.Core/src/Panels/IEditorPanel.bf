@@ -1,7 +1,7 @@
 namespace Sedulous.Editor.Core;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 
 /// Global dockable panel (Console, Asset Browser, plugin panels).
 /// Unlike page content, panels persist across page switches.

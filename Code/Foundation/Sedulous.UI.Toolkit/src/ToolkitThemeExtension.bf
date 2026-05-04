@@ -1,9 +1,9 @@
-namespace Sedulous.UI.Toolkit;
+namespace Sedulous.LegacyUI.Toolkit;
 
-using Sedulous.UI;
+using Sedulous\.LegacyUI;
 using Sedulous.Core.Mathematics;
 
-/// Registers default theme colors for all Sedulous.UI.Toolkit controls.
+/// Registers default theme colors for all Sedulous.LegacyUI.Toolkit controls.
 /// Register before creating UISubsystem:
 ///   Theme.RegisterExtension(new ToolkitThemeExtension());
 public class ToolkitThemeExtension : IThemeExtension

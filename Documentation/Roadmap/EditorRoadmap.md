@@ -1,6 +1,6 @@
 # Sedulous Editor Roadmap
 
-A modular, extensible editor built on the Sedulous engine and Sedulous.UI framework.
+A modular, extensible editor built on the Sedulous engine and Sedulous.LegacyUI framework.
 Engine modules plug in their editor functionality via `[EditorPlugin]` without the
 editor core knowing about them. Reference: BansheeBeef editor implementation.
 
@@ -16,7 +16,7 @@ editor core knowing about them. Reference: BansheeBeef editor implementation.
 
 ## Key Differences from BansheeBeef Reference
 
-The Banshee editor uses its own `Sedulous.UI` + `Sedulous.UI.Toolkit` - a similar
+The Banshee editor uses its own `Sedulous.LegacyUI` + `Sedulous.LegacyUI.Toolkit` - a similar
 Android-inspired UI framework with the same control names (Label, Button, Panel,
 TreeView, PropertyGrid, DockManager, SplitView, etc.) but a different implementation
 from ours. The ideas and patterns carry over; the code does not.
@@ -1150,9 +1150,9 @@ for batch operations like import).
 
 - ~~**RenderSubsystem refactor**~~: ISceneRenderer/IOverlayRenderer, swapchain
   ownership moved to EngineApplication - **DONE**
-- **Sedulous.UI.Toolkit**: DockManager, SplitView, MenuBar, StatusBar, Toolbar,
+- **Sedulous.LegacyUI.Toolkit**: DockManager, SplitView, MenuBar, StatusBar, Toolbar,
   PropertyGrid, TreeView - all complete
-- **Sedulous.Engine.UI**: EngineUISubsystem, ScreenUIView - complete
+- **Sedulous.Engine.LegacyUI**: EngineUISubsystem, ScreenUIView - complete
 - **Sedulous.Engine.Render**: RenderSubsystem, render pipeline - complete
 - **Sedulous.Engine.Core**: ComponentManager, Scene serialization - complete
 - **Sedulous.Resources**: ResourceSystem with FileWatcher - complete

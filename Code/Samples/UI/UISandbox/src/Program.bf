@@ -4,14 +4,14 @@ using System;
 using Sedulous.Core.Mathematics;
 using Sedulous.RHI;
 using Sedulous.Runtime.Client;
-using Sedulous.UI;
-using Sedulous.UI.Runtime;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Runtime;
 using Sedulous.Fonts;
 using Sedulous.Shell.Input;
 using Sedulous.Images;
 using Sedulous.Images.STB;
-using Sedulous.UI.Resources;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI.Resources;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.Shell;
 using Sedulous.VG;
 using Sedulous.VG.Renderer;
@@ -43,7 +43,7 @@ class RichTooltipImageView : ImageView, ITooltipProvider
 			let label = new Label();
 			label.SetText(TooltipLabel);
 			label.FontSize = 12;
-			layout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.WrapContent, Height = 16 });
+			layout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.WrapContent, Height = 16 });
 		}
 
 		return layout;
@@ -248,7 +248,7 @@ class DragChip : ColorView, IDragSource
 		hex.AppendF("#{0:X2}{1:X2}{2:X2}", Color.R, Color.G, Color.B);
 		label.SetText(hex);
 		label.FontSize = 11;
-		panel.AddView(label, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+		panel.AddView(label, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		panel.Padding = .(6, 2);
 		return panel;
 	}
@@ -312,7 +312,7 @@ class ColorDropBox : Panel, IDropTarget
 		mLabel.HAlign = .Center;
 		mLabel.VAlign = .Middle;
 		mLabel.FontSize = 12;
-		AddView(mLabel, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+		AddView(mLabel, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 	}
 
 	public DragDropEffects CanAcceptDrop(DragData data, float localX, float localY)
@@ -368,7 +368,7 @@ class CopyableLabel : Label
 	}
 }
 
-/// UISandbox - gallery/showcase for Sedulous.UI, growing with each phase.
+/// UISandbox - gallery/showcase for Sedulous.LegacyUI, growing with each phase.
 /// Per-window render data for secondary (dockable) windows.
 class DockableWindowRenderData
 {
@@ -379,9 +379,9 @@ class DockableWindowRenderData
 	public delegate void(View) OnCloseDelegate ~ delete _; // owns the callback from DockManager
 }
 
-class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
+class UISandboxApp : Application, Sedulous.LegacyUI.Toolkit.IDockableWindowHost
 {
-	private UISubsystem mUI;
+	private LegacyUISubsystem mUI;
 	private OwnedImageData mCheckerboard ~ delete _;
 	private OwnedImageData mButtonNormal ~ delete _;
 	private OwnedImageData mButtonPressed ~ delete _;
@@ -694,10 +694,10 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 
 		// Register theme extensions BEFORE subsystem creates the default theme.
 		Theme.RegisterExtension(new StatusBadgeThemeExtension());
-		Theme.RegisterExtension(new Sedulous.UI.Toolkit.ToolkitThemeExtension());
+		Theme.RegisterExtension(new Sedulous.LegacyUI.Toolkit.ToolkitThemeExtension());
 
 		// Create the UI subsystem.
-		mUI = new UISubsystem();
+		mUI = new LegacyUISubsystem();
 		context.RegisterSubsystem(mUI);
 
 		// Initialize rendering.
@@ -1511,7 +1511,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 
 		// SplitView demo.
 		{
-			let split = new Sedulous.UI.Toolkit.SplitView();
+			let split = new Sedulous.LegacyUI.Toolkit.SplitView();
 			split.Orientation = .Horizontal;
 			split.SplitRatio = 0.4f;
 
@@ -1535,7 +1535,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 
 		// Toolbar demo.
 		{
-			let toolbar = new Sedulous.UI.Toolkit.Toolbar();
+			let toolbar = new Sedulous.LegacyUI.Toolkit.Toolbar();
 			let btn1 = toolbar.AddButton("File");
 			btn1.OnClick.Add(new (b) => { mClickLabel?.SetText("File clicked"); });
 			let btn2 = toolbar.AddButton("Edit");
@@ -1552,7 +1552,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 
 		// MenuBar demo.
 		{
-			let menuBar = new Sedulous.UI.Toolkit.MenuBar();
+			let menuBar = new Sedulous.LegacyUI.Toolkit.MenuBar();
 			let fileMenu = menuBar.AddMenu("File");
 			fileMenu.AddItem("New", new () => { mClickLabel?.SetText("File > New"); });
 			fileMenu.AddItem("Open", new () => { mClickLabel?.SetText("File > Open"); });
@@ -1572,7 +1572,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 
 		// StatusBar demo.
 		{
-			let statusBar = new Sedulous.UI.Toolkit.StatusBar();
+			let statusBar = new Sedulous.LegacyUI.Toolkit.StatusBar();
 			statusBar.SetText("Ready");
 			statusBar.AddSection("Ln 1, Col 1");
 			statusBar.AddSection("UTF-8");
@@ -1581,13 +1581,13 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 
 		// PropertyGrid demo.
 		{
-			let grid = new Sedulous.UI.Toolkit.PropertyGrid();
-			grid.AddProperty(new Sedulous.UI.Toolkit.BoolEditor("Visible", true));
-			grid.AddProperty(new Sedulous.UI.Toolkit.StringEditor("Name", "Player"));
-			grid.AddProperty(new Sedulous.UI.Toolkit.FloatEditor("Speed", 5.0, 0, 100, 0.5, 1, category: "Physics"));
-			grid.AddProperty(new Sedulous.UI.Toolkit.IntEditor("Health", 100, 0, 999, category: "Stats"));
-			grid.AddProperty(new Sedulous.UI.Toolkit.RangeEditor("Volume", 0.8f, 0, 1, category: "Audio"));
-			grid.AddProperty(new Sedulous.UI.Toolkit.ColorEditor("Tint", .(200, 100, 50, 255)));
+			let grid = new Sedulous.LegacyUI.Toolkit.PropertyGrid();
+			grid.AddProperty(new Sedulous.LegacyUI.Toolkit.BoolEditor("Visible", true));
+			grid.AddProperty(new Sedulous.LegacyUI.Toolkit.StringEditor("Name", "Player"));
+			grid.AddProperty(new Sedulous.LegacyUI.Toolkit.FloatEditor("Speed", 5.0, 0, 100, 0.5, 1, category: "Physics"));
+			grid.AddProperty(new Sedulous.LegacyUI.Toolkit.IntEditor("Health", 100, 0, 999, category: "Stats"));
+			grid.AddProperty(new Sedulous.LegacyUI.Toolkit.RangeEditor("Volume", 0.8f, 0, 1, category: "Audio"));
+			grid.AddProperty(new Sedulous.LegacyUI.Toolkit.ColorEditor("Tint", .(200, 100, 50, 255)));
 			right.AddView(grid, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 180 });
 		}
 

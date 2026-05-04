@@ -1,10 +1,10 @@
-namespace Sedulous.UI.Toolkit;
+namespace Sedulous.LegacyUI.Toolkit;
 
 using System;
-using Sedulous.UI;
+using Sedulous\.LegacyUI;
 using Sedulous.Core.Mathematics;
 
-using internal Sedulous.UI;
+using internal Sedulous.LegacyUI
 
 /// Content panel with title bar, close button, and drag support for docking.
 /// Implements IDragSource so it can be dragged to dock/float positions.

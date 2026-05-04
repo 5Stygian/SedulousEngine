@@ -1,7 +1,7 @@
 namespace UISandbox;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 
 /// Demo page: Labels, buttons, panel, drawables, images, flow/absolute/grid layouts.
@@ -17,7 +17,7 @@ class WidgetsPage : DemoPage
 			label.SetText("Label - 16px Roboto (theme color)");
 			label.TooltipText = new String("Tooltip: Right placement");
 			label.TooltipPlacement = .Right;
-			mLayout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 22 });
+			mLayout.AddView(label, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 22 });
 		}
 
 		// Colored buttons
@@ -25,7 +25,7 @@ class WidgetsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 6;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 36 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 36 });
 			AddButton(row, "Primary", .(50, 100, 200, 255), "Tooltip: Bottom (default)", .Bottom);
 			AddButton(row, "Success", .(50, 160, 70, 255), "Tooltip: Top placement", .Top);
 			AddButton(row, "Danger", .(200, 60, 60, 255), "Tooltip: Left placement", .Left);
@@ -36,7 +36,7 @@ class WidgetsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 6;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 36 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 36 });
 
 			for (let text in StringView[]("Theme Btn 1", "Theme Btn 2"))
 			{
@@ -50,7 +50,7 @@ class WidgetsPage : DemoPage
 						mDemo.ClickLabel.SetText(msg);
 					}
 				});
-				row.AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+				row.AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			}
 		}
 
@@ -58,7 +58,7 @@ class WidgetsPage : DemoPage
 		{
 			mDemo.ClickLabel = new Label();
 			mDemo.ClickLabel.SetText("Click / Tab / F5=toggle theme");
-			mLayout.AddView(mDemo.ClickLabel, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 20 });
+			mLayout.AddView(mDemo.ClickLabel, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 20 });
 		}
 
 		// Panel
@@ -66,10 +66,10 @@ class WidgetsPage : DemoPage
 			let panel = new Panel();
 			panel.Padding = .(10, 6);
 			panel.TooltipText = new String("Panel with theme-driven background and border");
-			mLayout.AddView(panel, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 40 });
+			mLayout.AddView(panel, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 40 });
 			let panelLabel = new Label();
 			panelLabel.SetText("Panel (theme background)");
-			panel.AddView(panelLabel, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+			panel.AddView(panelLabel, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 		}
 
 		AddSeparator();
@@ -80,7 +80,7 @@ class WidgetsPage : DemoPage
 			flow.Orientation = .Horizontal;
 			flow.HSpacing = 4;
 			flow.VSpacing = 4;
-			mLayout.AddView(flow, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 70 });
+			mLayout.AddView(flow, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 70 });
 			for (int i = 0; i < 16; i++)
 			{
 				let chip = new ColorView();
@@ -104,7 +104,7 @@ class WidgetsPage : DemoPage
 			grid.RowDefs.Add(.Star(1));
 			grid.HSpacing = 6;
 			grid.VSpacing = 6;
-			mLayout.AddView(grid, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 110 });
+			mLayout.AddView(grid, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 110 });
 
 			let gradPanel = new Panel();
 			gradPanel.Background = new GradientDrawable(.(80, 40, 180, 255), .(40, 160, 200, 255), .TopToBottom);
@@ -135,7 +135,7 @@ class WidgetsPage : DemoPage
 		{
 			let tabView = new TabView();
 			tabView.TabFontSize = 12;
-			mLayout.AddView(tabView, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 120 });
+			mLayout.AddView(tabView, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 120 });
 
 			for (let name in scope StringView[]("Tab 1", "Tab 2", "Tab 3"))
 			{
@@ -169,7 +169,7 @@ class WidgetsPage : DemoPage
 		AddSection("DockView");
 		{
 			let dockView = new DockView();
-			mLayout.AddView(dockView, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 150 });
+			mLayout.AddView(dockView, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 150 });
 
 			let top = new Panel();
 			top.Background = new ColorDrawable(.(60, 130, 200, 255));
@@ -178,7 +178,7 @@ class WidgetsPage : DemoPage
 			topLabel.FontSize = 11;
 			topLabel.HAlign = .Center;
 			topLabel.VAlign = .Middle;
-			top.AddView(topLabel, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+			top.AddView(topLabel, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			dockView.AddView(top, new DockView.LayoutParams(.Top) { Height = 24 });
 
 			let bottom = new Panel();
@@ -188,7 +188,7 @@ class WidgetsPage : DemoPage
 			bottomLabel.FontSize = 11;
 			bottomLabel.HAlign = .Center;
 			bottomLabel.VAlign = .Middle;
-			bottom.AddView(bottomLabel, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+			bottom.AddView(bottomLabel, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			dockView.AddView(bottom, new DockView.LayoutParams(.Bottom) { Height = 20 });
 
 			let left = new Panel();
@@ -198,7 +198,7 @@ class WidgetsPage : DemoPage
 			leftLabel.FontSize = 11;
 			leftLabel.HAlign = .Center;
 			leftLabel.VAlign = .Middle;
-			left.AddView(leftLabel, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+			left.AddView(leftLabel, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			dockView.AddView(left, new DockView.LayoutParams(.Left) { Width = 80 });
 
 			let center = new Panel();
@@ -208,7 +208,7 @@ class WidgetsPage : DemoPage
 			centerLabel.FontSize = 11;
 			centerLabel.HAlign = .Center;
 			centerLabel.VAlign = .Middle;
-			center.AddView(centerLabel, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+			center.AddView(centerLabel, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			dockView.AddView(center, new DockView.LayoutParams(.Fill));
 		}
 
@@ -218,7 +218,7 @@ class WidgetsPage : DemoPage
 			let row = new LinearLayout();
 			row.Orientation = .Horizontal;
 			row.Spacing = 6;
-			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = 50 });
+			mLayout.AddView(row, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 50 });
 
 			ScaleType[?] scaleTypes = .(.None, .FitCenter, .FillBounds, .CenterCrop);
 			StringView[?] scaleNames = .("None", "FitCenter", "FillBounds", "CenterCrop");
@@ -227,14 +227,14 @@ class WidgetsPage : DemoPage
 			{
 				let panel = new Panel();
 				panel.Padding = .(1);
-				row.AddView(panel, new LinearLayout.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent, Weight = 1 });
+				row.AddView(panel, new LinearLayout.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
 
 				let iv = new ImageView();
 				iv.Image = demo.Checkerboard;
 				iv.ScaleType = scaleTypes[si];
 				iv.TooltipText = new String(scaleNames[si]);
 				iv.TooltipPlacement = .Top;
-				panel.AddView(iv, new Sedulous.UI.LayoutParams() { Width = Sedulous.UI.LayoutParams.MatchParent, Height = Sedulous.UI.LayoutParams.MatchParent });
+				panel.AddView(iv, new Sedulous.LegacyUI.LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 			}
 		}
 	}
@@ -264,7 +264,7 @@ class WidgetsPage : DemoPage
 			}
 		});
 
-		row.AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.UI.LayoutParams.MatchParent });
+		row.AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
 	}
 
 	private static Color HSLToColor(float h, float s, float l)

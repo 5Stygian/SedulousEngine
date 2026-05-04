@@ -1,14 +1,14 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.UI;
-using Sedulous.UI.Toolkit;
+using Sedulous.LegacyUI;
+using Sedulous.LegacyUI.Toolkit;
 using Sedulous.RHI;
 using Sedulous.VG.Renderer;
 using Sedulous.Engine.Core;
 using Sedulous.Renderer;
 using Sedulous.Engine.Render;
-using Sedulous.UI.Viewport;
+using Sedulous.LegacyUI.Viewport;
 using Sedulous.Shell.Input;
 using Sedulous.Editor.Core;
 using Sedulous.Core.Mathematics;

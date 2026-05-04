@@ -1,12 +1,12 @@
 # Sedulous.UI2 - Framework Plan
 
 Clean-slate UI framework for the Sedulous engine. Keeps the View/ViewGroup model
-and LayoutParams pattern from Sedulous.UI but replaces MeasureSpec with BoxConstraints,
+and LayoutParams pattern from Sedulous.LegacyUI but replaces MeasureSpec with BoxConstraints,
 adds CSS Flex-inspired containers, and fixes the defaults and friction points
 discovered building real applications.
 
-Sedulous.UI remains stable with ~700 unit tests. UI2 is experimental - if it works
-out, projects migrate. If not, lessons inform improvements to UI.
+Sedulous.LegacyUI remains stable with ~700 unit tests. UI2 is experimental - if it works
+out, projects migrate. If not, lessons inform improvements to LegacyUI.
 
 ---
 
@@ -345,13 +345,13 @@ Bridge UI2 with the engine runtime and add declarative layout loading.
 
 ## Phase 9 - Migration
 
-Port existing applications from Sedulous.UI to UI2.
+Port existing applications from Sedulous.LegacyUI to UI2.
 
 - [ ] Port UISandbox demos to UI2 (verify feature parity)
 - [ ] Port editor to UI2
 - [ ] Port tower defense game UI to UI2
-- [ ] Remove Sedulous.UI dependency from migrated projects
-- [ ] Performance comparison: measure/layout time UI vs UI2
+- [ ] Remove Sedulous.LegacyUI dependency from migrated projects
+- [ ] Performance comparison: measure/layout time LegacyUI vs UI2
 
 ---
 

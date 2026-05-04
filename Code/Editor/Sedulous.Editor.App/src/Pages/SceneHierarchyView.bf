@@ -1,7 +1,7 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Engine.Core;
 

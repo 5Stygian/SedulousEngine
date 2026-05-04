@@ -1,8 +1,8 @@
-# Sedulous.UI Theme Image Guide
+# Sedulous.LegacyUI Theme Image Guide
 
 ## Overview
 
-Sedulous.UI supports full image-based skinning via the drawable theming system. Controls check for a theme drawable first; if none is set, they fall back to color-based VG rendering. A fully textured theme replaces all visual regions with 9-slice images packed into a single GPU atlas for zero texture switches during rendering.
+Sedulous.LegacyUI supports full image-based skinning via the drawable theming system. Controls check for a theme drawable first; if none is set, they fall back to color-based VG rendering. A fully textured theme replaces all visual regions with 9-slice images packed into a single GPU atlas for zero texture switches during rendering.
 
 ## How Theming Works
 

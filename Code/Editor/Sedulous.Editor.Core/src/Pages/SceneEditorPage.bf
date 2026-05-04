@@ -2,7 +2,7 @@ namespace Sedulous.Editor.Core;
 
 using System;
 using System.Collections;
-using Sedulous.UI;
+using Sedulous.LegacyUI;
 using Sedulous.Engine.Core;
 
 /// Scene editing page. Owns hierarchy, viewport, and inspector layout.
