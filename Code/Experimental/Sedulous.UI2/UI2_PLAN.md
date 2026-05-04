@@ -172,29 +172,49 @@ Text editing controls built on TextEditingBehavior/ITextEditHost infrastructure.
 
 ---
 
-## Phase 5 — Data Controls
+## Phase 5 — Data Controls (COMPLETE)
 
-Virtualized lists/trees and data model implementations.
+Adapter-based data controls replacing the original IModel/ModelIndex plan.
+Uses IListAdapter/ITreeAdapter pattern from current UI (Android-style adapters).
 
-- [ ] ListModel<T> — wraps List<T> as flat IModel
-- [ ] TreeModel — hierarchical IModel implementation
-- [ ] SortingProxyModel — wraps IModel with sorting
-- [ ] ViewRecycler (port)
-- [ ] ListView — virtualized, uses IModel (flat), fixed/variable height, selection, momentum
-- [ ] FlattenedTreeAdapter (port, adapted for IModel)
-- [ ] TreeView — virtualized, uses IModel (hierarchical), expand/collapse, indent
-- [ ] SelectionModel — single/multi selection (port)
-- [ ] GridView — virtualized flowing grid with IModel, fixed cell size
-- [ ] ListView slow-click rename — delay threshold, OnSlowClickRename event
-- [ ] HierarchicalState — capture/restore expand/collapse, selection, scroll for tree widgets
-- [ ] TreeView.CaptureState() / ApplyState() using HierarchicalState
-- [ ] **Tests:** ListModel, TreeModel, SortingProxyModel
-- [ ] **Tests:** ViewRecycler pool/acquire/recycle counts
-- [ ] **Tests:** ListView visible range calculation (fixed and variable height)
-- [ ] **Tests:** FlattenedTreeAdapter expand/collapse, node count
-- [ ] **Tests:** SelectionModel single/multi select, clear
-- [ ] **Tests:** HierarchicalState capture/restore roundtrip
-- [ ] **UI2Sandbox:** ListView demo (1000 items), GridView demo, TreeView demo
+- [x] IListAdapter + IListAdapterObserver + ListAdapterBase — flat list data source
+      with view creation, binding, variable height, view types, observer notifications
+- [x] ITreeAdapter + ITreeAdapterObserver — tree data source with node IDs
+- [x] FlattenedTreeAdapter — wraps ITreeAdapter as IListAdapter, expansion state,
+      GetExpandedNodes/SetExpandedNodes for state capture
+- [x] ViewRecycler — view pooling by type with diagnostic counters
+- [x] SelectionModel — None/Single/Multiple modes, Select/Deselect/Toggle/SelectRange,
+      ShiftIndices for insert/remove, OnSelectionChanged event
+- [x] ListView — virtualized list with fixed/variable height (binary search), ViewRecycler,
+      SelectionModel, momentum scrolling, keyboard nav (Up/Down/Home/End/PageUp/PageDown
+      with Shift for range), Ctrl+click toggle, long-press detection, scrollbar VisualChild,
+      ScreenToLocal for correct click coordinates
+- [x] TreeView — wraps ListView + FlattenedTreeAdapter, themed chevron icons
+      (ChevronExpandedIcon/ChevronCollapsedIcon), VG fallback, IndentWidth/ArrowSize,
+      Left/Right arrow keys expand/collapse, OnItemClick/OnItemToggled events
+- [x] GridView — new virtualized flowing grid, fixed CellWidth/CellHeight/CellSpacing,
+      columns computed from available width, row-based virtualization, keyboard nav
+      (arrows/Home/End/PageUp/PageDown), selection highlight
+- [x] HierarchicalState — capture/restore TreeView state (expanded nodes, selection, scroll)
+      via FlattenedTreeAdapter.GetExpandedNodes/SetExpandedNodes public API
+- [x] **Tests:** 39 tests — DataTests (ViewRecycler, SelectionModel, FlattenedTreeAdapter),
+      ListViewTests, TreeViewTests, GridViewTests
+- [x] **UI2Sandbox:** Data Controls tab with 1000-item ListView, hierarchical TreeView
+      with TreeItemView depth-based indentation, 200-cell colored GridView
+
+**Design decision:** IModel/ModelIndex replaced with adapter pattern. Adapters own view
+creation and binding (proven Android-style pattern). IModel was deleted.
+
+**Regression fixes applied concurrently:**
+- IsEffectivelyEnabled guards added to CheckBox, RadioButton, Slider, ToggleSwitch, Expander
+- Cursor = .Hand added to all interactive controls
+- ImageView Image/ScaleType converted to properties with invalidation
+- Button.GetControlState checks Command.CanExecute()
+- Expander.SetHeaderText/Expand/Collapse added
+- TabView.AddTab returns int32, MinTabWidth, ClipsContent added
+- ToggleSwitch.OnToggled renamed to OnCheckedChanged for consistency
+- ScrollView: drag-to-scroll, ScrollToView, ScrollToLeft/Right, ContentWidth/Height
+- View.QueueDestroy and View.ScrollIntoView added
 
 ---
 
