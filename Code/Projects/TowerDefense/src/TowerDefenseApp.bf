@@ -218,8 +218,12 @@ class TowerDefenseApp : EngineApplication
 		let messaging = Context.GetSubsystem<MessagingSubsystem>();
 		let bus = messaging?.Bus;
 
+		// Resolve preview image directory.
+		let previewDir = scope String();
+		GetAssetPath("samples/models/kenney_tower-defense-kit/Previews", previewDir);
+
 		// HUD (DockLayout with top and bottom bars, fills screen)
-		mHUD.Setup(bus, mGameSub, mTowerPlacement);
+		mHUD.Setup(bus, mGameSub, mTowerPlacement, previewDir);
 		root.AddView(mHUD.Root, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// Game over dialog (subscribes to GameOverMsg, shows dialog when triggered)
