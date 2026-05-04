@@ -1,5 +1,5 @@
 FileVersion = 1
-Dependencies = {corlib = "*", SDL3_image = "*", "Sedulous.Images.Loading" = "*"}
+Dependencies = {corlib = "*", SDL3_image = "*", "Sedulous.Images.IO" = "*"}
 
 [Project]
 Name = "Sedulous.Images.SDL"

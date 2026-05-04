@@ -137,9 +137,10 @@ class SandboxApp : EngineApplication
 	{
 		Console.WriteLine("=== EngineSandbox OnStartup ===");
 
-		// Initialize image loader
+		// Initialize image loaders and writers
 		SDLImageLoader.Initialize();
 		STBImageLoader.Initialize();
+		SDLImageWriter.Initialize();
 
 		// Set up screen UI overlay.
 		SetupScreenUI();
@@ -1214,6 +1215,14 @@ class SandboxApp : EngineApplication
 		// F1 toggles UI debug bounds overlay.
 		if (mShell.InputManager.Keyboard.IsKeyPressed(.F1) && uiSub?.UIContext != null)
 			uiSub.UIContext.DebugSettings.ShowBounds = !uiSub.UIContext.DebugSettings.ShowBounds;
+
+		// F12: capture screenshot
+		if (mShell.InputManager.Keyboard.IsKeyPressed(.F11))
+		{
+			let path = scope String();
+			System.IO.Path.InternalCombine(path, AssetCacheDirectory, scope $"screenshot_{System.DateTime.Now.Ticks}.png");
+			CaptureScreenshot(path);
+		}
 
 		// ==================== Camera Controls ====================
 		// Block camera mouse input when UI has the mouse.

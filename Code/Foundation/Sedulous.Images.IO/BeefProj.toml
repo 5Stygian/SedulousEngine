@@ -1,7 +1,7 @@
 FileVersion = 1
 
 [Project]
-Name = "Sedulous.Images.Loading"
+Name = "Sedulous.Images.IO"
 
 [Dependencies]
 corlib = "*"

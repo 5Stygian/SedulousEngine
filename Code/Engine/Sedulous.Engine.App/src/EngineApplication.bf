@@ -24,6 +24,7 @@ using Sedulous.Engine.UI;
 using Sedulous.Engine.Render;
 using Sedulous.Renderer;
 using Sedulous.Engine.Renderer;
+using Sedulous.Images;
 
 /// Full engine application base class.
 /// Creates a Context with standard subsystems and manages the main loop.
@@ -90,6 +91,11 @@ abstract class EngineApplication : IDisposable
 	private float mInitTimeMs;
 	private int32 mMaxFixedStepsPerFrame = 8;
 
+	// Screenshot
+	private bool mScreenshotRequested = false;
+	private String mScreenshotPath ~ delete _;
+	private IBuffer mScreenshotBuffer;
+
 	/// The framework context.
 	public Context Context => mContext;
 
@@ -102,6 +108,7 @@ abstract class EngineApplication : IDisposable
 	/// The RHI device.
 	public IDevice Device => mDevice;
 
+	/// Image writer for screenshots. Set by the application (e.g. SDLImageWriter).
 	/// The discovered assets directory path.
 	public StringView AssetDirectory => mAssetDirectory;
 
@@ -469,6 +476,29 @@ abstract class EngineApplication : IDisposable
 			}
 		}
 
+		// Screenshot capture: copy swapchain to readback buffer before present
+		let screenshotThisFrame = mScreenshotRequested;
+		if (screenshotThisFrame)
+		{
+			mScreenshotRequested = false;
+			EnsureScreenshotBuffer(mSwapChain.Width, mSwapChain.Height);
+			if (mScreenshotBuffer != null)
+			{
+				encoder.TransitionTexture(mSwapChain.CurrentTexture, .RenderTarget, .CopySrc);
+				BufferTextureCopyRegion region = .()
+				{
+					BufferOffset = 0,
+					BytesPerRow = mSwapChain.Width * 4,
+					RowsPerImage = 0,
+					TextureMipLevel = 0,
+					TextureArrayLayer = 0,
+					TextureExtent = .(mSwapChain.Width, mSwapChain.Height, 1)
+				};
+				encoder.CopyTextureToBuffer(mSwapChain.CurrentTexture, mScreenshotBuffer, region);
+				encoder.TransitionTexture(mSwapChain.CurrentTexture, .CopySrc, .RenderTarget);
+			}
+		}
+
 		// Transition swapchain to present
 		encoder.TransitionTexture(mSwapChain.CurrentTexture, .RenderTarget, .Present);
 
@@ -489,9 +519,74 @@ abstract class EngineApplication : IDisposable
 				ResizeSwapChain();
 		}
 
+		// Complete screenshot: wait for GPU, read back, save
+		if (screenshotThisFrame && mScreenshotBuffer != null)
+		{
+			mFrameFence.Wait(mFrameFenceValues[mFrameIndex]);
+			SaveScreenshot(mSwapChain.Width, mSwapChain.Height);
+		}
+
 		pool.DestroyEncoder(ref encoder);
 		mFrameIndex = (mFrameIndex + 1) % MAX_FRAMES_IN_FLIGHT;
 	}
+
+	// ==================== Screenshot ====================
+
+	/// Requests a screenshot to be captured at the end of the current frame.
+	/// The image is saved to the specified path (PNG format).
+	public void CaptureScreenshot(StringView path)
+	{
+		mScreenshotRequested = true;
+		delete mScreenshotPath;
+		mScreenshotPath = new String(path);
+	}
+
+	/// Ensures the readback buffer exists and is large enough for the given dimensions.
+	private void EnsureScreenshotBuffer(uint32 width, uint32 height)
+	{
+		let requiredSize = (uint64)(width * height * 4);
+		if (mScreenshotBuffer != null && mScreenshotBuffer.Size >= requiredSize)
+			return;
+
+		if (mScreenshotBuffer != null)
+			mDevice.DestroyBuffer(ref mScreenshotBuffer);
+
+		BufferDesc desc = .()
+		{
+			Label = "Screenshot Readback",
+			Size = requiredSize,
+			Usage = .CopyDst,
+			Memory = .GpuToCpu
+		};
+
+		if (mDevice.CreateBuffer(desc) case .Ok(let buf))
+			mScreenshotBuffer = buf;
+	}
+
+	/// Reads the screenshot readback buffer and saves to file.
+	private void SaveScreenshot(uint32 width, uint32 height)
+	{
+		if (mScreenshotPath == null || mScreenshotBuffer == null)
+			return;
+
+		let dataSize = (int)(width * height * 4);
+		let pixelData = new uint8[dataSize];
+		defer delete pixelData;
+
+		TransferHelper.ReadMappedBuffer(mScreenshotBuffer, 0,
+			Span<uint8>(pixelData.Ptr, dataSize));
+
+		// Swapchain is BGRA8 — create image with that format.
+		// The IImageWriter implementation handles format conversion if needed.
+		let image = scope Image(width, height, .BGRA8, pixelData);
+
+		if (ImageWriterFactory.SaveImage(image, mScreenshotPath, .PNG) case .Ok)
+			Console.WriteLine("Screenshot saved: {}", mScreenshotPath);
+		else
+			Console.WriteLine("ERROR: Failed to save screenshot: {}", mScreenshotPath);
+	}
+
+	// ==================== Blit ====================
 
 	private void BlitToSwapchain(ICommandEncoder encoder)
 	{
@@ -664,6 +759,10 @@ abstract class EngineApplication : IDisposable
 		delete mLogger;
 		mLogger = null;
 		JobSystem.Shutdown();
+
+		// Destroy screenshot readback buffer
+		if (mScreenshotBuffer != null)
+			mDevice.DestroyBuffer(ref mScreenshotBuffer);
 
 		// Destroy presentation resources (after context - subsystems may reference device)
 		if (mBlitHelper != null)
