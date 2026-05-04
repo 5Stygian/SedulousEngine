@@ -10,5 +10,6 @@ public enum SVGElementType
 	Ellipse,
 	Line,
 	Polygon,
-	Polyline
+	Polyline,
+	Text
 }

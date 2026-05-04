@@ -241,6 +241,55 @@ public static class SVGLoader
 			// Skip closing </g> tag
 			SkipClosingTag(content, ref pos, "g");
 		}
+		else if (tagName.Equals("text", .OrdinalIgnoreCase))
+		{
+			element = new SVGElement(.Text);
+
+			if (attrs.TryGetValue("x", let txStr))
+				if (ParseFloatValue(txStr) case .Ok(let v)) element.TextX = v;
+			if (attrs.TryGetValue("y", let tyStr))
+				if (ParseFloatValue(tyStr) case .Ok(let v)) element.TextY = v;
+			if (attrs.TryGetValue("font-size", let fsStr))
+				if (ParseFloatValue(fsStr) case .Ok(let v)) element.FontSize = v;
+			if (attrs.TryGetValue("text-anchor", let taStr))
+			{
+				if (taStr.Equals("middle", .OrdinalIgnoreCase))
+					element.TextAnchor = .Middle;
+				else if (taStr.Equals("end", .OrdinalIgnoreCase))
+					element.TextAnchor = .End;
+			}
+			if (attrs.TryGetValue("font-weight", let fwStr))
+				element.FontBold = fwStr.Equals("bold", .OrdinalIgnoreCase);
+
+			// Extract inner text content between <text> and </text>.
+			if (!isSelfClosing)
+			{
+				let textStart = pos;
+				// Find the closing </text> tag.
+				while (pos + 1 < content.Length)
+				{
+					if (content[pos] == '<' && content[pos + 1] == '/')
+						break;
+					pos++;
+				}
+				let innerText = content.Substring(textStart, pos - textStart);
+				element.TextContent = new String();
+				// Trim whitespace from the extracted text.
+				for (let c in innerText.RawChars)
+				{
+					if (c == '\n' || c == '\r' || c == '\t')
+					{
+						if (element.TextContent.Length > 0 && !element.TextContent.EndsWith(' '))
+							element.TextContent.Append(' ');
+					}
+					else
+						element.TextContent.Append(c);
+				}
+				element.TextContent.Trim();
+
+				SkipClosingTag(content, ref pos, "text");
+			}
+		}
 		else
 		{
 			return .Err;

@@ -5,6 +5,14 @@ using Sedulous.VG;
 
 namespace Sedulous.VG.SVG;
 
+/// Text anchor alignment (maps to SVG text-anchor attribute).
+public enum SVGTextAnchor
+{
+	Start,
+	Middle,
+	End
+}
+
 /// Represents a parsed SVG element
 public class SVGElement
 {
@@ -31,6 +39,21 @@ public class SVGElement
 			delete _;
 		}
 	};
+
+	// === Text-specific fields ===
+
+	/// Text content string (for Text elements).
+	public String TextContent ~ delete _;
+	/// Text X position in SVG coordinates.
+	public float TextX;
+	/// Text Y position in SVG coordinates.
+	public float TextY;
+	/// Font size in SVG units.
+	public float FontSize = 16;
+	/// Text anchor alignment.
+	public SVGTextAnchor TextAnchor = .Start;
+	/// Font weight bold flag.
+	public bool FontBold = false;
 
 	public this()
 	{
