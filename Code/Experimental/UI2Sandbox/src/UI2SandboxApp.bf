@@ -20,7 +20,7 @@ class UI2SandboxApp : Application
 	// App-owned UI state (cleaned up in OnShutdown)
 	private UIContext mUIContext;
 	private RootView mRoot;
-	private int32 mThemeIndex = 0; // 0=Dark, 1=Light, 2=RoundedDark
+	private int32 mThemeIndex = 0; // 0=Dark, 1=Light, 2=RoundedDark, 3=Textured
 	private OwnedImageData mTestImage ~ delete _;
 	private RepeatButton mRepeatBtn;
 	private DemoListAdapter mDemoListAdapter ~ delete _;
@@ -746,7 +746,7 @@ class UI2SandboxApp : Application
 		// F5: cycle themes (Dark → Light → RoundedDark)
 		if (keyboard.IsKeyPressed(.F5))
 		{
-			mThemeIndex = (mThemeIndex + 1) % 3;
+			mThemeIndex = (mThemeIndex + 1) % 4;
 			ApplyTheme();
 		}
 	}
@@ -758,10 +758,174 @@ class UI2SandboxApp : Application
 		{
 		case 0:  sheet = DarkTheme.Create(); mPalette = .Dark;
 		case 1:  sheet = LightTheme.Create(); mPalette = .Light;
-		default: sheet = RoundedDarkTheme.Create(); mPalette = .Dark;
+		case 2:  sheet = RoundedDarkTheme.Create(); mPalette = .Dark;
+		default: sheet = CreateTexturedTheme(); mPalette = .Light;
 		}
 		mUIContext.StyleSheet = sheet;
 		sheet.ReleaseRef();
+	}
+
+	/// Create a textured theme with procedurally generated game-styled images.
+	private static StyleSheet CreateTexturedTheme()
+	{
+		let images = scope ThemeImageSet();
+
+		// --- Button: soft blue ---
+		let btnN = MakeRoundedRectImage(48, 32, .(180, 200, 225, 255), .(140, 165, 195, 255), 6);
+		let btnH = MakeRoundedRectImage(48, 32, .(190, 210, 235, 255), .(150, 175, 205, 255), 6);
+		let btnP = MakeRoundedRectImage(48, 32, .(150, 175, 205, 255), .(120, 145, 175, 255), 6);
+		let btnD = MakeRoundedRectImage(48, 32, .(195, 205, 215, 128), .(175, 185, 195, 128), 6);
+		defer { delete btnN; delete btnH; delete btnP; delete btnD; }
+		images.AddStateImages("button:Background", btnN, btnH, btnP, btnD, slices: .(8, 8, 8, 8));
+
+		// --- Panel: light blue-gray ---
+		let panelImg = MakeRoundedRectImage(48, 48, .(220, 230, 240, 255), .(185, 200, 220, 255), 4);
+		defer delete panelImg;
+		images.AddImage("panel:Background", panelImg, .(8, 8, 8, 8));
+
+		// --- EditText: white with blue border ---
+		let etNorm = MakeRoundedRectImage(48, 28, .(245, 248, 252, 255), .(170, 185, 210, 255), 4);
+		let etFocus = MakeRoundedRectImage(48, 28, .(245, 248, 252, 255), .(80, 130, 200, 255), 4);
+		defer { delete etNorm; delete etFocus; }
+		images.AddStateImages("edittext:Background", etNorm, focused: etFocus, slices: .(6, 6, 6, 6));
+
+		// --- CheckBox ---
+		let cbUnchecked = MakeRoundedRectImage(16, 16, .(240, 244, 250, 255), .(160, 175, 200, 255), 3);
+		let cbChecked = MakeRoundedRectImage(16, 16, .(80, 140, 220, 255), .(60, 120, 200, 255), 3);
+		defer { delete cbUnchecked; delete cbChecked; }
+		images.AddImage("checkbox:BoxDrawable", cbUnchecked);
+		images.AddImage("checkbox:CheckedBackground", cbChecked);
+
+		// --- RadioButton ---
+		let rbCircle = MakeRoundedRectImage(16, 16, .(240, 244, 250, 255), .(160, 175, 200, 255), 8);
+		let rbDot = MakeRoundedRectImage(16, 16, .(80, 140, 220, 255), .(60, 120, 200, 255), 8);
+		defer { delete rbCircle; delete rbDot; }
+		images.AddImage("radiobutton:BoxDrawable", rbCircle);
+		images.AddImage("radiobutton:CheckedBackground", rbDot);
+
+		// --- Slider ---
+		let slTrack = MakeRoundedRectImage(32, 6, .(195, 205, 220, 255), .(195, 205, 220, 0), 3);
+		let slFill = MakeRoundedRectImage(32, 6, .(80, 140, 220, 255), .(80, 140, 220, 0), 3);
+		let slThumb = MakeRoundedRectImage(14, 14, .(255, 255, 255, 255), .(140, 165, 200, 255), 7);
+		defer { delete slTrack; delete slFill; delete slThumb; }
+		images.AddImage("slider:TrackDrawable", slTrack, .(3, 2, 3, 2));
+		images.AddImage("slider:FillDrawable", slFill, .(3, 2, 3, 2));
+		images.AddImage("slider:ThumbDrawable", slThumb);
+
+		// --- ProgressBar ---
+		let progTrack = MakeRoundedRectImage(32, 12, .(195, 205, 220, 255), .(195, 205, 220, 0), 4);
+		let progFill = MakeRoundedRectImage(32, 12, .(80, 140, 220, 255), .(80, 140, 220, 0), 4);
+		defer { delete progTrack; delete progFill; }
+		images.AddImage("progressbar:TrackDrawable", progTrack, .(4, 4, 4, 4));
+		images.AddImage("progressbar:FillDrawable", progFill, .(4, 4, 4, 4));
+
+		// --- ToggleSwitch ---
+		let tsOff = MakeRoundedRectImage(44, 24, .(190, 200, 215, 255), .(170, 185, 205, 255), 12);
+		let tsOn = MakeRoundedRectImage(44, 24, .(80, 140, 220, 255), .(60, 120, 200, 255), 12);
+		let tsKnob = MakeRoundedRectImage(20, 20, .(255, 255, 255, 255), .(210, 215, 225, 255), 10);
+		defer { delete tsOff; delete tsOn; delete tsKnob; }
+		images.AddImage("toggleswitch:TrackDrawable", tsOff, .(12, 12, 12, 12));
+		images.AddImage("toggleswitch:TrackOnDrawable", tsOn, .(12, 12, 12, 12));
+		images.AddImage("toggleswitch:KnobDrawable", tsKnob);
+
+		// --- ComboBox ---
+		let cbxN = MakeRoundedRectImage(48, 28, .(240, 244, 250, 255), .(170, 185, 210, 255), 4);
+		let cbxH = MakeRoundedRectImage(48, 28, .(230, 238, 248, 255), .(150, 170, 200, 255), 4);
+		defer { delete cbxN; delete cbxH; }
+		images.AddStateImages("combobox:Background", cbxN, cbxH, slices: .(6, 6, 6, 6));
+
+		// --- ScrollBar ---
+		let scrollTrack = MakeRoundedRectImage(12, 32, .(210, 218, 230, 150), .(210, 218, 230, 0), 3);
+		let scrollThumb = MakeRoundedRectImage(12, 24, .(150, 170, 200, 200), .(150, 170, 200, 0), 3);
+		defer { delete scrollTrack; delete scrollThumb; }
+		images.AddImage("scrollbar:TrackDrawable", scrollTrack, .(4, 6, 4, 6));
+		images.AddImage("scrollbar:ThumbDrawable", scrollThumb, .(4, 6, 4, 6));
+
+		// --- Dialog ---
+		let dialogImg = MakeRoundedRectImage(64, 64, .(235, 240, 248, 255), .(170, 185, 210, 255), 8);
+		defer delete dialogImg;
+		images.AddImage("dialog:Background", dialogImg, .(10, 10, 10, 10));
+
+		// --- Tooltip ---
+		let tooltipImg = MakeRoundedRectImage(32, 24, .(50, 60, 75, 230), .(80, 95, 120, 255), 4);
+		defer delete tooltipImg;
+		images.AddImage("tooltip:Background", tooltipImg, .(6, 6, 6, 6));
+
+		// --- ContextMenu ---
+		let ctxMenuImg = MakeRoundedRectImage(48, 48, .(240, 244, 250, 255), .(175, 190, 215, 255), 6);
+		defer delete ctxMenuImg;
+		images.AddImage("contextmenu:Background", ctxMenuImg, .(8, 8, 8, 8));
+
+		// --- ContextMenu item hover ---
+		let ctxHover = MakeRoundedRectImage(32, 24, .(80, 140, 220, 60), .(80, 140, 220, 0), 3);
+		defer delete ctxHover;
+		images.AddImage("contextmenu:MenuItemHoverDrawable", ctxHover, .(4, 4, 4, 4));
+
+		// --- TabView ---
+		let tabStrip = MakeRoundedRectImage(48, 32, .(210, 218, 230, 255), .(210, 218, 230, 0), 0);
+		let tabContent = MakeRoundedRectImage(48, 48, .(228, 234, 244, 255), .(228, 234, 244, 0), 0);
+		let tabActive = MakeRoundedRectImage(64, 28, .(240, 244, 250, 255), .(240, 244, 250, 0), 4);
+		let tabHover = MakeRoundedRectImage(64, 28, .(220, 228, 240, 255), .(220, 228, 240, 0), 4);
+		defer { delete tabStrip; delete tabContent; delete tabActive; delete tabHover; }
+		images.AddImage("tabview:StripDrawable", tabStrip, .(4, 4, 4, 4));
+		images.AddImage("tabview:ContentDrawable", tabContent, .(4, 4, 4, 4));
+		images.AddImage("tabview:ActiveTabDrawable", tabActive, .(6, 6, 6, 4));
+		images.AddImage("tabview:HoverTabDrawable", tabHover, .(6, 6, 6, 4));
+
+		// --- Expander header ---
+		let expN = MakeRoundedRectImage(48, 24, .(215, 222, 235, 255), .(215, 222, 235, 0), 0);
+		let expH = MakeRoundedRectImage(48, 24, .(205, 215, 230, 255), .(205, 215, 230, 0), 0);
+		defer { delete expN; delete expH; }
+		images.AddImage("expander:HeaderDrawable", expN, .(4, 4, 4, 4));
+		images.AddImage("expander:HeaderHoverDrawable", expH, .(4, 4, 4, 4));
+
+		return TexturedTheme.Create(images, .Light);
+	}
+
+	/// Generate a rounded rectangle image with fill and border colors.
+	private static OwnedImageData MakeRoundedRectImage(uint32 w, uint32 h,
+		Color fill, Color border, int radius)
+	{
+		let data = new uint8[w * h * 4];
+
+		for (uint32 y = 0; y < h; y++)
+		{
+			for (uint32 x = 0; x < w; x++)
+			{
+				bool inside = true;
+				bool isBorder = false;
+
+				int cx = -1, cy = -1;
+				if (x < (uint32)radius && y < (uint32)radius) { cx = radius; cy = radius; }
+				else if (x >= w - (uint32)radius && y < (uint32)radius) { cx = (int)w - radius - 1; cy = radius; }
+				else if (x < (uint32)radius && y >= h - (uint32)radius) { cx = radius; cy = (int)h - radius - 1; }
+				else if (x >= w - (uint32)radius && y >= h - (uint32)radius) { cx = (int)w - radius - 1; cy = (int)h - radius - 1; }
+
+				if (cx >= 0)
+				{
+					let dx = (int)x - cx;
+					let dy = (int)y - cy;
+					let dist = Math.Sqrt((float)(dx * dx + dy * dy));
+					if (dist > (float)radius) inside = false;
+					else if (dist > (float)(radius - 1)) isBorder = true;
+				}
+
+				if (inside && cx < 0)
+				{
+					if (x == 0 || x == w - 1 || y == 0 || y == h - 1)
+						isBorder = true;
+				}
+
+				let c = inside ? (isBorder ? border : fill) : Color(0, 0, 0, 0);
+				let offset = (int)(y * w + x) * 4;
+				data[offset] = c.R;
+				data[offset + 1] = c.G;
+				data[offset + 2] = c.B;
+				data[offset + 3] = c.A;
+			}
+		}
+
+		return new OwnedImageData(w, h, .RGBA8, data);
 	}
 
 	private ThemePalette mPalette = .Dark;
