@@ -777,8 +777,8 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		pipeline.AddPass(new OverlayPass());
 
 		// Post-processing stack
-		// Order: SSAO (aux) → Bloom (aux) → TAA (HDR resolve) → Tonemap (reads AO+bloom) → FXAA (LDR)
-		// TAA and FXAA are mutually exclusive — only one should be enabled at a time.
+		// Order: SSAO (aux) -> Bloom (aux) -> TAA (HDR resolve) -> Tonemap (reads AO+bloom) -> FXAA (LDR)
+		// TAA and FXAA are mutually exclusive - only one should be enabled at a time.
 		// SSAO is independently togglable.
 		let postStack = new PostProcessStack();
 		postStack.Initialize(mRenderContext);

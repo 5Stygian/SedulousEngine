@@ -3,7 +3,7 @@ namespace Sedulous.UI2;
 using System;
 
 /// Immutable layout constraints carrying min/max on both axes.
-/// Replaces MeasureSpec — no modes, just min/max bounds. The math is just clamping.
+/// Replaces MeasureSpec - no modes, just min/max bounds. The math is just clamping.
 public struct BoxConstraints
 {
 	public float MinWidth;

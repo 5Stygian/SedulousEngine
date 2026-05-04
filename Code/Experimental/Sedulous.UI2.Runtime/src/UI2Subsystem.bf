@@ -17,7 +17,7 @@ using Sedulous.Fonts.TTF;
 /// Subsystem that provides UI2 rendering and lifecycle management.
 /// Owns rendering pipeline (VGContext, VGRenderer, ShaderSystem, FontService).
 /// Owns input bridge (UIInputHelper, ShellClipboardAdapter).
-/// Does NOT own UIContext or RootView — the application creates and owns those.
+/// Does NOT own UIContext or RootView - the application creates and owns those.
 /// All cleanup happens in OnShutdown in reverse creation order.
 public class UI2Subsystem : Subsystem
 {
@@ -38,7 +38,7 @@ public class UI2Subsystem : Subsystem
 	private IWindow mWindow;
 	private IShell mShell;
 
-	// UI references (not owned — app creates and owns these)
+	// UI references (not owned - app creates and owns these)
 	private UIContext mUIContext;
 	private RootView mRoot;
 
@@ -51,10 +51,10 @@ public class UI2Subsystem : Subsystem
 	/// Set when the app needs multi-window input control.
 	public bool ManualInputRouting;
 
-	/// The UI context (not owned — app creates and passes it).
+	/// The UI context (not owned - app creates and passes it).
 	public UIContext UIContext => mUIContext;
 
-	/// The root view (not owned — app creates and passes it).
+	/// The root view (not owned - app creates and passes it).
 	public RootView Root => mRoot;
 
 	/// The input helper for manual input routing (when ManualInputRouting is true).
@@ -109,11 +109,11 @@ public class UI2Subsystem : Subsystem
 		// Provide font service to UIContext so it can create draw contexts
 		uiContext.FontService = mFontService;
 
-		// Input bridge (Shell → UI2)
+		// Input bridge (Shell -> UI2)
 		if (shell?.InputManager != null)
 			mInputHelper = new UIInputHelper();
 
-		// Clipboard bridge (Shell → UI2)
+		// Clipboard bridge (Shell -> UI2)
 		if (shell?.Clipboard != null)
 		{
 			mClipboardAdapter = new ShellClipboardAdapter(shell.Clipboard);
@@ -148,7 +148,7 @@ public class UI2Subsystem : Subsystem
 		if (mWindow != null)
 			mRoot.DpiScale = mWindow.ContentScale;
 
-		// Route shell input → UI2 events (unless app handles routing manually)
+		// Route shell input -> UI2 events (unless app handles routing manually)
 		if (!ManualInputRouting && mInputHelper != null && mShell?.InputManager != null)
 			mInputHelper.Update(mShell.InputManager, mUIContext, deltaTime);
 
@@ -156,7 +156,7 @@ public class UI2Subsystem : Subsystem
 		mUIContext.BeginFrame(deltaTime);
 		mUIContext.UpdateRootView(mRoot);
 
-		// Sync cursor from UI2 → Shell
+		// Sync cursor from UI2 -> Shell
 		SyncCursor();
 	}
 
@@ -275,7 +275,7 @@ public class UI2Subsystem : Subsystem
 			mInputHelper = null;
 		}
 
-		// UIContext and RootView are NOT owned — app deletes them.
+		// UIContext and RootView are NOT owned - app deletes them.
 		mUIContext = null;
 		mRoot = null;
 

@@ -11,8 +11,8 @@ class StyleSheetTests
 	static StyleSheet SetupSheet(UIContext ctx)
 	{
 		let sheet = new StyleSheet();
-		ctx.StyleSheet = sheet;  // AddRef → 2
-		sheet.ReleaseRef();      // → 1 (ctx owns)
+		ctx.StyleSheet = sheet;  // AddRef -> 2
+		sheet.ReleaseRef();      // -> 1 (ctx owns)
 		return sheet;
 	}
 
@@ -447,12 +447,12 @@ class StyleSheetTests
 		let ctx1 = scope UIContext();
 		let root1 = scope RootView();
 		TestSetup.Init(ctx1, root1);
-		ctx1.StyleSheet = sheet; // → 2
+		ctx1.StyleSheet = sheet; // -> 2
 
 		let ctx2 = scope UIContext();
 		let root2 = scope RootView();
 		TestSetup.Init(ctx2, root2);
-		ctx2.StyleSheet = sheet; // → 3
+		ctx2.StyleSheet = sheet; // -> 3
 
 		let view1 = new TestView();
 		root1.AddView(view1);
@@ -462,8 +462,8 @@ class StyleSheetTests
 		Test.Assert(view1.ResolveStyleFloat(.FontSize) == 18.0f);
 		Test.Assert(view2.ResolveStyleFloat(.FontSize) == 18.0f);
 
-		// Release creation ref — contexts still hold refs
-		sheet.ReleaseRef(); // → 2
+		// Release creation ref - contexts still hold refs
+		sheet.ReleaseRef(); // -> 2
 
 		Test.Assert(view1.ResolveStyleFloat(.FontSize) == 18.0f);
 		// ctx1/ctx2 scope destructors release remaining refs
@@ -484,16 +484,16 @@ class StyleSheetTests
 		sheet2.ForType(typeof(TestView))
 			.Set(.FontSize, 20.0f);
 
-		ctx.StyleSheet = sheet1; // sheet1 → 2
-		ctx.StyleSheet = sheet2; // sheet2 → 2, sheet1 → 1
+		ctx.StyleSheet = sheet1; // sheet1 -> 2
+		ctx.StyleSheet = sheet2; // sheet2 -> 2, sheet1 -> 1
 
 		let view = new TestView();
 		root.AddView(view);
 
 		Test.Assert(view.ResolveStyleFloat(.FontSize) == 20.0f);
 
-		sheet1.ReleaseRef(); // → 0, deleted
-		sheet2.ReleaseRef(); // → 1, ctx owns
+		sheet1.ReleaseRef(); // -> 0, deleted
+		sheet2.ReleaseRef(); // -> 1, ctx owns
 		// ctx destructor releases last ref on sheet2
 	}
 

@@ -661,7 +661,7 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Render viewports only for scene pages whose panels are actually visible.
 		// Inactive dock tabs have their DockablePanel set to Visibility=Gone,
-		// so we walk ancestors to skip those — no point doing GPU work for
+		// so we walk ancestors to skip those - no point doing GPU work for
 		// hidden viewports.
 		for (let page in mEditorContext.PageManager.OpenPages)
 		{

@@ -151,7 +151,7 @@ public class EditableLabel : EditText
 			base.OnKeyDown(e);
 			return;
 		}
-		// Not editing — don't handle keys
+		// Not editing - don't handle keys
 	}
 
 	public override void OnMouseDown(MouseEventArgs e)
@@ -192,7 +192,7 @@ public class EditableLabel : EditText
 			mWasClickedOnce = true;
 			mLastClickTime = now;
 		}
-		// Don't set e.Handled — let parent handle selection
+		// Don't set e.Handled - let parent handle selection
 	}
 
 	public override void OnDraw(UIDrawContext ctx)

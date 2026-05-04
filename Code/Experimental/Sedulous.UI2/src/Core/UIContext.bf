@@ -21,7 +21,7 @@ public class UIContext
 	// === View registry (ViewId -> live View) ===
 	private Dictionary<uint32, View> mRegistry = new .();
 
-	// === Root views (non-owning — callers own their roots) ===
+	// === Root views (non-owning - callers own their roots) ===
 	private List<RootView> mRootViews = new .();
 
 	// === Active input root (set by application based on focused window) ===
@@ -134,7 +134,7 @@ public class UIContext
 	/// Tooltip manager (owned by UIContext).
 	public TooltipManager Tooltips => mTooltipManager;
 
-	/// The active StyleSheet. Ref-counted — can be shared between contexts.
+	/// The active StyleSheet. Ref-counted - can be shared between contexts.
 	/// Setting a new StyleSheet AddRefs the new one and ReleaseRefs the old one.
 	public StyleSheet StyleSheet
 	{
@@ -354,7 +354,7 @@ public class UIContext
 		delete mInputManager;
 		delete mFocusManager;
 
-		// Registry and root list are non-owning — just delete the containers.
+		// Registry and root list are non-owning - just delete the containers.
 		delete mRegistry;
 		delete mRootViews;
 	}

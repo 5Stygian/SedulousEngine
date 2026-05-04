@@ -13,7 +13,7 @@ cbuffer SkinningParams : register(b0)
 };
 
 // Bone matrices: current frame (BoneCount matrices), then previous frame (BoneCount matrices).
-// float4 rows instead of float4x4 — see CONVENTIONS.md (StructuredBuffer matrix layout).
+// float4 rows instead of float4x4 - see CONVENTIONS.md (StructuredBuffer matrix layout).
 struct BoneMatrix
 {
     float4 Row0, Row1, Row2, Row3;

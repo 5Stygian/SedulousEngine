@@ -576,7 +576,7 @@ abstract class EngineApplication : IDisposable
 		TransferHelper.ReadMappedBuffer(mScreenshotBuffer, 0,
 			Span<uint8>(pixelData.Ptr, dataSize));
 
-		// Swapchain is BGRA8 — create image with that format.
+		// Swapchain is BGRA8 - create image with that format.
 		// The IImageWriter implementation handles format conversion if needed.
 		let image = scope Image(width, height, .BGRA8, pixelData);
 

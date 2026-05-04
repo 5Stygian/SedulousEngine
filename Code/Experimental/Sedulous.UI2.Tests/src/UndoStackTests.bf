@@ -100,7 +100,7 @@ class UndoStackTests
 		stack.PushState("d", 0, 0); // should drop "a"
 		Test.Assert(stack.UndoCount == 3);
 
-		// Undo pops most recent: d, then c, then b (not a — it was dropped)
+		// Undo pops most recent: d, then c, then b (not a - it was dropped)
 		let text = scope String();
 		int32 cursor = 0, anchor = 0;
 		stack.Undo("current", 0, 0, text, out cursor, out anchor);
@@ -114,7 +114,7 @@ class UndoStackTests
 		stack.Undo(text, 0, 0, text, out cursor, out anchor);
 		Test.Assert(text == "b");
 
-		// No more — "a" was dropped
+		// No more - "a" was dropped
 		text.Clear();
 		Test.Assert(!stack.Undo(text, 0, 0, text, out cursor, out anchor));
 	}

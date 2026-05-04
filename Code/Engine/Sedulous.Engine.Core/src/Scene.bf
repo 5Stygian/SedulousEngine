@@ -84,14 +84,14 @@ public class Scene : IDisposable
 	/// When false, functions registered with simulationOnly=true are skipped.
 	/// Transforms and presentation functions always run.
 	/// Default: true (runtime). Editor sets to false for edit mode.
-	/// Managed by Start()/Stop() — prefer those over setting directly.
+	/// Managed by Start()/Stop() - prefer those over setting directly.
 	public bool SimulationEnabled = true;
 
 	/// Whether the scene has been started (is in play/simulation mode).
 	public bool IsStarted { get; private set; }
 
 	/// Time scale multiplier for this scene. Affects deltaTime passed to update functions.
-	/// 0 = paused (functions still run but with zero delta — use for game pause).
+	/// 0 = paused (functions still run but with zero delta - use for game pause).
 	/// 0.5 = slow motion, 1.0 = normal (default), 2.0 = fast forward.
 	/// Does not affect FixedUpdate timestep (physics always uses fixed delta).
 	public float TimeScale = 1.0f;
@@ -108,7 +108,7 @@ public class Scene : IDisposable
 
 	// ==================== Simulation Lifecycle ====================
 
-	/// Starts the scene — enables simulation and notifies all modules.
+	/// Starts the scene - enables simulation and notifies all modules.
 	/// Call when entering play mode. Modules receive OnSceneStarted()
 	/// to initialize runtime state (physics bodies, audio sources, AI, etc.).
 	/// No-op if already started.
@@ -122,7 +122,7 @@ public class Scene : IDisposable
 			module.OnSceneStarted();
 	}
 
-	/// Stops the scene — notifies all modules and disables simulation.
+	/// Stops the scene - notifies all modules and disables simulation.
 	/// Call when exiting play mode. Modules receive OnSceneStopped()
 	/// to clean up runtime state. No-op if not started.
 	public void Stop()

@@ -2,14 +2,14 @@ namespace Sedulous.UI2;
 
 /// Identifies a style property that can be set in a StyleRule.
 ///
-/// Visual regions (backgrounds, tracks, thumbs) are Drawable properties —
+/// Visual regions (backgrounds, tracks, thumbs) are Drawable properties -
 /// flat themes use ColorDrawable, game themes use NineSlice/Atlas drawables.
 ///
 /// Tints, text, and stroke colors remain Color properties.
 public enum StyleProperty
 {
 	// =================================================================
-	// Drawable properties — filled visual regions, themeable with images
+	// Drawable properties - filled visual regions, themeable with images
 	// =================================================================
 
 	/// General background (Button, Panel, EditText, etc.)
@@ -70,7 +70,7 @@ public enum StyleProperty
 	ArrowUpIcon,
 
 	// =================================================================
-	// Color properties — text, tints, strokes, indicators
+	// Color properties - text, tints, strokes, indicators
 	// =================================================================
 
 	/// Primary text color (inheritable)
@@ -104,7 +104,7 @@ public enum StyleProperty
 	CloseButtonHoverColor,
 
 	// =================================================================
-	// Float properties — dimensions
+	// Float properties - dimensions
 	// =================================================================
 
 	/// Font size (inheritable)

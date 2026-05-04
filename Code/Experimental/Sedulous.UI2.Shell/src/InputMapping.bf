@@ -8,7 +8,7 @@ using System;
 static class InputMapping
 {
 	/// Maps Shell.Input.KeyCode to UI2.KeyCode.
-	/// Values match by design — trivial cast.
+	/// Values match by design - trivial cast.
 	public static Sedulous.UI2.KeyCode MapKey(Sedulous.Shell.Input.KeyCode shellKey)
 	{
 		return (Sedulous.UI2.KeyCode)(int)shellKey;

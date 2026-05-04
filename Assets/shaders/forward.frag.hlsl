@@ -49,7 +49,7 @@ struct GPULight
 StructuredBuffer<GPULight> Lights : register(t0, space0);
 
 // Set 4: Shadow data
-// float4 rows instead of float4x4 — see CONVENTIONS.md (StructuredBuffer matrix layout).
+// float4 rows instead of float4x4 - see CONVENTIONS.md (StructuredBuffer matrix layout).
 struct GPUShadowData
 {
     float4   LightViewProjRow0, LightViewProjRow1, LightViewProjRow2, LightViewProjRow3;
@@ -261,7 +261,7 @@ float DistributionGGX(float NdotH, float roughness)
 }
 
 // Height-correlated Smith GGX visibility (joint approximation).
-// Includes the 1/(4*NdotV*NdotL) denominator — caller multiplies D*Vis*F directly.
+// Includes the 1/(4*NdotV*NdotL) denominator - caller multiplies D*Vis*F directly.
 // Reference: Karis 2013, Heitz 2014.
 float VisibilitySmithGGX(float NdotV, float NdotL, float roughness)
 {

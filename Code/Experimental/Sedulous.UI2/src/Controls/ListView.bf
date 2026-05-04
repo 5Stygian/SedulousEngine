@@ -110,7 +110,7 @@ public class ListView : ViewGroup, IListAdapterObserver
 		Invalidate();
 	}
 
-	/// Notify that the adapter data has changed — rebuild visible items.
+	/// Notify that the adapter data has changed - rebuild visible items.
 	public void NotifyDataChanged()
 	{
 		RebuildOffsets();

@@ -179,7 +179,7 @@ public class InputManager
 			}
 		}
 
-		// Dispatch — bubble up parent chain.
+		// Dispatch - bubble up parent chain.
 		if (hitView != null)
 		{
 			let local = hitView.ScreenToLocal(.(mMouseX, mMouseY));
@@ -211,7 +211,7 @@ public class InputManager
 		// Clear pressed state.
 		mPressedId = .Invalid;
 
-		// Check if released over the same view that was pressed → click.
+		// Check if released over the same view that was pressed -> click.
 		let root = mContext.ActiveInputRoot;
 		if (root != null)
 		{
@@ -335,7 +335,7 @@ public class InputManager
 	// Deletion safety
 	// =================================================================
 
-	/// Notify that a view was deleted — clear any references to it.
+	/// Notify that a view was deleted - clear any references to it.
 	public void OnViewDeleted(View view)
 	{
 		if (mHoveredId == view.Id) mHoveredId = .Invalid;
@@ -408,7 +408,7 @@ public class InputManager
 			}
 			v = v.Parent;
 		}
-		// Clicked a non-focusable area → clear focus.
+		// Clicked a non-focusable area -> clear focus.
 		mContext.FocusManager.ClearFocus();
 	}
 

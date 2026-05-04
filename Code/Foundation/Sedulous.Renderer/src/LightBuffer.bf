@@ -76,7 +76,7 @@ public class LightBuffer : IDisposable
 
 		for (int i = 0; i < 2; i++)
 		{
-			// Light data buffer (StructuredBuffer in shader — read-only from GPU)
+			// Light data buffer (StructuredBuffer in shader - read-only from GPU)
 			BufferDesc lightDesc = .()
 			{
 				Label = "Light Buffer",

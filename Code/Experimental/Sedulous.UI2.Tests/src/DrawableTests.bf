@@ -48,11 +48,11 @@ class DrawableTests
 	[Test]
 	public static void Layer_AddLayer_IncreasesCount()
 	{
-		// Just verify it doesn't crash — drawing needs a VGContext
+		// Just verify it doesn't crash - drawing needs a VGContext
 		let layer = scope LayerDrawable(true);
 		layer.AddLayer(new ColorDrawable(.Red));
 		layer.AddLayer(new ColorDrawable(.Blue), .(5, 5, 5, 5));
-		// No assert needed — if we get here without crash, the structure is valid
+		// No assert needed - if we get here without crash, the structure is valid
 	}
 
 	// === InsetDrawable ===
@@ -118,7 +118,7 @@ class DrawableTests
 	[Test]
 	public static void Drawable_StateAwareDraw_DelegatesToStateless()
 	{
-		// ShapeDrawable has no state-aware override — should delegate
+		// ShapeDrawable has no state-aware override - should delegate
 		bool called = false;
 		let shape = scope ShapeDrawable(new [&called] (ctx, bounds) => { called = true; });
 		// We can't call Draw without a real VGContext, but we can verify the interface exists

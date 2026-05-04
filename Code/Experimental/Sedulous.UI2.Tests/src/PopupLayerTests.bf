@@ -20,7 +20,7 @@ class PopupLayerTests
 		let root = scope RootView();
 		TestSetup.Init(ctx, root);
 
-		// Add a normal child — PopupLayer should still be last
+		// Add a normal child - PopupLayer should still be last
 		root.AddView(new TestView());
 		Test.Assert(root.GetChildAt(root.ChildCount - 1) === root.PopupLayer);
 	}
@@ -85,7 +85,7 @@ class PopupLayerTests
 		root.PopupLayer.ShowPopup(popup, null, 10, 10, ownsView: true);
 		root.PopupLayer.ClosePopup(popup);
 
-		// popup should be deleted — lookup should return null
+		// popup should be deleted - lookup should return null
 		Test.Assert(ctx.GetViewById(popupId) == null);
 	}
 

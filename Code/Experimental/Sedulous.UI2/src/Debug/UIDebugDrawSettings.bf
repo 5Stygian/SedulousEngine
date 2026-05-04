@@ -1,7 +1,7 @@
 namespace Sedulous.UI2;
 
 /// Flags controlling which debug overlays are drawn after the normal render pass.
-/// Zero overhead when all flags are false — AnyEnabled is checked before any work.
+/// Zero overhead when all flags are false - AnyEnabled is checked before any work.
 public struct UIDebugDrawSettings
 {
 	/// Red outline around every view's bounds.

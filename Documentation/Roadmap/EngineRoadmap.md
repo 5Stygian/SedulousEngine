@@ -110,11 +110,11 @@ No intermediate ComponentData classes needed - components serialize directly.
 | AI/behavior | SensorComponent | Perception system |
 | Wind system | SimpleWindComponent | Global wind fields |
 
-## Simulation Control — Per-Scene Simulation Enable + Time Scale
+## Simulation Control - Per-Scene Simulation Enable + Time Scale
 
 ### Problem
 
-The editor ticks RuntimeContext which runs all subsystems — physics simulates,
+The editor ticks RuntimeContext which runs all subsystems - physics simulates,
 animations play, particles emit. There's no distinction between "render the
 scene" and "simulate the scene." The editor needs to render without simulating.
 Games need pause/slow-motion without per-system hacks.
@@ -141,7 +141,7 @@ control. Modules have `startGame()`/`stopGame()` lifecycle hooks.
 - Controls whether simulation-phase update functions execute at all
 - Editor mode: `false` (no physics, no animation advance, no particle tick)
 - Play mode: `true`
-- No CPU cost for disabled simulation — functions don't run
+- No CPU cost for disabled simulation - functions don't run
 - Transforms always update (presentation-only)
 - Resource resolution always runs (presentation-only)
 
@@ -152,8 +152,8 @@ control. Modules have `startGame()`/`stopGame()` lifecycle hooks.
 - Systems that need to work during pause use unscaled/real time
 - Game-level pause: `TimeScale = 0`, UI/audio use unscaled time
 
-**Why both:** `SimulationEnabled = false` is a hard gate — functions don't
-execute, zero cost, no side effects. Used by editor. `TimeScale = 0` is soft —
+**Why both:** `SimulationEnabled = false` is a hard gate - functions don't
+execute, zero cost, no side effects. Used by editor. `TimeScale = 0` is soft -
 functions execute but time doesn't advance, input still processed, pause menus
 work. Used by games.
 
@@ -178,7 +178,7 @@ work. Used by games.
 | PropertyAnimationComponentManager | UpdatePropertyAnimations | YES |
 | ParticleComponentManager | UpdateParticles | YES |
 | MeshComponentManager | ResolveResources | NO |
-| SkinnedMeshComponentManager | UpdateSkinnedMeshes | SPLIT — resolve NO, bone upload YES |
+| SkinnedMeshComponentManager | UpdateSkinnedMeshes | SPLIT - resolve NO, bone upload YES |
 | LightComponentManager | PostUpdate | NO (debug draw) |
 | AudioSubsystem | Update | YES (except listener position) |
 | NavigationSubsystem | Update | YES |
@@ -186,17 +186,17 @@ work. Used by games.
 Some managers may need to split their update into two functions: resource
 resolution (always) and simulation (only when simulating).
 
-**Phase 3: Scene lifecycle — Start/Stop**
-- `Scene.Start()` — sets `SimulationEnabled = true`, calls
+**Phase 3: Scene lifecycle - Start/Stop**
+- `Scene.Start()` - sets `SimulationEnabled = true`, calls
   `OnSceneStarted()` on all component managers (initialize runtime state,
   connect signals, start AI, etc.)
-- `Scene.Stop()` — calls `OnSceneStopped()` on all component managers
+- `Scene.Stop()` - calls `OnSceneStopped()` on all component managers
   (cleanup runtime state), sets `SimulationEnabled = false`
 - `Scene.IsStarted` property for querying current state
 - Component managers override `OnSceneStarted()`/`OnSceneStopped()` for
   per-manager lifecycle (e.g. physics creates bodies, audio starts sources)
-- Editor play mode: serialize scene state → `scene.Start()` → ticking
-- Editor stop: `scene.Stop()` → restore serialized scene state
+- Editor play mode: serialize scene state -> `scene.Start()` -> ticking
+- Editor stop: `scene.Stop()` -> restore serialized scene state
 
 **Phase 4: TimeScale**
 - Add `Scene.TimeScale` property (default 1.0)

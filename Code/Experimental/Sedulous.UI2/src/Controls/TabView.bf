@@ -214,7 +214,7 @@ public class TabView : ViewGroup
 			let isActive = i == mSelectedIndex;
 			let isHovered = i == mHoveredTabIndex;
 
-			// Tab background — corners adjusted for placement
+			// Tab background - corners adjusted for placement
 			if (isActive)
 				DrawTabRegion(ctx, activeTabDrawable, rect);
 			else if (isHovered)

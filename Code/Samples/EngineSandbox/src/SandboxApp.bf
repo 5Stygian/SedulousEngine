@@ -1860,7 +1860,7 @@ class SandboxApp : EngineApplication
 		});
 		hudLayout.AddView(biasSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
 
-		// AA toggles — FXAA and TAA are mutually exclusive
+		// AA toggles - FXAA and TAA are mutually exclusive
 		let fxaaToggle = new CheckBox();
 		fxaaToggle.SetText("FXAA");
 		fxaaToggle.IsChecked = true;

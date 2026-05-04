@@ -35,7 +35,7 @@ public class Button : View
 	/// Whether the button is currently pressed (visual state).
 	public bool IsPressed => mIsPressed;
 
-	/// Text button constructor — creates a Label as content.
+	/// Text button constructor - creates a Label as content.
 	public this(StringView text)
 	{
 		IsFocusable = true;
@@ -44,7 +44,7 @@ public class Button : View
 		mContent = new Label(text);
 	}
 
-	/// Empty button — set Content manually.
+	/// Empty button - set Content manually.
 	public this()
 	{
 		IsFocusable = true;
@@ -105,7 +105,7 @@ public class Button : View
 		let state = GetControlState();
 		let radius = ResolveStyleFloat(.CornerRadius, 4);
 
-		// Background: per-instance → theme drawable → fallback
+		// Background: per-instance -> theme drawable -> fallback
 		if (Background != null)
 		{
 			Background.Draw(ctx, bounds, state);

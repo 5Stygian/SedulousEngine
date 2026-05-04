@@ -3,7 +3,7 @@ namespace Sedulous.UI2;
 using Sedulous.Core.Mathematics;
 
 /// Static positioning helpers for popups, tooltips, and menus.
-/// Pure calculations — no state.
+/// Pure calculations - no state.
 public static class PopupPositioner
 {
 	/// Position below anchor; if clips bottom, flip above. Clamp to screen.

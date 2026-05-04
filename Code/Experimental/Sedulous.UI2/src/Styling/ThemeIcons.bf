@@ -3,7 +3,7 @@ namespace Sedulous.UI2;
 using System;
 
 /// Built-in SVG icon definitions for theme drawable keys.
-/// These are string constants compiled into the binary — no file loading needed.
+/// These are string constants compiled into the binary - no file loading needed.
 /// Themes register these as SVGDrawables for icon style properties.
 public static class ThemeIcons
 {

@@ -48,7 +48,7 @@ class SDLImageWriter : IImageWriter
 		let bpp = Image.GetBytesPerPixel(image.Format);
 		let pitch = (int32)(image.Width * bpp);
 
-		// Create SDL surface from image pixel data (no copy — surface borrows the pointer)
+		// Create SDL surface from image pixel data (no copy - surface borrows the pointer)
 		let surface = SDL_CreateSurfaceFrom(
 			(int32)image.Width, (int32)image.Height,
 			sdlFormat, (void*)image.Data.Ptr, pitch);

@@ -59,7 +59,7 @@ public class TooltipManager
 		}
 	}
 
-	/// Called when mouse is pressed — hide tooltip unless interactive
+	/// Called when mouse is pressed - hide tooltip unless interactive
 	/// and click is on the tooltip itself.
 	public void OnMouseDown()
 	{

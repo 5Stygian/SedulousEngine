@@ -2,7 +2,7 @@ namespace Sedulous.UI2;
 
 using System;
 
-/// Physics-based kinetic scrolling helper. Struct — embed in ScrollView.
+/// Physics-based kinetic scrolling helper. Struct - embed in ScrollView.
 /// Call Update() each frame; apply the returned displacement to scroll offset.
 public struct MomentumHelper
 {

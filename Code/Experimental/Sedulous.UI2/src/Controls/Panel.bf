@@ -56,7 +56,7 @@ public class Panel : ViewGroup
 	{
 		let bounds = RectangleF(0, 0, Width, Height);
 
-		// Draw background: per-instance → theme drawable → fallback
+		// Draw background: per-instance -> theme drawable -> fallback
 		if (Background != null)
 			Background.Draw(ctx, bounds, GetControlState());
 		else

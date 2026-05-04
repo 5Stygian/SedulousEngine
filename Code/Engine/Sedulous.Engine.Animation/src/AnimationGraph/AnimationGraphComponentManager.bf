@@ -74,7 +74,7 @@ class AnimationGraphComponentManager : ComponentManager<AnimationGraphComponent>
 	{
 		let state = GetOrCreateResolveState(comp.Owner);
 
-		// Resolve skeleton from resource ref. Skip if no ref is set — the
+		// Resolve skeleton from resource ref. Skip if no ref is set - the
 		// skeleton may have been assigned directly (programmatic setup).
 		if (comp.SkeletonRef.IsValid)
 		{
@@ -85,7 +85,7 @@ class AnimationGraphComponentManager : ComponentManager<AnimationGraphComponent>
 			}
 		}
 
-		// Resolve graph from resource ref. Same logic — skip if no ref.
+		// Resolve graph from resource ref. Same logic - skip if no ref.
 		if (comp.GraphRef.IsValid)
 		{
 			if (state.Graph.Resolve(ResourceSystem, comp.GraphRef))

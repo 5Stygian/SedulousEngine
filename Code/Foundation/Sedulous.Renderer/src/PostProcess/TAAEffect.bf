@@ -125,7 +125,7 @@ class TAAEffect : PostProcessEffect
 		else
 			return .Err;
 
-		// Render pipeline — 2 color targets: chain output + history buffer
+		// Render pipeline - 2 color targets: chain output + history buffer
 		ColorTargetState[2] colorTargets = .(
 			.() { Format = .RGBA16Float },
 			.() { Format = .RGBA16Float }
@@ -161,7 +161,7 @@ class TAAEffect : PostProcessEffect
 
 		if (mHistoryTextures[0] == null || mHistoryTextures[1] == null)
 		{
-			// Can't run TAA without history — pass through
+			// Can't run TAA without history - pass through
 			// The stack handles this: output = input when we don't write
 			return;
 		}

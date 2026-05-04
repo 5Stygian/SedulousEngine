@@ -366,7 +366,7 @@ public class NumericField : View, ITextEditHost
 			ctx.VG.FillRect(.(btnX, halfH, ButtonWidth, halfH), downBg);
 		}
 
-		// Divider lines — use the background drawable's border color for consistency.
+		// Divider lines - use the background drawable's border color for consistency.
 		Color sepColor = btnBorder;
 		let bgDrawable = ResolveStyleDrawable(.Background);
 		if (let rrd = bgDrawable as RoundedRectDrawable)
@@ -378,7 +378,7 @@ public class NumericField : View, ITextEditHost
 		let arrowColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
 		let arrowSz = Math.Min(ButtonWidth, halfH) * 0.25f;
 
-		// Up arrow — try SVG icon, fallback to VG triangle.
+		// Up arrow - try SVG icon, fallback to VG triangle.
 		let upIcon = ResolveStyleDrawable(.ArrowUpIcon);
 		let cx = btnX + ButtonWidth * 0.5f;
 		if (upIcon != null)

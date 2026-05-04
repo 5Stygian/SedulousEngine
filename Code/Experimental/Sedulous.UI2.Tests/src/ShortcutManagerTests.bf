@@ -125,7 +125,7 @@ class ShortcutManagerTests
 		bool fired = false;
 		ctx.Shortcuts.AddScoped(.F2, .None, new [&fired] () => { fired = true; }, panel);
 
-		// Delete panel — should auto-remove scoped shortcuts
+		// Delete panel - should auto-remove scoped shortcuts
 		root.RemoveView(panel, true);
 
 		let result = ctx.Shortcuts.TryDispatch(.F2, .None);

@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 using Sedulous.Core.Mathematics;
 
-/// Inheritable style properties — these walk the parent chain if not
+/// Inheritable style properties - these walk the parent chain if not
 /// found on the view itself.
 public static class StyleInheritance
 {
@@ -36,7 +36,7 @@ public class StyleSheet : RefCounted
 {
 	private List<StyleRule> mRules = new .();
 
-	/// Owned drawables — StyleSheet deletes these on destruction.
+	/// Owned drawables - StyleSheet deletes these on destruction.
 	private List<Drawable> mOwnedDrawables = new .();
 
 	/// Owned resources (e.g., atlas textures that back drawables).

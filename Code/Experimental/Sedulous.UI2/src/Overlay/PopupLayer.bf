@@ -8,13 +8,13 @@ using Sedulous.Core.Mathematics;
 /// drawing, first for hit-testing). Manages popup lifecycle, modal backdrops,
 /// and click-outside dismissal.
 ///
-/// Popups are not regular children — they are tracked via PopupEntry and
+/// Popups are not regular children - they are tracked via PopupEntry and
 /// positioned/drawn/hit-tested independently of the normal layout system.
 public class PopupLayer : ViewGroup
 {
 	private List<PopupEntry> mEntries = new .();
 
-	// Reusable backdrop — not always attached as a child.
+	// Reusable backdrop - not always attached as a child.
 	private ModalBackdrop mBackdrop;
 
 	/// Whether any modal popup is active.
@@ -178,7 +178,7 @@ public class PopupLayer : ViewGroup
 
 				// Remove backdrop if no more modals.
 				if (!HasModalPopup && mBackdrop != null && mBackdrop.Parent != null)
-					RemoveView(mBackdrop, false); // don't delete — reuse
+					RemoveView(mBackdrop, false); // don't delete - reuse
 
 				Invalidate();
 				return;
@@ -202,7 +202,7 @@ public class PopupLayer : ViewGroup
 					ClosePopup(mEntries[i].Popup);
 					closed = true;
 					found = true;
-					break; // restart — list changed
+					break; // restart - list changed
 				}
 			}
 			if (!found) break;
@@ -227,7 +227,7 @@ public class PopupLayer : ViewGroup
 	}
 
 	// =================================================================
-	// Layout — position popups at their stored coordinates
+	// Layout - position popups at their stored coordinates
 	// =================================================================
 
 	protected override void OnMeasure(BoxConstraints constraints)
@@ -254,7 +254,7 @@ public class PopupLayer : ViewGroup
 	}
 
 	// =================================================================
-	// Hit testing — three-state
+	// Hit testing - three-state
 	// =================================================================
 
 	public override View HitTest(Vector2 localPoint)
@@ -281,12 +281,12 @@ public class PopupLayer : ViewGroup
 		if (HasModalPopup)
 			return this;
 
-		// No popups hit, no modal — pass through.
+		// No popups hit, no modal - pass through.
 		return null;
 	}
 
 	// =================================================================
-	// Drawing — backdrop then popups in order
+	// Drawing - backdrop then popups in order
 	// =================================================================
 
 	public override void OnDraw(UIDrawContext ctx)
@@ -338,7 +338,7 @@ public class PopupLayer : ViewGroup
 
 	public ~this()
 	{
-		// Clean up popup entries — detach non-owned, delete owned.
+		// Clean up popup entries - detach non-owned, delete owned.
 		// Must happen before ViewGroup's destructor deletes mChildren.
 		if (mEntries != null)
 		{

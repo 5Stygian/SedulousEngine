@@ -52,7 +52,7 @@ class GridViewTests
 		root.AddView(gv);
 		TestSetup.Layout(ctx, root);
 
-		// 300 / (60 + 4) = 4.68 → 4 columns
+		// 300 / (60 + 4) = 4.68 -> 4 columns
 		// Verify by checking that items at different positions are visible.
 		Test.Assert(gv.GetItemAtPoint(0, 0) == 0);
 		Test.Assert(gv.GetItemAtPoint(64, 0) == 1);

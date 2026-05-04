@@ -145,9 +145,9 @@ public class ViewGroup : View
 
 	/// Build child constraints from parent constraints and the child's LayoutParams SizeSpec.
 	/// Accounts for used space (padding, margin, consumed space).
-	///   Fixed → tight constraint at the resolved pixel size
-	///   Match → tight constraint at available space
-	///   Wrap  → loose constraint (min=0, max=available)
+	///   Fixed -> tight constraint at the resolved pixel size
+	///   Match -> tight constraint at available space
+	///   Wrap  -> loose constraint (min=0, max=available)
 	protected static BoxConstraints MakeChildConstraints(BoxConstraints parent, View child, float usedW = 0, float usedH = 0)
 	{
 		let lp = child.LayoutParams;
@@ -273,7 +273,7 @@ public class ViewGroup : View
 		}
 	}
 
-	// === Hit testing (reverse order — topmost visual child first) ===
+	// === Hit testing (reverse order - topmost visual child first) ===
 
 	public override View HitTest(Vector2 localPoint)
 	{
@@ -281,7 +281,7 @@ public class ViewGroup : View
 		if (!IsInteractionEnabled || Visibility != .Visible)
 			return null;
 
-		// Outside our bounds — no hit.
+		// Outside our bounds - no hit.
 		if (localPoint.X < 0 || localPoint.Y < 0 ||
 			localPoint.X >= Width || localPoint.Y >= Height)
 			return null;
@@ -336,7 +336,7 @@ public class ViewGroup : View
 				return hit;
 		}
 
-		// No child hit — return this container if it's a hit target.
+		// No child hit - return this container if it's a hit target.
 		if (!IsHitTestVisible)
 			return null;
 

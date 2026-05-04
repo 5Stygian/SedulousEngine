@@ -110,8 +110,8 @@ FragmentOutput main(FragmentInput input)
     history = ClipToAABB(history, neighborMin, neighborMax);
 
     // Luminance-adaptive blend factor (Lumix approach):
-    // When current and history luminance match closely → high blend (stable).
-    // When they differ (specular flash, disocclusion) → low blend (responsive).
+    // When current and history luminance match closely -> high blend (stable).
+    // When they differ (specular flash, disocclusion) -> low blend (responsive).
     float lum0 = Luminance(current);
     float lum1 = Luminance(history);
     float lumaDiff = 1.0 - abs(lum0 - lum1) / max(lum0, max(lum1, 0.1));

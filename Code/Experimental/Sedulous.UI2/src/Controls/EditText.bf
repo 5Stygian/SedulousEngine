@@ -267,7 +267,7 @@ public class EditText : View, ITextEditHost
 		if (hitX <= 0)
 			return lineCharStart;
 
-		// Line has content — use shaper hit test.
+		// Line has content - use shaper hit test.
 		let result = font.Shaper.HitTestWrapped(font.Font, mGlyphPositions, hitX, hitY, lineH);
 		return GlyphToCharIndex(result.InsertionIndex, result.IsTrailingHit);
 	}
@@ -289,7 +289,7 @@ public class EditText : View, ITextEditHost
 			}
 			idx++;
 		}
-		// Line beyond text — return past end.
+		// Line beyond text - return past end.
 		return ((ITextEditHost)this).TextCharCount;
 	}
 

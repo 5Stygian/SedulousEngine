@@ -23,7 +23,7 @@ public static class RoundedDarkTheme
 			.Set(.TextColor, p.Text)
 			.Set(.FontSize, 16.0f);
 
-		// === Button — rounded state drawables ===
+		// === Button - rounded state drawables ===
 		let btnBg = new StateListDrawable(true);
 		btnBg.Set(.Normal, new RoundedRectDrawable(p.SurfaceBright, R));
 		btnBg.Set(.Hover, new RoundedRectDrawable(Palette.ComputeHover(p.SurfaceBright), R));
@@ -70,7 +70,7 @@ public static class RoundedDarkTheme
 			.Set(.CursorColor, p.PrimaryAccent)
 			.Set(.SelectionColor, Color(60, 120, 200, 80));
 
-		// === NumericField spin buttons — rounded right corners ===
+		// === NumericField spin buttons - rounded right corners ===
 		{
 			let spinColor = Color(50, 55, 68, 255);
 			let spinUp = Palette.CreateStateRounded(spinColor, .(0, R, 0, 0));
@@ -82,7 +82,7 @@ public static class RoundedDarkTheme
 				.Set(.SpinDownDrawable, spinDown);
 		}
 
-		// === CheckBox — rounded ===
+		// === CheckBox - rounded ===
 		let cbBorder = Color(100, 105, 120, 255);
 		let cbUnchecked = new RoundedRectDrawable(.(30, 32, 42, 255), 3, cbBorder, 1);
 		let cbChecked = new RoundedRectDrawable(p.PrimaryAccent, 3, cbBorder, 1);
@@ -94,7 +94,7 @@ public static class RoundedDarkTheme
 			.Set(.BoxSize, 18.0f)
 			.Set(.Spacing, 6.0f);
 
-		// === RadioButton — circular ===
+		// === RadioButton - circular ===
 		let rbBorder = Color(100, 105, 120, 255);
 		let rbUnchecked = new RoundedRectDrawable(.(30, 32, 42, 255), 9, rbBorder, 1);
 		let rbChecked = new RoundedRectDrawable(p.PrimaryAccent, 9, rbBorder, 1);
@@ -104,7 +104,7 @@ public static class RoundedDarkTheme
 			.Set(.BoxDrawable, rbUnchecked)
 			.Set(.CheckedBackground, rbChecked);
 
-		// === Slider — rounded track and thumb ===
+		// === Slider - rounded track and thumb ===
 		let sliderTrack = new RoundedRectDrawable(.(50, 52, 62, 255), 2);
 		let sliderFill = new RoundedRectDrawable(p.PrimaryAccent, 2);
 		let sliderThumb = new RoundedRectDrawable(.(220, 220, 230, 255), 8);
@@ -118,7 +118,7 @@ public static class RoundedDarkTheme
 			.Set(.ThumbSize, 16.0f)
 			.Set(.TrackHeight, 4.0f);
 
-		// === ProgressBar — rounded ===
+		// === ProgressBar - rounded ===
 		let progTrack = new RoundedRectDrawable(.(50, 52, 62, 255), 4);
 		let progFill = new RoundedRectDrawable(p.PrimaryAccent, 4);
 		sheet.OwnDrawable(progTrack);
@@ -127,7 +127,7 @@ public static class RoundedDarkTheme
 			.Set(.TrackDrawable, progTrack)
 			.Set(.FillDrawable, progFill);
 
-		// === ToggleSwitch — pill-shaped track (with border) and round knob ===
+		// === ToggleSwitch - pill-shaped track (with border) and round knob ===
 		let switchTrackOff = new RoundedRectDrawable(p.Surface, 12, p.Border, 1);
 		let switchTrackOn = new RoundedRectDrawable(p.PrimaryAccent, 12, p.Border, 1);
 		let switchKnob = new RoundedRectDrawable(.(230, 230, 235, 255), 10);
@@ -147,7 +147,7 @@ public static class RoundedDarkTheme
 			.Set(.Background, comboBg)
 			.Set(.ArrowColor, Color(180, 185, 200, 255));
 
-		// === ScrollBar — rounded ===
+		// === ScrollBar - rounded ===
 		let scrollTrack = new RoundedRectDrawable(.(40, 42, 50, 150), 5);
 		let scrollThumb = new RoundedRectDrawable(.(100, 110, 130, 200), 5);
 		sheet.OwnDrawable(scrollTrack);
@@ -170,7 +170,7 @@ public static class RoundedDarkTheme
 			.Set(.HeaderHoverDrawable, expanderHover)
 			.Set(.ArrowColor, Color(180, 185, 200, 255));
 
-		// === TabView — rounded tab backgrounds ===
+		// === TabView - rounded tab backgrounds ===
 		{
 			let tabR = 4.0f;
 			let stripBg = new RoundedRectDrawable(Palette.Darken(p.Surface, 0.15f), tabR);

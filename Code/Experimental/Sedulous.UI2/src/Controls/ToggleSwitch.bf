@@ -69,7 +69,7 @@ public class ToggleSwitch : View
 		let trackY = (Height - TrackHeight) * 0.5f;
 		let trackRect = RectangleF(0, trackY, TrackWidth, TrackHeight);
 
-		// Track — use drawable if available, fallback to squared rect
+		// Track - use drawable if available, fallback to squared rect
 		let trackDrawable = mIsChecked ? ResolveStyleDrawable(.TrackOnDrawable) : ResolveStyleDrawable(.TrackDrawable);
 		if (trackDrawable != null)
 			trackDrawable.Draw(ctx, trackRect);

@@ -4,7 +4,7 @@ using System;
 using Sedulous.Core.Mathematics;
 
 /// Stateful button that toggles between checked and unchecked.
-/// Content-bearing — set Content for custom content, or construct with text.
+/// Content-bearing - set Content for custom content, or construct with text.
 public class ToggleButton : View
 {
 	private View mContent ~ delete _;

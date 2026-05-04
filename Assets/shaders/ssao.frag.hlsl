@@ -70,7 +70,7 @@ float main(FragmentInput input) : SV_Target
 
     // Read depth and reconstruct view-space position
     float depth = DepthTexture.Sample(PointSampler, uv).r;
-    if (depth >= 1.0) return 1.0; // sky — no occlusion
+    if (depth >= 1.0) return 1.0; // sky - no occlusion
 
     float3 viewPos = ReconstructViewPos(uv, depth);
 

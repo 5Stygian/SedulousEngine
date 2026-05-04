@@ -120,7 +120,7 @@ public class ComboBox : View, IPopupOwner
 			ctx.VG.FillRect(bounds, bgColor);
 		}
 
-		// Border — accent when open
+		// Border - accent when open
 		if (mIsOpen)
 		{
 			let accentColor = ResolveStyleColor(.AccentColor, .(80, 160, 255, 255));
@@ -242,7 +242,7 @@ public class ComboBox : View, IPopupOwner
 		Invalidate();
 	}
 
-	/// IPopupOwner — called when dropdown is closed externally.
+	/// IPopupOwner - called when dropdown is closed externally.
 	public void OnPopupClosed(View popup)
 	{
 		mIsOpen = false;
@@ -300,7 +300,7 @@ class ComboBoxDropdown : View
 		{
 			let itemRect = RectangleF(4, y, Width - 8, mItemHeight);
 
-			// Selected item highlight — use hover drawable shape but different color
+			// Selected item highlight - use hover drawable shape but different color
 			if (i == mOwner.SelectedIndex)
 			{
 				if (let rrd = hoverDrawable as RoundedRectDrawable)

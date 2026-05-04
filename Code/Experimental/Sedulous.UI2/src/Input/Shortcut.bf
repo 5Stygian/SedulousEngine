@@ -2,7 +2,7 @@ namespace Sedulous.UI2;
 
 using System;
 
-/// A keyboard shortcut binding: key + modifiers → action.
+/// A keyboard shortcut binding: key + modifiers -> action.
 public class Shortcut
 {
 	/// The key that triggers this shortcut.
@@ -17,7 +17,7 @@ public class Shortcut
 	/// The action to execute when the shortcut fires.
 	public delegate void() Action ~ delete _;
 
-	/// Optional scope view — shortcut only fires when this view or a descendant
+	/// Optional scope view - shortcut only fires when this view or a descendant
 	/// has focus. Null = global shortcut (fires regardless of focus).
 	public View Scope;
 

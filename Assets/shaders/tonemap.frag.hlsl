@@ -41,7 +41,7 @@ float4 main(FragmentInput input) : SV_Target
 
     // Apply SSAO: multiply by ambient occlusion factor before bloom/tonemap.
     // AOTexture is R8 where 1.0 = no occlusion, 0.0 = fully occluded.
-    // When SSAO is disabled, the fallback is a white (1.0) texture — no darkening.
+    // When SSAO is disabled, the fallback is a white (1.0) texture - no darkening.
     float ao = AOTexture.Sample(LinearSampler, uv).r;
     hdr *= ao;
 

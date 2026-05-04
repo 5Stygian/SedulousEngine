@@ -87,7 +87,7 @@ class SkeletalAnimationComponentManager : ComponentManager<SkeletalAnimationComp
 	{
 		let state = GetOrCreateResolveState(comp.Owner);
 
-		// Resolve skeleton from resource ref. Skip if no ref is set — the
+		// Resolve skeleton from resource ref. Skip if no ref is set - the
 		// skeleton may have been assigned directly (programmatic setup).
 		if (comp.SkeletonRef.IsValid)
 		{
@@ -98,7 +98,7 @@ class SkeletalAnimationComponentManager : ComponentManager<SkeletalAnimationComp
 			}
 		}
 
-		// Resolve clip from resource ref. Same logic — skip if no ref.
+		// Resolve clip from resource ref. Same logic - skip if no ref.
 		if (comp.ClipRef.IsValid)
 		{
 			if (state.Clip.Resolve(ResourceSystem, comp.ClipRef))

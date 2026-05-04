@@ -3,7 +3,7 @@ namespace Sedulous.UI2;
 using System;
 using Sedulous.Core.Mathematics;
 
-/// Radio button — cannot be unchecked by click.
+/// Radio button - cannot be unchecked by click.
 /// Use RadioGroup for mutual exclusion.
 public class RadioButton : View
 {

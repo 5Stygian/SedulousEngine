@@ -7,7 +7,7 @@ using Sedulous.Shaders;
 using Sedulous.Profiler;
 
 /// Fast Approximate Anti-Aliasing (FXAA 3.11 quality variant).
-/// Spatial anti-aliasing operating on LDR color — runs after tone mapping.
+/// Spatial anti-aliasing operating on LDR color - runs after tone mapping.
 /// Single fullscreen pass with luminance-based edge detection and directional search.
 class FXAAEffect : PostProcessEffect
 {
@@ -104,7 +104,7 @@ class FXAAEffect : PostProcessEffect
 			return .Err;
 
 		// Render pipeline (fullscreen triangle, no vertex buffers)
-		// Output format matches pipeline output — FXAA runs after tonemap on LDR
+		// Output format matches pipeline output - FXAA runs after tonemap on LDR
 		// but the pipeline output is still RGBA16Float (the blit handles final format).
 		ColorTargetState[1] colorTargets = .(.() { Format = .RGBA16Float });
 

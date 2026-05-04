@@ -42,7 +42,7 @@ Targeted feature set for game-readiness. Not a port of the old renderer - each f
 ### PBR Shading
 - **Height-correlated Smith GGX** visibility (joint approximation) for accurate specular
 - **Fresnel firefly prevention** via F90 clamping: `saturate(50 * luminance(F0))`
-- **Geometric specular AA** (Tokuyoshi & Kaplanyan 2019) — ddx/ddy normal-based roughness widening
+- **Geometric specular AA** (Tokuyoshi & Kaplanyan 2019) - ddx/ddy normal-based roughness widening
 
 ### Debug & Development
 - **DebugDraw** - immediate-mode API: lines, wire shapes, screen text/rects, 3D-positioned text
@@ -66,12 +66,12 @@ between begin/end share the shadow atlas and frame allocator without clobbering
 each other. Each scene renders only its own shadow jobs via range-based dispatch.
 
 Per-scene resources on Pipeline (not shared on RenderContext):
-- **LightBuffer** — each scene uploads its own lights; forward pass binds the
+- **LightBuffer** - each scene uploads its own lights; forward pass binds the
   pipeline's buffer. Prevents lighting bleed between scenes.
-- **Line vertex buffers** — each pipeline has its own per-frame debug line VBs.
+- **Line vertex buffers** - each pipeline has its own per-frame debug line VBs.
   DebugPass uploads merged local+global vertices into the pipeline's buffer.
   Prevents gizmo/debug draw bleed between scenes.
-- **PrevViewProjectionMatrix** — each pipeline tracks its own camera history
+- **PrevViewProjectionMatrix** - each pipeline tracks its own camera history
   for correct per-scene motion vectors.
 
 Shared on RenderContext (read-only or spatially partitioned):

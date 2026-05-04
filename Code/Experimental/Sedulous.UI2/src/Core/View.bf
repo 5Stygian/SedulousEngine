@@ -96,7 +96,7 @@ public abstract class View
 	/// Set to .Default to inherit from the parent chain.
 	public CursorType Cursor = .Default;
 
-	/// Effective cursor — walks the parent chain, returning the first non-Default value.
+	/// Effective cursor - walks the parent chain, returning the first non-Default value.
 	public CursorType EffectiveCursor
 	{
 		get
@@ -188,7 +188,7 @@ public abstract class View
 	/// (translation, rotation, scale). This is correct for normal use because
 	/// mouse events go through HitTest first, which applies inverse transforms
 	/// to identify the hit target. For views with non-identity transforms, the
-	/// coordinates will be relative to the untransformed layout position — this
+	/// coordinates will be relative to the untransformed layout position - this
 	/// matches the local coordinate space that OnDraw receives.
 	public Vector2 ScreenToLocal(Vector2 screen)
 	{
@@ -236,7 +236,7 @@ public abstract class View
 		OnLayout(x, y, width, height);
 	}
 
-	// === Virtual methods — override in subclasses ===
+	// === Virtual methods - override in subclasses ===
 
 	/// Compute desired size given constraints. Set MeasuredSize.
 	protected virtual void OnMeasure(BoxConstraints constraints)
@@ -398,7 +398,7 @@ public abstract class View
 	}
 
 	/// Queue removal from parent AND deletion (deferred to next drain point).
-	/// After this call the view will be deleted — do not reference it.
+	/// After this call the view will be deleted - do not reference it.
 	public void QueueDestroy()
 	{
 		if (Context == null || IsPendingDeletion) return;

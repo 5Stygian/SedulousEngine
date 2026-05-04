@@ -101,7 +101,7 @@ public class Expander : ViewGroup
 		let fontSize = ResolveStyleFloat(.FontSize, 16);
 		let headerRect = RectangleF(0, 0, Width, HeaderHeight);
 
-		// Header background — try hover drawable first, then normal
+		// Header background - try hover drawable first, then normal
 		let hoverDrawable = IsHovered ? ResolveStyleDrawable(.HeaderHoverDrawable) : null;
 		let headerDrawable = hoverDrawable ?? ResolveStyleDrawable(.HeaderDrawable);
 		if (headerDrawable != null)

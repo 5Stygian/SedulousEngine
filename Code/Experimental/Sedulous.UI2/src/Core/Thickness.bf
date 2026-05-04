@@ -1,6 +1,6 @@
 namespace Sedulous.UI2;
 
-/// Thickness for padding, margin, and border — with symmetric constructors.
+/// Thickness for padding, margin, and border - with symmetric constructors.
 public struct Thickness
 {
 	public float Left, Top, Right, Bottom;

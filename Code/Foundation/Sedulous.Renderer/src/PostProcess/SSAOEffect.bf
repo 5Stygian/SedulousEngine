@@ -9,10 +9,10 @@ using Sedulous.Core.Mathematics;
 
 /// Screen-Space Ambient Occlusion effect.
 /// Produces an "AOTexture" auxiliary texture that the tonemap shader reads
-/// to darken occluded areas. Does not modify the color chain directly —
+/// to darken occluded areas. Does not modify the color chain directly -
 /// passes ctx.Input through to ctx.Output unchanged.
 ///
-/// Two-pass: SSAO generation (depth + normals → AO) is done here.
+/// Two-pass: SSAO generation (depth + normals -> AO) is done here.
 /// The AO texture is applied by TonemapEffect as a multiply on scene color.
 class SSAOEffect : PostProcessEffect
 {
@@ -138,7 +138,7 @@ class SSAOEffect : PostProcessEffect
 		TransferHelper.WriteMappedBuffer(mKernelBuffer, 0,
 			Span<uint8>((uint8*)&mKernelSamples[0], 256));
 
-		// Render pipeline — output is R8Unorm (single channel AO)
+		// Render pipeline - output is R8Unorm (single channel AO)
 		ColorTargetState[1] colorTargets = .(.() { Format = .R8Unorm });
 
 		RenderPipelineDesc pipelineDesc = .()
@@ -277,7 +277,7 @@ class SSAOEffect : PostProcessEffect
 				});
 		});
 
-		// Pass 2: Bilateral blur raw AO → final AO
+		// Pass 2: Bilateral blur raw AO -> final AO
 		graph.AddRenderPass("SSAO Blur", scope (builder) => {
 			builder
 				.ReadTexture(rawAoHandle)
@@ -289,7 +289,7 @@ class SSAOEffect : PostProcessEffect
 				});
 		});
 
-		// Pass through color chain unchanged — tonemap reads AOTexture aux
+		// Pass through color chain unchanged - tonemap reads AOTexture aux
 		ctx.Output = ctx.Input;
 
 		} // SSAO profiler scope
@@ -378,7 +378,7 @@ class SSAOEffect : PostProcessEffect
 			// Random direction in hemisphere (Z > 0)
 			float x = hashX[i] * 2.0f - 1.0f;
 			float y = hashY[i] * 2.0f - 1.0f;
-			float z = hashZ[i]; // [0, 1] — hemisphere
+			float z = hashZ[i]; // [0, 1] - hemisphere
 
 			var sample = Vector3(x, y, z);
 			sample = Vector3.Normalize(sample);

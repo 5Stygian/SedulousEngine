@@ -43,7 +43,7 @@ class SkinnedMeshComponentManager : ComponentManager<SkinnedMeshComponent>, IRen
 		// Resource resolution always runs (presentation).
 		RegisterUpdate(.PostUpdate, new => ResolveSkinnedMeshResources);
 
-		// Bone matrix upload only runs during simulation — animation must have evaluated first.
+		// Bone matrix upload only runs during simulation - animation must have evaluated first.
 		// Bind-pose matrices are uploaded once during resource resolution so skinned meshes
 		// are visible even without simulation (editor mode).
 		RegisterUpdate(.PostUpdate, new => UploadBoneMatrices, simulationOnly: true);
@@ -63,7 +63,7 @@ class SkinnedMeshComponentManager : ComponentManager<SkinnedMeshComponent>, IRen
 	}
 
 	/// Reads bone matrices from animation components and uploads to GPU.
-	/// Simulation only — requires animation evaluation to have run first.
+	/// Simulation only - requires animation evaluation to have run first.
 	/// Bind-pose is uploaded once during resource resolution for editor visibility.
 	private void UploadBoneMatrices(float deltaTime)
 	{
@@ -145,7 +145,7 @@ class SkinnedMeshComponentManager : ComponentManager<SkinnedMeshComponent>, IRen
 			comp.MeshHandle = meshHandle;
 			comp.LocalBounds = bounds;
 
-			// Create bone buffer — prefer skeleton from animation component,
+			// Create bone buffer - prefer skeleton from animation component,
 			// fall back to mesh's RequiredBoneCount for T-pose rendering.
 			if (!comp.BoneBufferHandle.IsValid && GPUResources != null)
 			{

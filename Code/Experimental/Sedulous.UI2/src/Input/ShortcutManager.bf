@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 
 /// Manages global and scoped keyboard shortcuts. Owned by UIContext.
-/// Dispatch order: focused view key handlers → ShortcutManager → IAcceleratorHandler.
+/// Dispatch order: focused view key handlers -> ShortcutManager -> IAcceleratorHandler.
 public class ShortcutManager
 {
 	private UIContext mContext;

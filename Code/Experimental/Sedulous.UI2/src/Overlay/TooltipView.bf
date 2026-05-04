@@ -3,7 +3,7 @@ namespace Sedulous.UI2;
 using System;
 using Sedulous.Core.Mathematics;
 
-/// Tooltip container with themed background. Content is any View — defaults
+/// Tooltip container with themed background. Content is any View - defaults
 /// to a simple text label, but custom views can be set.
 public class TooltipView : ViewGroup
 {

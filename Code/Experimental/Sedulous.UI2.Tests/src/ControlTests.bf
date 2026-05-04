@@ -558,15 +558,15 @@ class ControlTests
 		downArgs.Set(10, 10, .Left);
 		btn.OnMouseDown(downArgs);
 
-		// Before delay — no repeats
+		// Before delay - no repeats
 		btn.UpdateRepeat(0.05f);
 		Test.Assert(clickCount == 0);
 
-		// After delay — first repeat
+		// After delay - first repeat
 		btn.UpdateRepeat(0.06f); // total 0.11 > 0.1
 		Test.Assert(clickCount >= 1);
 
-		// More time — more repeats
+		// More time - more repeats
 		let countBefore = clickCount;
 		btn.UpdateRepeat(0.1f);
 		Test.Assert(clickCount > countBefore);

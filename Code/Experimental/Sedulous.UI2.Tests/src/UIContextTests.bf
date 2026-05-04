@@ -114,7 +114,7 @@ class UIContextTests
 		let child = new TestView();
 		// Build subtree before attaching
 		group.AddView(child);
-		// Now attach to root — should register both
+		// Now attach to root - should register both
 		root.AddView(group);
 
 		Test.Assert(ctx.GetViewById(group.Id) === group);

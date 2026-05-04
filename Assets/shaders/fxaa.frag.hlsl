@@ -1,6 +1,6 @@
 // FXAA Fragment Shader
 // Fast Approximate Anti-Aliasing (quality variant).
-// Operates on LDR color after tone mapping — needs perceptual luminance.
+// Operates on LDR color after tone mapping - needs perceptual luminance.
 // See CONVENTIONS.md for shader rules.
 
 cbuffer FXAAParams : register(b0)

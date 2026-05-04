@@ -4,7 +4,7 @@ using System;
 using System.Collections;
 
 /// Manages keyboard focus and mouse capture. Focused and captured views
-/// are stored as ViewIds for deletion safety — if a view is deleted,
+/// are stored as ViewIds for deletion safety - if a view is deleted,
 /// lookups return null rather than dangling.
 public class FocusManager
 {
@@ -77,9 +77,9 @@ public class FocusManager
 				SetFocus(view);
 				return;
 			}
-			// Dead ID — skip and try the next one.
+			// Dead ID - skip and try the next one.
 		}
-		// Stack empty or all dead — leave focus cleared.
+		// Stack empty or all dead - leave focus cleared.
 	}
 
 	/// Current depth of the focus stack.
@@ -143,7 +143,7 @@ public class FocusManager
 	// Deletion safety
 	// =================================================================
 
-	/// Notify that a view was deleted — clear any references to it.
+	/// Notify that a view was deleted - clear any references to it.
 	public void OnViewDeleted(View view)
 	{
 		if (mFocusedId == view.Id) mFocusedId = .Invalid;
@@ -180,7 +180,7 @@ public class FocusManager
 			if (aIdx > 0 && bIdx > 0) return aIdx <=> bIdx;
 			if (aIdx > 0 && bIdx == 0) return -1; // explicit before natural
 			if (aIdx == 0 && bIdx > 0) return 1;
-			return 0; // both 0 → preserve tree order
+			return 0; // both 0 -> preserve tree order
 		});
 	}
 
