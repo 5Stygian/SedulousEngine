@@ -90,6 +90,48 @@ public class SVGDrawable : Drawable
 			for (let child in element.Children)
 				RenderElement(vg, child);
 		}
+		else if (element.Type == .Text)
+		{
+			if (element.TextContent != null && element.TextContent.Length > 0 && vg.FontService != null)
+			{
+				// The current VG transform scales from SVG viewBox to screen pixels.
+				// Font glyphs are rasterized at a fixed pixel size, so we need to:
+				// 1. Compute the effective pixel font size (SVG fontSize * scale)
+				// 2. Convert SVG coordinates to screen coordinates
+				// 3. Draw text without the SVG scale (reset to pre-scale transform)
+				let transform = vg.GetTransform();
+				let scaleX = Math.Sqrt(transform.M11 * transform.M11 + transform.M12 * transform.M12);
+				let scaleY = Math.Sqrt(transform.M21 * transform.M21 + transform.M22 * transform.M22);
+				let effectiveFontSize = element.FontSize * scaleY;
+
+				let font = vg.FontService.GetFont(effectiveFontSize);
+				if (font != null)
+				{
+					let color = TintColor ?? element.FillColor ?? Color.Black;
+
+					// Convert SVG position to screen pixels via the current transform.
+					let screenX = transform.M11 * element.TextX + transform.M21 * element.TextY + transform.M41;
+					let screenY = transform.M12 * element.TextX + transform.M22 * element.TextY + transform.M42;
+
+					// Apply text-anchor alignment in screen space.
+					let textW = font.Font.MeasureString(element.TextContent);
+					float x = screenX;
+					switch (element.TextAnchor)
+					{
+					case .Middle: x -= textW * 0.5f;
+					case .End:    x -= textW;
+					case .Start:
+					}
+
+					// SVG Y is baseline. DrawText position Y is also baseline (glyph quads offset from it).
+					// Draw with identity transform so glyph pixels aren't double-scaled.
+					vg.PushState();
+					vg.SetTransform(Matrix.Identity);
+					vg.DrawText(element.TextContent, font, .(x, screenY), color);
+					vg.PopState();
+				}
+			}
+		}
 		else if (element.Path != null)
 		{
 			if (element.FillColor.HasValue)
