@@ -7,8 +7,8 @@ using Sedulous.Core.Mathematics;
 using Sedulous.RHI;
 using Sedulous.Runtime.Client;
 using Sedulous.Runtime;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Runtime;
+using Sedulous.UI;
+using Sedulous.UI.Runtime;
 using Sedulous.Fonts;
 using Sedulous.Audio;
 using Sedulous.Audio.SDL3;
@@ -41,12 +41,14 @@ class AudioSandboxApp : Application
 	private bool mIsPlaying = false;
 
 	// UI system
-	private LegacyUISubsystem mUI;
+	private UISubsystem mUI;
+	private UIContext mUIContext;
+	private RootView mRoot;
 
 	// UI Elements (for updating)
 	private Label mNowPlayingLabel;
 	private Label mVolumeLabel;
-	private LinearLayout mTrackList;
+	private FlexLayout mTrackList;
 	private Button mPlayPauseButton;
 
 	public this() : base()
@@ -59,15 +61,22 @@ class AudioSandboxApp : Application
 		if (!InitializeAudio())
 			return;
 
-		// Initialize UI subsystem
-		UIRegistry.RegisterBuiltins();
+		// Create UI context and root
+		mUIContext = new UIContext();
+		mRoot = new RootView();
 
-		mUI = new LegacyUISubsystem();
+		// Set default theme
+		let sheet = DarkTheme.Create();
+		mUIContext.StyleSheet = sheet;
+		sheet.ReleaseRef();
+
+		// Initialize UI subsystem
+		mUI = new UISubsystem();
 		context.RegisterSubsystem(mUI);
 
 		String shaderPath = scope .();
 		GetAssetPath("shaders", shaderPath);
-		if (mUI.InitializeRendering(mDevice, mSwapChain.Format, (int32)mSwapChain.BufferCount, scope StringView[](shaderPath), mShell, mWindow) case .Err)
+		if (mUI.InitializeRendering(mUIContext, mRoot, mDevice, mSwapChain.Format, (int32)mSwapChain.BufferCount, scope StringView[](shaderPath), mShell, mWindow) case .Err)
 		{
 			Console.WriteLine("Failed to initialize UI rendering");
 			return;
@@ -76,14 +85,8 @@ class AudioSandboxApp : Application
 		// Load font
 		String fontPath = scope .();
 		GetAssetPath("fonts/roboto/Roboto-Regular.ttf", fontPath);
-		FontLoadOptions fontOptions = .ExtendedLatin;
-		fontOptions.PixelHeight = 16;
-		mUI.LoadFont("Roboto", fontPath, fontOptions);
-
-		// Also load a larger size for the title
-		FontLoadOptions titleFontOptions = .ExtendedLatin;
-		titleFontOptions.PixelHeight = 20;
-		mUI.LoadFont("Roboto", fontPath, titleFontOptions);
+		mUI.LoadFont("Roboto", fontPath, .() { PixelHeight = 16 });
+		mUI.LoadFont("Roboto", fontPath, .() { PixelHeight = 20 });
 
 		// Build UI
 		BuildUI();
@@ -112,94 +115,76 @@ class AudioSandboxApp : Application
 
 	private void BuildUI()
 	{
-		let root = mUI.Root;
-		if (root == null)
-			return;
-
 		// Main vertical layout: header | track list (fills) | controls bar
-		let mainLayout = new LinearLayout();
-		mainLayout.Orientation = .Vertical;
-		root.AddView(mainLayout, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+		let mainLayout = new FlexLayout();
+		mainLayout.Direction = .Vertical;
+		mRoot.AddView(mainLayout);
 
 		// Header
-		let header = new LinearLayout();
-		header.Orientation = .Vertical;
+		let header = new FlexLayout();
+		header.Direction = .Vertical;
 		header.Padding = .(20, 15, 20, 15);
 		header.Spacing = 5;
-		//header.StyleId = "Header";
 
-		let title = new Label();
-		title.SetText("Audio Player");
+		let title = new Label("Audio Player");
 		title.FontSize = 20;
 		header.AddView(title);
 
-		mNowPlayingLabel = new Label();
-		mNowPlayingLabel.SetText("No track selected");
-		mNowPlayingLabel.TextColor = .(150, 150, 160);
-		header.AddView(mNowPlayingLabel);
+		mNowPlayingLabel = new Label("No track selected");
+		header.AddView(mNowPlayingLabel, new FlexLayout.LayoutParams() { Width = .Match });
 
-		mainLayout.AddView(header, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+		mainLayout.AddView(header, new FlexLayout.LayoutParams() { Width = .Match });
 
 		// Track list (scrollable, fills remaining space)
 		let scrollView = new ScrollView();
-		scrollView.VScrollPolicy = .Auto;
-		scrollView.HScrollPolicy = .Never;
+		scrollView.VScrollBarPolicy = .Auto;
+		scrollView.HScrollBarPolicy = .Never;
 
-		mTrackList = new LinearLayout();
-		mTrackList.Orientation = .Vertical;
+		mTrackList = new FlexLayout();
+		mTrackList.Direction = .Vertical;
 		mTrackList.Spacing = 2;
 		mTrackList.Padding = .(10);
-		scrollView.AddView(mTrackList, new LayoutParams() { Width = LayoutParams.MatchParent });
+		scrollView.AddView(mTrackList, new LayoutParams() { Width = .Match });
 
-		mainLayout.AddView(scrollView, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Weight = 1 });
+		mainLayout.AddView(scrollView, new FlexLayout.LayoutParams() { Width = .Match, Grow = 1 });
 
 		// Controls bar
-		let controlsBar = new LinearLayout();
-		controlsBar.Orientation = .Horizontal;
+		let controlsBar = new FlexLayout();
+		controlsBar.Direction = .Horizontal;
 		controlsBar.Spacing = 15;
 		controlsBar.Padding = .(20, 10, 20, 10);
-		//controlsBar.StyleId = "ControlsBar";
+		controlsBar.AlignItems = .Center;
+		controlsBar.JustifyContent = .Center;
 
 		// Play/Pause button
-		mPlayPauseButton = new Button();
-		mPlayPauseButton.Text = new .("Play");
-		mPlayPauseButton.Padding = .(20, 8, 20, 8);
+		mPlayPauseButton = new Button("Play");
 		mPlayPauseButton.OnClick.Add(new (btn) => TogglePlayPause());
 		controlsBar.AddView(mPlayPauseButton);
 
 		// Stop button
-		let stopBtn = new Button();
-		stopBtn.Text = new .("Stop");
-		stopBtn.Padding = .(20, 8, 20, 8);
+		let stopBtn = new Button("Stop");
 		stopBtn.OnClick.Add(new (btn) => StopPlayback());
 		controlsBar.AddView(stopBtn);
 
 		// Spacer
-		let spacer = new Spacer();
-		spacer.SpacerWidth = 20;
-		controlsBar.AddView(spacer);
+		controlsBar.AddView(new Spacer(20, 0));
 
 		// Volume down
-		let volDown = new Button();
-		volDown.Text = new .("-");
-		volDown.Padding = .(12, 8, 12, 8);
+		let volDown = new Button("-");
 		volDown.OnClick.Add(new (btn) => AdjustVolume(-0.1f));
 		controlsBar.AddView(volDown);
 
 		// Volume label
-		mVolumeLabel = new Label();
-		mVolumeLabel.SetText("70%");
+		mVolumeLabel = new Label("70%");
 		mVolumeLabel.HAlign = .Center;
-		controlsBar.AddView(mVolumeLabel, new LinearLayout.LayoutParams() { Width = 50, Gravity = .CenterV });
+		controlsBar.AddView(mVolumeLabel);
 
 		// Volume up
-		let volUp = new Button();
-		volUp.Text = new .("+");
-		volUp.Padding = .(12, 8, 12, 8);
+		let volUp = new Button("+");
 		volUp.OnClick.Add(new (btn) => AdjustVolume(0.1f));
 		controlsBar.AddView(volUp);
 
-		mainLayout.AddView(controlsBar, new LinearLayout.LayoutParams() { Gravity = .CenterH });
+		mainLayout.AddView(controlsBar);
 	}
 
 	private void LoadAudioTracks()
@@ -234,12 +219,10 @@ class AudioSandboxApp : Application
 			let track = mTracks[i];
 			let trackIndex = i;
 
-			let trackBtn = new Button();
-			trackBtn.Text = new .(track.Name);
-			trackBtn.Padding = .(10, 6, 10, 6);
-			trackBtn.OnClick.Add(new [&this,=trackIndex](sender) => { this.SelectTrack(trackIndex); });
+			let trackBtn = new Button(track.Name);
+			trackBtn.OnClick.Add(new [&this, =trackIndex](sender) => { this.SelectTrack(trackIndex); });
 
-			mTrackList.AddView(trackBtn, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+			mTrackList.AddView(trackBtn, new FlexLayout.LayoutParams() { Width = .Match });
 		}
 	}
 
@@ -291,8 +274,8 @@ class AudioSandboxApp : Application
 			mCurrentSource.Volume = mVolume;
 			mCurrentSource.Play(track.Clip);
 			mIsPlaying = true;
-			mPlayPauseButton.Text.Set("Pause");
-			mPlayPauseButton.InvalidateLayout();
+			if (let label = mPlayPauseButton.Content as Label)
+				label.SetText("Pause");
 		}
 	}
 
@@ -309,15 +292,15 @@ class AudioSandboxApp : Application
 		{
 			mCurrentSource.Pause();
 			mIsPlaying = false;
-			mPlayPauseButton.Text.Set("Play");
-			mPlayPauseButton.InvalidateLayout();
+			if (let label = mPlayPauseButton.Content as Label)
+				label.SetText("Play");
 		}
 		else
 		{
 			mCurrentSource.Resume();
 			mIsPlaying = true;
-			mPlayPauseButton.Text.Set("Pause");
-			mPlayPauseButton.InvalidateLayout();
+			if (let label = mPlayPauseButton.Content as Label)
+				label.SetText("Pause");
 		}
 	}
 
@@ -330,10 +313,10 @@ class AudioSandboxApp : Application
 			mCurrentSource = null;
 		}
 		mIsPlaying = false;
-		if (mPlayPauseButton?.Text != null)
+		if (mPlayPauseButton != null)
 		{
-			mPlayPauseButton.Text.Set("Play");
-			mPlayPauseButton.InvalidateLayout();
+			if (let label = mPlayPauseButton.Content as Label)
+				label.SetText("Play");
 		}
 	}
 
@@ -359,8 +342,8 @@ class AudioSandboxApp : Application
 		if (mCurrentSource != null && mCurrentSource.State == .Stopped && mIsPlaying)
 		{
 			mIsPlaying = false;
-			mPlayPauseButton.Text.Set("Play");
-			mPlayPauseButton.InvalidateLayout();
+			if (let label = mPlayPauseButton.Content as Label)
+				label.SetText("Play");
 		}
 
 		// Spacebar for play/pause
@@ -373,15 +356,13 @@ class AudioSandboxApp : Application
 		if (mUI == null || !mUI.IsRenderingInitialized)
 			return false;
 
-		// Clear with theme background color
-		let bg = mUI.UIContext.Theme?.Palette.Background ?? Color(30, 30, 35, 255);
-
+		// Clear with dark background
 		ColorAttachment[1] clearAttachments = .(.()
 		{
 			View = render.CurrentTextureView,
 			LoadOp = .Clear,
 			StoreOp = .Store,
-			ClearValue = ClearColor(bg.R / 255.0f, bg.G / 255.0f, bg.B / 255.0f, bg.A / 255.0f)
+			ClearValue = ClearColor(30 / 255.0f, 30 / 255.0f, 35 / 255.0f, 1.0f)
 		});
 		RenderPassDesc clearPass = .() { ColorAttachments = .(clearAttachments) };
 		let rp = render.Encoder.BeginRenderPass(clearPass);
@@ -407,6 +388,12 @@ class AudioSandboxApp : Application
 			if (track.Clip != null)
 				delete track.Clip;
 		}
+
+		// Clean up UI
+		if (mUIContext != null && mRoot != null)
+			mUIContext.RemoveRootView(mRoot);
+		delete mRoot;
+		delete mUIContext;
 
 		delete mAudioSystem;
 		mAudioSystem = null;
