@@ -399,6 +399,7 @@ class AudioSandboxApp : Application
 	protected override void OnShutdown()
 	{
 		StopPlayback();
+		mAudioSystem?.Dispose();
 
 		// Clean up tracks (clips are owned by tracks)
 		for (let track in mTracks)
@@ -406,6 +407,9 @@ class AudioSandboxApp : Application
 			if (track.Clip != null)
 				delete track.Clip;
 		}
+
+		delete mAudioSystem;
+		mAudioSystem = null;
 	}
 }
 
