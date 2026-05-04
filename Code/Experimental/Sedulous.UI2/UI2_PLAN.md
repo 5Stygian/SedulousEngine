@@ -275,16 +275,6 @@ Advanced controls for editor and application chrome. Separate project: Sedulous.
 - [x] DockZoneIndicator - visual feedback during dock drag
 - [x] IDockableWindowHost - OS multi-window bridge (app implements)
 
-**Planned docking enhancements (second pass):**
-- [ ] Tabs at top of DockTabGroup (currently at bottom, matching current UI)
-- [ ] Per-tab close buttons in tab headers
-- [ ] Tab reordering within groups via drag (midpoint detection + insertion indicator)
-- [ ] DockableWindow edge/corner resize when floating (5px hit zones, min size)
-- [ ] DockableWindow self-drawn chrome for chromeless OS windows (HasOSChrome flag)
-- [ ] DockablePanel has no header (DockTabGroup/DockableWindow provide title bar)
-- [ ] Layout persistence via ISerializerProvider (serialize/deserialize dock tree)
-- [ ] PersistenceId on DockablePanel and DockSplit for layout save/restore
-
 ### Other toolkit controls
 - [x] MenuBar - horizontal menu with ContextMenu dropdowns, hover-switch, Left/Right keyboard
 - [x] Toolbar + ToolbarButton + ToolbarSeparator + ToolbarToggle - icon+text buttons,
@@ -321,6 +311,20 @@ Advanced controls for editor and application chrome. Separate project: Sedulous.
       edit transactions, ColorPicker (HSV conversions, roundtrip, set/get color)
 - [x] **UI2Sandbox:** PropertyGrid tab with all editor types including Transform category,
       ColorPicker in Toolkit tab
+
+---
+
+## Phase 7.5 - Toolkit Enhancements
+
+### Docking enhancements (second pass)
+- [ ] Tabs at top of DockTabGroup (currently at bottom, matching current UI)
+- [ ] Per-tab close buttons in tab headers
+- [ ] Tab reordering within groups via drag (midpoint detection + insertion indicator)
+- [ ] DockableWindow edge/corner resize when floating (5px hit zones, min size)
+- [ ] DockableWindow self-drawn chrome for chromeless OS windows (HasOSChrome flag)
+- [ ] DockablePanel has no header (DockTabGroup/DockableWindow provide title bar)
+- [ ] Layout persistence via ISerializerProvider (serialize/deserialize dock tree)
+- [ ] PersistenceId on DockablePanel and DockSplit for layout save/restore
 
 ---
 
