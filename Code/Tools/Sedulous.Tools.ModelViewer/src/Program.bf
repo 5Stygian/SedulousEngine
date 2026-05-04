@@ -451,7 +451,7 @@ class ModelViewerApp : Application
 		anim.Speed = tab.AnimPlaying ? 1.0f : 0.0f;
 		if (tab.PlayPauseBtn != null)
 		{
-			if (let label = tab.PlayPauseBtn.Content as Label) label.SetText(tab.AnimPlaying ? "Pause" : "Play");
+			tab.PlayPauseBtn.SetText(tab.AnimPlaying ? "Pause" : "Play");
 			tab.PlayPauseBtn.Invalidate();
 		}
 	}
@@ -469,7 +469,7 @@ class ModelViewerApp : Application
 			anim.Player.CurrentTime = 0;
 		if (tab.PlayPauseBtn != null)
 		{
-			if (let label = tab.PlayPauseBtn.Content as Label) label.SetText("Play");
+			tab.PlayPauseBtn.SetText("Play");
 			tab.PlayPauseBtn.Invalidate();
 		}
 	}
@@ -486,7 +486,7 @@ class ModelViewerApp : Application
 		anim.Player.CurrentTime = Math.Max(0, anim.Player.CurrentTime + deltaSeconds);
 		if (tab.PlayPauseBtn != null)
 		{
-			if (let label = tab.PlayPauseBtn.Content as Label) label.SetText("Play");
+			tab.PlayPauseBtn.SetText("Play");
 			tab.PlayPauseBtn.Invalidate();
 		}
 	}

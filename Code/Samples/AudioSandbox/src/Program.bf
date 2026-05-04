@@ -274,8 +274,7 @@ class AudioSandboxApp : Application
 			mCurrentSource.Volume = mVolume;
 			mCurrentSource.Play(track.Clip);
 			mIsPlaying = true;
-			if (let label = mPlayPauseButton.Content as Label)
-				label.SetText("Pause");
+			mPlayPauseButton.SetText("Pause");
 		}
 	}
 
@@ -292,15 +291,13 @@ class AudioSandboxApp : Application
 		{
 			mCurrentSource.Pause();
 			mIsPlaying = false;
-			if (let label = mPlayPauseButton.Content as Label)
-				label.SetText("Play");
+			mPlayPauseButton.SetText("Play");
 		}
 		else
 		{
 			mCurrentSource.Resume();
 			mIsPlaying = true;
-			if (let label = mPlayPauseButton.Content as Label)
-				label.SetText("Pause");
+			mPlayPauseButton.SetText("Pause");
 		}
 	}
 
@@ -315,8 +312,7 @@ class AudioSandboxApp : Application
 		mIsPlaying = false;
 		if (mPlayPauseButton != null)
 		{
-			if (let label = mPlayPauseButton.Content as Label)
-				label.SetText("Play");
+			mPlayPauseButton.SetText("Play");
 		}
 	}
 
@@ -342,8 +338,7 @@ class AudioSandboxApp : Application
 		if (mCurrentSource != null && mCurrentSource.State == .Stopped && mIsPlaying)
 		{
 			mIsPlaying = false;
-			if (let label = mPlayPauseButton.Content as Label)
-				label.SetText("Play");
+			mPlayPauseButton.SetText("Play");
 		}
 
 		// Spacebar for play/pause
