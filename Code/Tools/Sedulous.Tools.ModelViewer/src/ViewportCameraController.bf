@@ -2,8 +2,8 @@ namespace Sedulous.Tools.ModelViewer;
 
 using System;
 using Sedulous.Core.Mathematics;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Viewport;
+using Sedulous.UI;
+using Sedulous.UI.Viewport;
 using Sedulous.Shell.Input;
 using Sedulous.Engine.Core;
 using Sedulous.Engine.Render;

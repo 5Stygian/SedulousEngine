@@ -14,10 +14,10 @@ using Sedulous.Fonts;
 using Sedulous.Fonts.TTF;
 using Sedulous.VG;
 using Sedulous.VG.Renderer;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Shell;
-using Sedulous.LegacyUI.Toolkit;
-using Sedulous.LegacyUI.Viewport;
+using Sedulous.UI;
+using Sedulous.UI.Shell;
+using Sedulous.UI.Toolkit;
+using Sedulous.UI.Viewport;
 using Sedulous.Renderer;
 using Sedulous.Renderer.Passes;
 using Sedulous.Engine;
@@ -119,11 +119,13 @@ class ModelViewerApp : Application
 		mClipboard = new ShellClipboardAdapter(Shell.Clipboard);
 
 		// UI context
-		Theme.RegisterExtension(new ToolkitThemeExtension());
+		ThemeRegistry.RegisterExtension(new ToolkitThemeExtension());
 		mUIContext = new UIContext();
 		mUIContext.FontService = mFontService;
 		mUIContext.Clipboard = mClipboard;
-		mUIContext.SetTheme(DarkTheme.Create(), true);
+		let sheet = DarkTheme.Create();
+		mUIContext.StyleSheet = sheet;
+		sheet.ReleaseRef();
 
 		mMainRoot = new RootView();
 		mUIContext.AddRootView(mMainRoot);
@@ -167,18 +169,18 @@ class ModelViewerApp : Application
 		let root = mMainRoot;
 
 		// Main layout: tabs on top, split view below
-		let mainLayout = new LinearLayout();
-		mainLayout.Orientation = .Vertical;
-		root.AddView(mainLayout, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+		let mainLayout = new FlexLayout();
+		mainLayout.Direction = .Vertical;
+		root.AddView(mainLayout, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// Tab bar (closable tabs) - hidden until a model is loaded
 		mTabView = new TabView();
 		mTabView.TabHeight = 28;
-		mTabView.TabFontSize = 12;
+
 		mTabView.Visibility = .Gone;
 		mTabView.OnTabChanged.Add(new (tv, idx) => OnTabChanged(idx));
 		mTabView.OnTabCloseRequested.Add(new (tv, idx) => CloseTab(idx));
-		mainLayout.AddView(mTabView, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+		mainLayout.AddView(mTabView, new FlexLayout.LayoutParams() { Width = .Match });
 
 		// Split view: viewport container (left) + side panel (right)
 		let splitView = new SplitView(.Horizontal);
@@ -190,27 +192,26 @@ class ModelViewerApp : Application
 		mDropIndicator = new Label();
 		mDropIndicator.SetText("Drop a model here\n\nSupported: glTF, GLB, OBJ, FBX");
 		mDropIndicator.FontSize = 20;
-		mDropIndicator.TextColor = .(150, 150, 160);
 		mDropIndicator.HAlign = .Center;
 		mDropIndicator.VAlign = .Middle;
 		mDropIndicator.WordWrap = true;
-		mViewportContainer.AddView(mDropIndicator, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+		mViewportContainer.AddView(mDropIndicator, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// Side panel
 		let sidePanel = BuildSidePanel();
 
 		splitView.SetPanes(mViewportContainer, sidePanel);
-		mainLayout.AddView(splitView, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Weight = 1 });
+		mainLayout.AddView(splitView, new FlexLayout.LayoutParams() { Width = .Match, Grow = 1 });
 	}
 
 	private ScrollView BuildSidePanel()
 	{
 		let scroll = new ScrollView();
-		scroll.VScrollPolicy = .Auto;
-		scroll.HScrollPolicy = .Never;
+		scroll.VScrollBarPolicy = .Auto;
+		scroll.HScrollBarPolicy = .Never;
 
-		let panel = new LinearLayout();
-		panel.Orientation = .Vertical;
+		let panel = new FlexLayout();
+		panel.Direction = .Vertical;
 		panel.Padding = .(10);
 		panel.Spacing = 6;
 
@@ -238,44 +239,42 @@ class ModelViewerApp : Application
 		let help = new Label();
 		help.SetText("Controls:\nLMB: Orbit\nRMB: Fly Look\nWASD: Move\nMMB: Pan\nScroll: Zoom\nR: Focus Model\n\nDrop .gltf/.glb files to load models.");
 		help.FontSize = 12;
-		help.TextColor = .(150, 150, 160);
 		help.WordWrap = true;
-		panel.AddView(help, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+		panel.AddView(help, new FlexLayout.LayoutParams() { Width = .Match });
 
-		scroll.AddView(panel, new LayoutParams() { Width = LayoutParams.MatchParent });
+		scroll.AddView(panel, new LayoutParams() { Width = .Match });
 		return scroll;
 	}
 
-	private void AddInfoRow(LinearLayout parent, StringView label, out Label valueLabel)
+	private void AddInfoRow(FlexLayout parent, StringView label, out Label valueLabel)
 	{
-		let row = new LinearLayout();
-		row.Orientation = .Horizontal;
+		let row = new FlexLayout();
+		row.Direction = .Horizontal;
 		row.Spacing = 8;
 
 		let lbl = new Label();
 		lbl.SetText(label);
 		lbl.FontSize = 12;
-		lbl.TextColor = .(180, 180, 190);
-		row.AddView(lbl, new LinearLayout.LayoutParams() { Width = 75 });
+		row.AddView(lbl, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(75)) });
 
 		valueLabel = new Label();
 		valueLabel.SetText("-");
 		valueLabel.FontSize = 12;
-		row.AddView(valueLabel, new LinearLayout.LayoutParams() { Weight = 1 });
+		row.AddView(valueLabel, new FlexLayout.LayoutParams() { Grow = 1 });
 
-		parent.AddView(row, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+		parent.AddView(row, new FlexLayout.LayoutParams() { Width = .Match });
 	}
 
 	/// Builds the per-tab content panel: top toolbar + viewport + animation toolbar.
 	private void BuildTabContent(ModelTab tab)
 	{
-		let content = new LinearLayout();
-		content.Orientation = .Vertical;
+		let content = new FlexLayout();
+		content.Direction = .Vertical;
 		tab.ContentPanel = content;
 
 		// Top toolbar
 		let topBar = BuildTopToolbar(tab);
-		content.AddView(topBar, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+		content.AddView(topBar, new FlexLayout.LayoutParams() { Width = .Match });
 
 		// Viewport
 		let viewport = new ViewportView();
@@ -284,63 +283,51 @@ class ModelViewerApp : Application
 			RenderTabViewport(tab, vp, encoder, frameIndex);
 		});
 		tab.Viewport = viewport;
-		content.AddView(viewport, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Weight = 1 });
+		content.AddView(viewport, new FlexLayout.LayoutParams() { Width = .Match, Grow = 1 });
 
 		// Animation toolbar (skinned only)
 		if (tab.IsSkinned && tab.AnimClipResources.Count > 0)
 		{
 			let animBar = BuildAnimToolbar(tab);
-			content.AddView(animBar, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent });
+			content.AddView(animBar, new FlexLayout.LayoutParams() { Width = .Match });
 		}
 	}
 
-	private LinearLayout BuildTopToolbar(ModelTab tab)
+	private FlexLayout BuildTopToolbar(ModelTab tab)
 	{
-		let bar = new LinearLayout();
-		bar.Orientation = .Horizontal;
+		let bar = new FlexLayout();
+		bar.Direction = .Horizontal;
 		bar.Spacing = 8;
 		bar.Padding = .(8, 4, 8, 4);
 
 		// Bounding box toggle
-		let boundsCheck = new CheckBox();
-		boundsCheck.SetText("Bounds");
-		boundsCheck.IsChecked = tab.ShowBoundingBox;
-		boundsCheck.FontSize = 12;
+		let boundsCheck = new CheckBox("Bounds", tab.ShowBoundingBox);
 		boundsCheck.OnCheckedChanged.Add(new (cb, val) => { if (ActiveTab != null) ActiveTab.ShowBoundingBox = val; });
-		bar.AddView(boundsCheck, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(boundsCheck, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		// Grid toggle
-		let gridCheck = new CheckBox();
-		gridCheck.SetText("Grid");
-		gridCheck.IsChecked = tab.ShowGrid;
-		gridCheck.FontSize = 12;
+		let gridCheck = new CheckBox("Grid", tab.ShowGrid);
 		gridCheck.OnCheckedChanged.Add(new (cb, val) => { if (ActiveTab != null) ActiveTab.ShowGrid = val; });
-		bar.AddView(gridCheck, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(gridCheck, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		// Skeleton toggle (visible for skinned models)
 		if (tab.IsSkinned)
 		{
-			let skelCheck = new CheckBox();
-			skelCheck.SetText("Skeleton");
-			skelCheck.IsChecked = tab.ShowSkeleton;
-			skelCheck.FontSize = 12;
+			let skelCheck = new CheckBox("Skeleton", tab.ShowSkeleton);
 			skelCheck.OnCheckedChanged.Add(new (cb, val) => { if (ActiveTab != null) ActiveTab.ShowSkeleton = val; });
-			bar.AddView(skelCheck, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+			bar.AddView(skelCheck, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 		}
 
 		// Focus button
-		let focusBtn = new Button();
-		focusBtn.Text = new .("Focus");
-		focusBtn.Padding = .(8, 4, 8, 4);
-		focusBtn.FontSize = 12;
+		let focusBtn = new Button("Focus");
 		focusBtn.OnClick.Add(new (btn) => { let t = ActiveTab; t?.CameraController?.FitToBounds(t.Bounds); });
-		bar.AddView(focusBtn, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(focusBtn, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		// Scale label + slider + value
 		let scaleTitle = new Label();
 		scaleTitle.SetText("Scale:");
 		scaleTitle.FontSize = 12;
-		bar.AddView(scaleTitle, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(scaleTitle, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		let scaleSlider = new Slider();
 		scaleSlider.Min = 0.1f;
@@ -348,19 +335,19 @@ class ModelViewerApp : Application
 		scaleSlider.Value = tab.ModelScale;
 		scaleSlider.Step = 0.1f;
 		scaleSlider.OnValueChanged.Add(new (s, v) => OnScaleChanged(v));
-		bar.AddView(scaleSlider, new LinearLayout.LayoutParams() { Width = 120, Gravity = .CenterV });
+		bar.AddView(scaleSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(120)), Gravity = .CenterV });
 
 		let scaleLabel = new Label();
 		scaleLabel.SetText("1.0x");
 		scaleLabel.FontSize = 12;
-		bar.AddView(scaleLabel, new LinearLayout.LayoutParams() { Width = 40, Gravity = .CenterV });
+		bar.AddView(scaleLabel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(40)), Gravity = .CenterV });
 		tab.ScaleValueLabel = scaleLabel;
 
 		// Exposure slider
 		let expTitle = new Label();
 		expTitle.SetText("Exp:");
 		expTitle.FontSize = 12;
-		bar.AddView(expTitle, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(expTitle, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		let expSlider = new Slider();
 		expSlider.Min = 0.1f;
@@ -368,13 +355,13 @@ class ModelViewerApp : Application
 		expSlider.Value = tab.Exposure;
 		expSlider.Step = 0.1f;
 		expSlider.OnValueChanged.Add(new (s, v) => OnExposureChanged(v));
-		bar.AddView(expSlider, new LinearLayout.LayoutParams() { Width = 80, Gravity = .CenterV });
+		bar.AddView(expSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(80)), Gravity = .CenterV });
 
 		// Ambient slider
 		let ambTitle = new Label();
 		ambTitle.SetText("Amb:");
 		ambTitle.FontSize = 12;
-		bar.AddView(ambTitle, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(ambTitle, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		let ambSlider = new Slider();
 		ambSlider.Min = 0.0f;
@@ -382,15 +369,15 @@ class ModelViewerApp : Application
 		ambSlider.Value = tab.AmbientIntensity;
 		ambSlider.Step = 0.05f;
 		ambSlider.OnValueChanged.Add(new (s, v) => OnAmbientChanged(v));
-		bar.AddView(ambSlider, new LinearLayout.LayoutParams() { Width = 80, Gravity = .CenterV });
+		bar.AddView(ambSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(80)), Gravity = .CenterV });
 
 		return bar;
 	}
 
-	private LinearLayout BuildAnimToolbar(ModelTab tab)
+	private FlexLayout BuildAnimToolbar(ModelTab tab)
 	{
-		let bar = new LinearLayout();
-		bar.Orientation = .Horizontal;
+		let bar = new FlexLayout();
+		bar.Direction = .Horizontal;
 		bar.Spacing = 6;
 		bar.Padding = .(8, 4, 8, 4);
 
@@ -398,12 +385,11 @@ class ModelViewerApp : Application
 		let animLabel = new Label();
 		animLabel.SetText("Animation:");
 		animLabel.FontSize = 12;
-		bar.AddView(animLabel, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(animLabel, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		let comboBox = new ComboBox();
-		comboBox.FontSize = 12;
 		comboBox.OnSelectionChanged.Add(new (cb, idx) => OnAnimClipChanged(idx));
-		bar.AddView(comboBox, new LinearLayout.LayoutParams() { Width = 120, Gravity = .CenterV });
+		bar.AddView(comboBox, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(120)), Gravity = .CenterV });
 		tab.AnimComboBox = comboBox;
 
 		// Populate clips
@@ -413,45 +399,30 @@ class ModelViewerApp : Application
 			comboBox.SelectedIndex = tab.CurrentAnimIndex;
 
 		// Play/Pause
-		let playPauseBtn = new Button();
-		playPauseBtn.Text = new .(tab.AnimPlaying ? "Pause" : "Play");
-		playPauseBtn.Padding = .(8, 4, 8, 4);
-		playPauseBtn.FontSize = 12;
+		let playPauseBtn = new Button(tab.AnimPlaying ? "Pause" : "Play");
 		playPauseBtn.OnClick.Add(new (btn) => OnPlayPause());
-		bar.AddView(playPauseBtn, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(playPauseBtn, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 		tab.PlayPauseBtn = playPauseBtn;
 
 		// Stop
-		let stopBtn = new Button();
-		stopBtn.Text = new .("Stop");
-		stopBtn.Padding = .(8, 4, 8, 4);
-		stopBtn.FontSize = 12;
+		let stopBtn = new Button("Stop");
 		stopBtn.OnClick.Add(new (btn) => OnStop());
-		bar.AddView(stopBtn, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(stopBtn, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		// Step back
-		let stepBackBtn = new Button();
-		stepBackBtn.Text = new .("<");
-		stepBackBtn.Padding = .(6, 4, 6, 4);
-		stepBackBtn.FontSize = 12;
+		let stepBackBtn = new Button("<");
 		stepBackBtn.OnClick.Add(new (btn) => OnStep(-1.0f / 30.0f));
-		bar.AddView(stepBackBtn, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(stepBackBtn, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		// Step forward
-		let stepFwdBtn = new Button();
-		stepFwdBtn.Text = new .(">");
-		stepFwdBtn.Padding = .(6, 4, 6, 4);
-		stepFwdBtn.FontSize = 12;
+		let stepFwdBtn = new Button(">");
 		stepFwdBtn.OnClick.Add(new (btn) => OnStep(1.0f / 30.0f));
-		bar.AddView(stepFwdBtn, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(stepFwdBtn, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		// Loop checkbox
-		let loopCheck = new CheckBox();
-		loopCheck.SetText("Loop");
-		loopCheck.IsChecked = tab.AnimLoop;
-		loopCheck.FontSize = 12;
+		let loopCheck = new CheckBox("Loop", tab.AnimLoop);
 		loopCheck.OnCheckedChanged.Add(new (cb, val) => OnLoopChanged(val));
-		bar.AddView(loopCheck, new LinearLayout.LayoutParams() { Gravity = .CenterV });
+		bar.AddView(loopCheck, new FlexLayout.LayoutParams() { Gravity = .CenterV });
 
 		return bar;
 	}
@@ -480,8 +451,8 @@ class ModelViewerApp : Application
 		anim.Speed = tab.AnimPlaying ? 1.0f : 0.0f;
 		if (tab.PlayPauseBtn != null)
 		{
-			tab.PlayPauseBtn.Text.Set(tab.AnimPlaying ? "Pause" : "Play");
-			tab.PlayPauseBtn.InvalidateLayout();
+			if (let label = tab.PlayPauseBtn.Content as Label) label.SetText(tab.AnimPlaying ? "Pause" : "Play");
+			tab.PlayPauseBtn.Invalidate();
 		}
 	}
 
@@ -498,8 +469,8 @@ class ModelViewerApp : Application
 			anim.Player.CurrentTime = 0;
 		if (tab.PlayPauseBtn != null)
 		{
-			tab.PlayPauseBtn.Text.Set("Play");
-			tab.PlayPauseBtn.InvalidateLayout();
+			if (let label = tab.PlayPauseBtn.Content as Label) label.SetText("Play");
+			tab.PlayPauseBtn.Invalidate();
 		}
 	}
 
@@ -515,8 +486,8 @@ class ModelViewerApp : Application
 		anim.Player.CurrentTime = Math.Max(0, anim.Player.CurrentTime + deltaSeconds);
 		if (tab.PlayPauseBtn != null)
 		{
-			tab.PlayPauseBtn.Text.Set("Play");
-			tab.PlayPauseBtn.InvalidateLayout();
+			if (let label = tab.PlayPauseBtn.Content as Label) label.SetText("Play");
+			tab.PlayPauseBtn.Invalidate();
 		}
 	}
 
@@ -909,7 +880,7 @@ class ModelViewerApp : Application
 
 		// Detach content panel from container
 		if (tab.ContentPanel?.Parent != null)
-			mViewportContainer.DetachView(tab.ContentPanel);
+			mViewportContainer.RemoveView(tab.ContentPanel, false);
 
 		// Destroy scene
 		let sceneSub = mRuntimeContext.GetSubsystem<SceneSubsystem>();
@@ -927,7 +898,7 @@ class ModelViewerApp : Application
 		mTabs.RemoveAt(index);
 		delete tab;
 
-		mTabView.RemoveTab(index);
+		mTabView.RemoveTab((int32)index);
 
 		if (mActiveTabIndex >= mTabs.Count)
 			mActiveTabIndex = (int32)(mTabs.Count - 1);
@@ -970,7 +941,7 @@ class ModelViewerApp : Application
 		if (tab?.ContentPanel == null) return;
 
 		if (tab.ContentPanel.Parent == null)
-			mViewportContainer.AddView(tab.ContentPanel, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+			mViewportContainer.AddView(tab.ContentPanel, new LayoutParams() { Width = .Match, Height = .Match });
 	}
 
 	private void HideActiveTabContent()
@@ -979,7 +950,7 @@ class ModelViewerApp : Application
 		for (let tab in mTabs)
 		{
 			if (tab.ContentPanel?.Parent == mViewportContainer)
-				mViewportContainer.DetachView(tab.ContentPanel);
+				mViewportContainer.RemoveView(tab.ContentPanel, false);
 		}
 	}
 
@@ -1278,7 +1249,7 @@ class ModelViewerApp : Application
 		for (let tab in mTabs)
 		{
 			if (tab.ContentPanel?.Parent != null)
-				mViewportContainer.DetachView(tab.ContentPanel);
+				mViewportContainer.RemoveView(tab.ContentPanel, false);
 			if (tab.Scene != null && sceneSub != null)
 				sceneSub.DestroyScene(tab.Scene);
 			if (tab.ContentPanel != null && tab.ContentPanel.Parent == null)
