@@ -181,6 +181,20 @@ public static class DarkTheme
 			.Set(.Background, tooltipBg)
 			.Set(.TextColor, p.Text);
 
+		// === ListView ===
+		sheet.ForType(typeof(View), "listview")
+			.Set(.Background, sheet.OwnColor(p.Background))
+			.Set(.SelectionColor, Color(60, 120, 200, 80));
+
+		// === TreeView ===
+		sheet.ForType(typeof(View), "treeview")
+			.Set(.Background, sheet.OwnColor(p.Background));
+
+		// === GridView ===
+		sheet.ForType(typeof(View), "gridview")
+			.Set(.Background, sheet.OwnColor(p.Background))
+			.Set(.SelectionColor, Color(60, 120, 200, 80));
+
 		// === Icons ===
 		RegisterIcons(sheet);
 
@@ -210,6 +224,8 @@ public static class DarkTheme
 		Reg(.CloseIcon, ThemeIcons.Close, "tabview");
 		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "expander");
 		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "expander");
+		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "treeview");
+		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "treeview");
 		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown);
 		Reg(.ArrowUpIcon, ThemeIcons.ArrowUp);
 	}

@@ -181,6 +181,20 @@ public static class LightTheme
 			.Set(.Background, tooltipBg)
 			.Set(.TextColor, Color(240, 240, 245, 255));
 
+		// === ListView ===
+		sheet.ForType(typeof(View), "listview")
+			.Set(.Background, sheet.OwnColor(p.Background))
+			.Set(.SelectionColor, Color(60, 120, 200, 60));
+
+		// === TreeView ===
+		sheet.ForType(typeof(View), "treeview")
+			.Set(.Background, sheet.OwnColor(p.Background));
+
+		// === GridView ===
+		sheet.ForType(typeof(View), "gridview")
+			.Set(.Background, sheet.OwnColor(p.Background))
+			.Set(.SelectionColor, Color(60, 120, 200, 60));
+
 		// === Icons ===
 		RegisterIcons(sheet);
 
@@ -212,6 +226,8 @@ public static class LightTheme
 		Reg(.CloseIcon, ThemeIcons.Close, "tabview");
 		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "expander");
 		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "expander");
+		Reg(.ChevronExpandedIcon, ThemeIcons.ChevronDown, "treeview");
+		Reg(.ChevronCollapsedIcon, ThemeIcons.ChevronRight, "treeview");
 		Reg(.ArrowDownIcon, ThemeIcons.ArrowDown);
 		Reg(.ArrowUpIcon, ThemeIcons.ArrowUp);
 	}

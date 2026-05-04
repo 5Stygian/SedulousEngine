@@ -23,6 +23,9 @@ class UI2SandboxApp : Application
 	private int32 mThemeIndex = 0; // 0=Dark, 1=Light, 2=RoundedDark
 	private OwnedImageData mTestImage ~ delete _;
 	private RepeatButton mRepeatBtn;
+	private DemoListAdapter mDemoListAdapter ~ delete _;
+	private DemoTreeAdapter mDemoTreeAdapter ~ delete _;
+	private DemoGridAdapter mDemoGridAdapter ~ delete _;
 	private int32 mRepeatCount;
 
 	protected override void OnInitialize(Context context)
@@ -606,7 +609,39 @@ class UI2SandboxApp : Application
 		dndRow.AddView(dropBox, new FlexLayout.LayoutParams() { Grow = 1, Height = .Fixed(.Px(30)) });
 		dndDemo.AddView(dndRow);
 
-		// === Tab 8: Animations & Transforms demo ===
+		// === Tab 8: Data Controls demo ===
+		let dataDemo = new FlexLayout() { Direction = .Horizontal, Spacing = 8 };
+		dataDemo.Padding = .(8);
+		tabView.AddTab("Data Controls", dataDemo);
+
+		// ListView with 1000 items
+		let listCol = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		listCol.AddView(new Label("ListView (1000 items)"));
+		mDemoListAdapter = new DemoListAdapter(1000);
+		let listView = new ListView();
+		listView.Adapter = mDemoListAdapter;
+		listCol.AddView(listView, new FlexLayout.LayoutParams() { Grow = 1 });
+		dataDemo.AddView(listCol, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// TreeView with hierarchy
+		let treeCol = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		treeCol.AddView(new Label("TreeView"));
+		mDemoTreeAdapter = new DemoTreeAdapter();
+		let treeView = new TreeView();
+		treeView.SetAdapter(mDemoTreeAdapter);
+		treeCol.AddView(treeView, new FlexLayout.LayoutParams() { Grow = 1 });
+		dataDemo.AddView(treeCol, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// GridView with 200 colored cells
+		let gridCol = new FlexLayout() { Direction = .Vertical, Spacing = 4 };
+		gridCol.AddView(new Label("GridView (200 cells)"));
+		mDemoGridAdapter = new DemoGridAdapter(200);
+		let gridView = new GridView();
+		gridView.Adapter = mDemoGridAdapter;
+		gridCol.AddView(gridView, new FlexLayout.LayoutParams() { Grow = 1 });
+		dataDemo.AddView(gridCol, new FlexLayout.LayoutParams() { Grow = 1 });
+
+		// === Tab 9: Animations & Transforms demo ===
 		let animDemo = new FlexLayout() { Direction = .Vertical, Spacing = 8 };
 		animDemo.Padding = .(12, 8);
 		tabView.AddTab("Animations", animDemo);
@@ -1067,6 +1102,122 @@ class ColorDropBox : View, IDropTarget
 			Invalidate();
 		}
 		return .Copy;
+	}
+}
+
+/// Tree item view — renders text with depth-based indent.
+/// Expand/collapse arrows are drawn by TreeView as an overlay.
+class TreeItemView : View
+{
+	public String Text ~ delete _;
+	public int32 Depth;
+	private float mIndent = 20;
+
+	public void Set(StringView text, int32 depth)
+	{
+		if (Text == null) Text = new String(text);
+		else Text.Set(text);
+		Depth = depth;
+	}
+
+	public override void OnDraw(UIDrawContext ctx)
+	{
+		if (Text != null && Text.Length > 0 && ctx.FontService != null)
+		{
+			let textX = (Depth + 1) * mIndent;
+			let textColor = ResolveStyleColor(.TextColor, .(220, 220, 230, 255));
+			let font = ctx.FontService.GetFont(14);
+			if (font != null)
+				ctx.VG.DrawText(Text, font, .(textX, 0, Width - textX, Height), .Left, .Middle, textColor);
+		}
+	}
+}
+
+/// Demo list adapter for ListView.
+class DemoListAdapter : ListAdapterBase
+{
+	private int32 mCount;
+	public this(int32 count) { mCount = count; }
+	public override int32 ItemCount => mCount;
+	public override View CreateView(int32 viewType) => new Label("");
+	public override void BindView(View view, int32 position)
+	{
+		if (let label = view as Label)
+			label.SetText(scope String()..AppendF("Item {}", position + 1));
+	}
+}
+
+/// Demo tree adapter: 5 folders, each with 3 files, folder 0 has a subfolder with 2 files.
+class DemoTreeAdapter : ITreeAdapter
+{
+	// Node IDs: folders = 0-4, files = 100+folderIdx*10+fileIdx
+	// Subfolder of folder 0 = 50, files in subfolder = 500, 501
+	public int32 RootCount => 5;
+
+	public int32 GetChildCount(int32 nodeId)
+	{
+		if (nodeId == -1) return 5;
+		if (nodeId >= 0 && nodeId < 5) return (nodeId == 0) ? 4 : 3; // folder 0 has 3 files + 1 subfolder
+		if (nodeId == 50) return 2; // subfolder
+		return 0;
+	}
+
+	public int32 GetChildId(int32 parentId, int32 childIndex)
+	{
+		if (parentId == -1) return childIndex;
+		if (parentId >= 0 && parentId < 5)
+		{
+			if (parentId == 0 && childIndex == 3) return 50; // subfolder
+			return 100 + parentId * 10 + childIndex;
+		}
+		if (parentId == 50) return 500 + childIndex;
+		return -1;
+	}
+
+	public int32 GetDepth(int32 nodeId)
+	{
+		if (nodeId >= 500) return 2;
+		if (nodeId >= 100 || nodeId == 50) return 1;
+		return 0;
+	}
+
+	public bool HasChildren(int32 nodeId)
+	{
+		return (nodeId >= 0 && nodeId < 5) || nodeId == 50;
+	}
+
+	public View CreateView(int32 viewType) => new TreeItemView();
+
+	public void BindView(View view, int32 nodeId, int32 depth, bool isExpanded)
+	{
+		if (let item = view as TreeItemView)
+		{
+			let text = scope String();
+			if (HasChildren(nodeId))
+				text.AppendF("Folder {}", nodeId);
+			else
+				text.AppendF("File {}", nodeId);
+			item.Set(text, depth);
+		}
+	}
+}
+
+/// Demo grid adapter with colored cells.
+class DemoGridAdapter : ListAdapterBase
+{
+	private int32 mCount;
+	public this(int32 count) { mCount = count; }
+	public override int32 ItemCount => mCount;
+	public override View CreateView(int32 viewType) => new ColorView(.(100, 100, 100, 255), 0, 0);
+	public override void BindView(View view, int32 position)
+	{
+		if (let cv = view as ColorView)
+		{
+			let r = (uint8)(60 + (position * 7) % 160);
+			let g = (uint8)(80 + (position * 13) % 140);
+			let b = (uint8)(100 + (position * 23) % 120);
+			cv.Color = .(r, g, b, 255);
+		}
 	}
 }
 
