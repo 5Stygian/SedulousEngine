@@ -7,6 +7,7 @@ using Sedulous.VG.SVG;
 
 /// Drawable that renders SVG content via VGContext path operations.
 /// Resolution-independent - scales to any size. Ideal for icons.
+/// Thin wrapper around SVGRenderer for use in the UI framework's Drawable system.
 public class SVGDrawable : Drawable
 {
 	private SVGDocument mDocument ~ delete _;
@@ -52,98 +53,6 @@ public class SVGDrawable : Drawable
 
 	public override void Draw(UIDrawContext ctx, RectangleF bounds)
 	{
-		if (mDocument == null || mDocument.Elements.Count == 0) return;
-
-		let vg = ctx.VG;
-
-		// Scale SVG viewBox to fit bounds.
-		float scaleX = (mDocument.Width > 0) ? bounds.Width / mDocument.Width : 1;
-		float scaleY = (mDocument.Height > 0) ? bounds.Height / mDocument.Height : 1;
-
-		vg.PushState();
-		vg.Translate(bounds.X, bounds.Y);
-		vg.Scale(scaleX, scaleY);
-
-		for (let element in mDocument.Elements)
-			RenderElement(vg, element);
-
-		vg.PopState();
-	}
-
-	private void RenderElement(VGContext vg, SVGElement element)
-	{
-		if (element.Opacity <= 0) return;
-
-		vg.PushState();
-
-		if (element.Transform != Matrix.Identity)
-		{
-			let current = vg.GetTransform();
-			vg.SetTransform(element.Transform * current);
-		}
-
-		if (element.Opacity < 1.0f)
-			vg.PushOpacity(element.Opacity);
-
-		if (element.IsGroup)
-		{
-			for (let child in element.Children)
-				RenderElement(vg, child);
-		}
-		else if (element.Type == .Text)
-		{
-			if (element.TextContent != null && element.TextContent.Length > 0 && vg.FontService != null)
-			{
-				// The current VG transform scales from SVG viewBox to screen pixels.
-				// Font glyphs are rasterized at a fixed pixel size, so we need to:
-				// 1. Compute the effective pixel font size (SVG fontSize * scale)
-				// 2. Convert SVG coordinates to screen coordinates
-				// 3. Draw text without the SVG scale (reset to pre-scale transform)
-				let transform = vg.GetTransform();
-				let scaleX = Math.Sqrt(transform.M11 * transform.M11 + transform.M12 * transform.M12);
-				let scaleY = Math.Sqrt(transform.M21 * transform.M21 + transform.M22 * transform.M22);
-				let effectiveFontSize = element.FontSize * scaleY;
-
-				let font = vg.FontService.GetFont(effectiveFontSize);
-				if (font != null)
-				{
-					let color = TintColor ?? element.FillColor ?? Color.Black;
-
-					// Convert SVG position to screen pixels via the current transform.
-					let screenX = transform.M11 * element.TextX + transform.M21 * element.TextY + transform.M41;
-					let screenY = transform.M12 * element.TextX + transform.M22 * element.TextY + transform.M42;
-
-					// Apply text-anchor alignment in screen space.
-					let textW = font.Font.MeasureString(element.TextContent);
-					float x = screenX;
-					switch (element.TextAnchor)
-					{
-					case .Middle: x -= textW * 0.5f;
-					case .End:    x -= textW;
-					case .Start:
-					}
-
-					// SVG Y is baseline. DrawText position Y is also baseline (glyph quads offset from it).
-					// Draw with identity transform so glyph pixels aren't double-scaled.
-					vg.PushState();
-					vg.SetTransform(Matrix.Identity);
-					vg.DrawText(element.TextContent, font, .(x, screenY), color);
-					vg.PopState();
-				}
-			}
-		}
-		else if (element.Path != null)
-		{
-			if (element.FillColor.HasValue)
-				vg.FillPath(element.Path, TintColor ?? element.FillColor.Value);
-
-			if (element.StrokeColor.HasValue && element.StrokeWidth > 0)
-				vg.StrokePath(element.Path, TintColor ?? element.StrokeColor.Value, .(element.StrokeWidth));
-		}
-
-		if (element.Opacity < 1.0f)
-			vg.PopOpacity();
-
-		vg.PopState();
+		SVGRenderer.Render(ctx.VG, mDocument, bounds, TintColor);
 	}
 }
