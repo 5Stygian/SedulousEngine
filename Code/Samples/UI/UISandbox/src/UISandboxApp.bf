@@ -275,6 +275,47 @@ class UISandboxApp : Application, IDockableWindowHost
 			swatchFlow.AddView(swatch);
 		}
 
+		rightPanel.AddView(new Separator());
+
+		// DrawableView + SVGDrawable demos
+		rightPanel.AddView(new Label("DrawableView + SVG") { VAlign = .Top });
+
+		let svgRow = new FlowLayout() { Orientation = .Horizontal, HSpacing = 6, VSpacing = 6 };
+		rightPanel.AddView(svgRow);
+
+		// Badge with text
+		if (let badge = SVGDrawable.FromString("""
+			<svg viewBox="0 0 48 48">
+			  <circle cx="24" cy="24" r="22" fill="#2A6BC0" stroke="#1A4A90" stroke-width="2"/>
+			  <text x="24" y="30" text-anchor="middle" font-size="18" font-weight="bold" fill="#FFFFFF">UI</text>
+			</svg>
+			"""))
+			svgRow.AddView(new DrawableView(badge, 40, 40, ownsDrawable: true));
+
+		// Star
+		if (let star = SVGDrawable.FromString("""
+			<svg viewBox="0 0 24 24">
+			  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFD700" stroke="#B8960F" stroke-width="0.8"/>
+			</svg>
+			"""))
+			svgRow.AddView(new DrawableView(star, 32, 32, ownsDrawable: true));
+
+		// Heart
+		if (let heart = SVGDrawable.FromString("""
+			<svg viewBox="0 0 24 24">
+			  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF4444"/>
+			</svg>
+			"""))
+			svgRow.AddView(new DrawableView(heart, 32, 32, ownsDrawable: true));
+
+		// Tinted heart (blue)
+		if (let tintedHeart = SVGDrawable.FromString("""
+			<svg viewBox="0 0 24 24">
+			  <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#FF4444"/>
+			</svg>
+			""", .(100, 200, 255, 255)))
+			svgRow.AddView(new DrawableView(tintedHeart, 32, 32, ownsDrawable: true));
+
 		// === Tab 2: ScrollView demo ===
 		let scrollDemo = new FlexLayout() { Direction = .Horizontal, Spacing = 8 };
 		scrollDemo.Padding = .(12, 8);
