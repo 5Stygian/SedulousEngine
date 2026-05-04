@@ -15,8 +15,8 @@ using Sedulous.Images.STB;
 using Sedulous.Images.SDL;
 using Sedulous.Messaging.Runtime;
 using Sedulous.Engine;
-using Sedulous.Engine.LegacyUI;
-using Sedulous.LegacyUI;
+using Sedulous.Engine.UI;
+using Sedulous.UI;
 
 class TowerDefenseApp : EngineApplication
 {
@@ -209,7 +209,7 @@ class TowerDefenseApp : EngineApplication
 
 	private void SetupUI()
 	{
-		let uiSub = Context.GetSubsystem<EngineLegacyUISubsystem>();
+		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
 		if (uiSub?.ScreenView == null)
 			return;
 
@@ -218,9 +218,9 @@ class TowerDefenseApp : EngineApplication
 		let messaging = Context.GetSubsystem<MessagingSubsystem>();
 		let bus = messaging?.Bus;
 
-		// HUD (DockView with top and bottom bars, fills screen)
+		// HUD (DockLayout with top and bottom bars, fills screen)
 		mHUD.Setup(bus, mGameSub, mTowerPlacement);
-		root.AddView(mHUD.Root, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+		root.AddView(mHUD.Root, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// Game over dialog (subscribes to GameOverMsg, shows dialog when triggered)
 		mGameOverUI.Setup(ctx, bus, mGameSub);

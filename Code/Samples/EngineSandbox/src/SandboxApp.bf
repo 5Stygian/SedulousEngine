@@ -36,8 +36,8 @@ using Sedulous.Audio;
 using Sedulous.Audio.Decoders;
 using Sedulous.Physics;
 
-using Sedulous.Engine.LegacyUI;
-using Sedulous.LegacyUI;
+using Sedulous.Engine.UI;
+using Sedulous.UI;
 using Sedulous.Shell;
 using Sedulous.Images;
 
@@ -1210,7 +1210,7 @@ class SandboxApp : EngineApplication
 		TryAddWorldUIContent();
 
 		// ==================== UI Debug ====================
-		let uiSub = Context.GetSubsystem<EngineLegacyUISubsystem>();
+		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
 
 		// F1 toggles UI debug bounds overlay.
 		if (mShell.InputManager.Keyboard.IsKeyPressed(.F1) && uiSub?.UIContext != null)
@@ -1669,50 +1669,46 @@ class SandboxApp : EngineApplication
 		panel.Padding = .(8, 8, 8, 8);
 		panel.ClipsContent = true;
 		comp.Root.AddView(panel, new LayoutParams() {
-			Width = LayoutParams.MatchParent,
-			Height = LayoutParams.MatchParent
+			Width = .Match,
+			Height = .Match
 		});
 
-		let layout = new LinearLayout();
-		layout.Orientation = .Vertical;
+		let layout = new FlexLayout();
+		layout.Direction = .Vertical;
 		layout.Spacing = 4;
 		panel.AddView(layout, new LayoutParams() {
-			Width = LayoutParams.MatchParent,
-			Height = LayoutParams.MatchParent
+			Width = .Match,
+			Height = .Match
 		});
 
-		let title = new Label();
-		title.SetText("World UI Panel");
+		let title = new Label("World UI Panel");
 		title.FontSize = 16;
 		title.HAlign = .Center;
-		layout.AddView(title, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 24
+		layout.AddView(title, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(24))
 		});
 
-		let info = new Label();
-		info.SetText("Rendered to texture");
+		let info = new Label("Rendered to texture");
 		info.FontSize = 12;
 		info.HAlign = .Center;
-		layout.AddView(info, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 16
+		layout.AddView(info, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(16))
 		});
 
-		let info2 = new Label();
-		info2.SetText("Displayed as sprite");
+		let info2 = new Label("Displayed as sprite");
 		info2.FontSize = 12;
 		info2.HAlign = .Center;
-		layout.AddView(info2, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 16
+		layout.AddView(info2, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(16))
 		});
 
-		let btn = new Button();
-		btn.SetText("World Button");
+		let btn = new Button("World Button");
 		btn.OnClick.Add(new (b) => {
 			info.SetText("Clicked!");
 			comp.MarkDirty();
 		});
-		layout.AddView(btn, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 28
+		layout.AddView(btn, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(28))
 		});
 
 		comp.MarkDirty();
@@ -1724,19 +1720,18 @@ class SandboxApp : EngineApplication
 		panel.Background = new ColorDrawable(.(20, 20, 20, 180));
 		panel.Padding = .(6, 4, 6, 4);
 		comp.Root.AddView(panel, new LayoutParams() {
-			Width = LayoutParams.MatchParent,
-			Height = LayoutParams.MatchParent
+			Width = .Match,
+			Height = .Match
 		});
 
-		let label = new Label();
-		label.SetText("NPC Nameplate");
+		let label = new Label("NPC Nameplate");
 		label.FontSize = 14;
 		label.HAlign = .Center;
 		label.VAlign = .Middle;
 		label.TextColor = .(255, 220, 100, 255);
 		panel.AddView(label, new LayoutParams() {
-			Width = LayoutParams.MatchParent,
-			Height = LayoutParams.MatchParent
+			Width = .Match,
+			Height = .Match
 		});
 
 		comp.MarkDirty();
@@ -1744,7 +1739,7 @@ class SandboxApp : EngineApplication
 
 	private void SetupScreenUI()
 	{
-		let uiSub = Context.GetSubsystem<EngineLegacyUISubsystem>();
+		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
 		if (uiSub?.ScreenView == null) return;
 
 		let root = uiSub.ScreenView.Root;
@@ -1752,34 +1747,31 @@ class SandboxApp : EngineApplication
 		// Absolute layout for HUD overlay - doesn't interfere with 3D.
 		let hud = new AbsoluteLayout();
 		hud.IsHitTestVisible = false; // Layout is not a hit target - children (panel, button) are.
-		root.AddView(hud, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+		root.AddView(hud, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// Translucent background panel for the HUD info.
 		let hudPanel = new Panel();
 		hudPanel.Background = new ColorDrawable(.(0, 0, 0, 140));
 		hudPanel.Padding = .(8, 6, 8, 6);
-		hud.AddView(hudPanel, new AbsoluteLayout.LayoutParams() { X = 4, Y = 4, Width = 420, Height = 460 });
+		hud.AddView(hudPanel, new AbsoluteLayout.LayoutParams() { X = 4, Y = 4, Width = .Fixed(.Px(420)), Height = .Fixed(.Px(460)) });
 
-		let hudLayout = new LinearLayout();
-		hudLayout.Orientation = .Vertical;
+		let hudLayout = new FlexLayout();
+		hudLayout.Direction = .Vertical;
 		hudLayout.Spacing = 2;
-		hudPanel.AddView(hudLayout, new LayoutParams() { Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent });
+		hudPanel.AddView(hudLayout, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// FPS label.
-		mFpsLabel = new Label();
-		mFpsLabel.SetText("FPS --");
+		mFpsLabel = new Label("FPS --");
 		mFpsLabel.FontSize = 14;
-		hudLayout.AddView(mFpsLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 18 });
+		hudLayout.AddView(mFpsLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(18)) });
 
 		// Controls hint.
-		mControlsLabel = new Label();
-		mControlsLabel.SetText("WASD=Move QE=Up/Down RMB=Look Tab=Capture Shift=Fast M=SFX");
+		mControlsLabel = new Label("WASD=Move QE=Up/Down RMB=Look Tab=Capture Shift=Fast M=SFX");
 		mControlsLabel.FontSize = 11;
-		hudLayout.AddView(mControlsLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+		hudLayout.AddView(mControlsLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(14)) });
 
 		// Post-processing toggles
-		let ssaoToggle = new CheckBox();
-		ssaoToggle.SetText("SSAO");
+		let ssaoToggle = new CheckBox("SSAO");
 		ssaoToggle.IsChecked = false;
 		ssaoToggle.OnCheckedChanged.Add(new (cb, isChecked) =>
 		{
@@ -1791,18 +1783,14 @@ class SandboxApp : EngineApplication
 				if (ssao != null) ssao.Enabled = isChecked;
 			}
 		});
-		hudLayout.AddView(ssaoToggle, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+		hudLayout.AddView(ssaoToggle, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(20)) });
 
 		// SSAO parameter sliders
-		let radiusLabel = new Label();
-		radiusLabel.SetText("SSAO Radius: 0.50");
+		let radiusLabel = new Label("SSAO Radius: 0.50");
 		radiusLabel.FontSize = 11;
-		hudLayout.AddView(radiusLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+		hudLayout.AddView(radiusLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(14)) });
 
-		let radiusSlider = new Slider();
-		radiusSlider.Min = 0.1f;
-		radiusSlider.Max = 3.0f;
-		radiusSlider.Value = 0.5f;
+		let radiusSlider = new Slider(0.1f, 3.0f, 0.5f);
 		radiusSlider.OnValueChanged.Add(new (s, val) =>
 		{
 			let rs = Context.GetSubsystem<RenderSubsystem>();
@@ -1814,17 +1802,13 @@ class SandboxApp : EngineApplication
 			}
 			radiusLabel.SetText(scope $"SSAO Radius: {val:F2}");
 		});
-		hudLayout.AddView(radiusSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+		hudLayout.AddView(radiusSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(400)), Height = .Fixed(.Px(24)) });
 
-		let intensityLabel = new Label();
-		intensityLabel.SetText("SSAO Intensity: 1.50");
+		let intensityLabel = new Label("SSAO Intensity: 1.50");
 		intensityLabel.FontSize = 11;
-		hudLayout.AddView(intensityLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+		hudLayout.AddView(intensityLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(14)) });
 
-		let intensitySlider = new Slider();
-		intensitySlider.Min = 0.5f;
-		intensitySlider.Max = 5.0f;
-		intensitySlider.Value = 1.5f;
+		let intensitySlider = new Slider(0.5f, 5.0f, 1.5f);
 		intensitySlider.OnValueChanged.Add(new (s, val) =>
 		{
 			let rs = Context.GetSubsystem<RenderSubsystem>();
@@ -1836,17 +1820,13 @@ class SandboxApp : EngineApplication
 			}
 			intensityLabel.SetText(scope $"SSAO Intensity: {val:F2}");
 		});
-		hudLayout.AddView(intensitySlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+		hudLayout.AddView(intensitySlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(400)), Height = .Fixed(.Px(24)) });
 
-		let biasLabel = new Label();
-		biasLabel.SetText("SSAO Bias: 0.025");
+		let biasLabel = new Label("SSAO Bias: 0.025");
 		biasLabel.FontSize = 11;
-		hudLayout.AddView(biasLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+		hudLayout.AddView(biasLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(14)) });
 
-		let biasSlider = new Slider();
-		biasSlider.Min = 0.0f;
-		biasSlider.Max = 0.2f;
-		biasSlider.Value = 0.025f;
+		let biasSlider = new Slider(0.0f, 0.2f, 0.025f);
 		biasSlider.OnValueChanged.Add(new (s, val) =>
 		{
 			let rs = Context.GetSubsystem<RenderSubsystem>();
@@ -1858,18 +1838,14 @@ class SandboxApp : EngineApplication
 			}
 			biasLabel.SetText(scope $"SSAO Bias: {val:F3}");
 		});
-		hudLayout.AddView(biasSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+		hudLayout.AddView(biasSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(400)), Height = .Fixed(.Px(24)) });
 
 		// AA toggles - FXAA and TAA are mutually exclusive
-		let fxaaToggle = new CheckBox();
-		fxaaToggle.SetText("FXAA");
-		fxaaToggle.IsChecked = true;
-		hudLayout.AddView(fxaaToggle, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+		let fxaaToggle = new CheckBox("FXAA", true);
+		hudLayout.AddView(fxaaToggle, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(20)) });
 
-		let taaToggle = new CheckBox();
-		taaToggle.SetText("TAA");
-		taaToggle.IsChecked = false;
-		hudLayout.AddView(taaToggle, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+		let taaToggle = new CheckBox("TAA");
+		hudLayout.AddView(taaToggle, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(20)) });
 
 		fxaaToggle.OnCheckedChanged.Add(new (cb, isChecked) =>
 		{
@@ -1885,15 +1861,11 @@ class SandboxApp : EngineApplication
 		});
 
 		// TAA parameter sliders
-		let blendLabel = new Label();
-		blendLabel.SetText("TAA Blend: 0.95");
+		let blendLabel = new Label("TAA Blend: 0.95");
 		blendLabel.FontSize = 11;
-		hudLayout.AddView(blendLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+		hudLayout.AddView(blendLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(14)) });
 
-		let blendSlider = new Slider();
-		blendSlider.Min = 0.5f;
-		blendSlider.Max = 0.99f;
-		blendSlider.Value = 0.95f;
+		let blendSlider = new Slider(0.5f, 0.99f, 0.95f);
 		blendSlider.OnValueChanged.Add(new (s, val) =>
 		{
 			let rs = Context.GetSubsystem<RenderSubsystem>();
@@ -1905,17 +1877,13 @@ class SandboxApp : EngineApplication
 			}
 			blendLabel.SetText(scope $"TAA Blend: {val:F2}");
 		});
-		hudLayout.AddView(blendSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+		hudLayout.AddView(blendSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(400)), Height = .Fixed(.Px(24)) });
 
-		let jitterLabel = new Label();
-		jitterLabel.SetText("Jitter Scale: 1.00");
+		let jitterLabel = new Label("Jitter Scale: 1.00");
 		jitterLabel.FontSize = 11;
-		hudLayout.AddView(jitterLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 14 });
+		hudLayout.AddView(jitterLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(14)) });
 
-		let jitterSlider = new Slider();
-		jitterSlider.Min = 0.0f;
-		jitterSlider.Max = 2.0f;
-		jitterSlider.Value = 1.0f;
+		let jitterSlider = new Slider(0.0f, 2.0f, 1.0f);
 		jitterSlider.OnValueChanged.Add(new (s, val) =>
 		{
 			let rs = Context.GetSubsystem<RenderSubsystem>();
@@ -1924,7 +1892,7 @@ class SandboxApp : EngineApplication
 				pipeline.JitterScale = val;
 			jitterLabel.SetText(scope $"Jitter Scale: {val:F2}");
 		});
-		hudLayout.AddView(jitterSlider, new LinearLayout.LayoutParams() { Width = 400, Height = 24 });
+		hudLayout.AddView(jitterSlider, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(400)), Height = .Fixed(.Px(24)) });
 
 		taaToggle.OnCheckedChanged.Add(new (cb, isChecked) =>
 		{

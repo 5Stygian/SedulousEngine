@@ -84,7 +84,9 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 		// UIContext (shared across screen + world views).
 		mUIContext = new UIContext();
 		mUIContext.FontService = mFontService;
-		mUIContext.StyleSheet = DarkTheme.Create();
+		let sheet = DarkTheme.Create();
+		mUIContext.StyleSheet = sheet;
+		sheet.ReleaseRef();
 
 		// Clipboard bridge.
 		if (Shell?.Clipboard != null)
@@ -102,6 +104,11 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 		{
 			mScreenView = new ScreenUIView(mUIContext, Device, SwapChainFormat,
 				FrameCount, mFontService, ShaderSystem);
+
+			// Set initial viewport size from window so dialogs shown before
+			// the first RenderOverlay call can center correctly.
+			if (Window != null)
+				mScreenView.Root.ViewportSize = .((float)Window.Width, (float)Window.Height);
 
 			// Create world UI render pass (registered with pipeline in OnReady).
 			mWorldUIPass = new WorldUIPass();

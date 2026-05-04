@@ -26,6 +26,9 @@ public class Label : View
 	/// Per-instance font size override. When set, overrides the style-resolved FontSize.
 	public float? FontSize;
 
+	/// Per-instance text color override. When set, overrides the style-resolved TextColor.
+	public Color? TextColor;
+
 	public this() { }
 	public this(StringView text) { Text = new String(text); }
 
@@ -107,7 +110,7 @@ public class Label : View
 		let font = ctx.FontService.GetFont(fontSize);
 		if (font == null) return;
 
-		var textColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
+		var textColor = TextColor ?? ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
 		if (!IsEffectivelyEnabled)
 			textColor = Palette.ComputeDisabled(textColor);
 

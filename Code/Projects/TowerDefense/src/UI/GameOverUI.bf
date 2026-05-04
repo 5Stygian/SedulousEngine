@@ -1,7 +1,7 @@
 namespace TowerDefense;
 
 using System;
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Messaging;
 
@@ -39,8 +39,8 @@ class GameOverUI
 		dialog.MaxHeight = 200;
 
 		// Content
-		let content = new LinearLayout();
-		content.Orientation = .Vertical;
+		let content = new FlexLayout();
+		content.Direction = .Vertical;
 		content.Spacing = 8;
 
 		let resultLabel = new Label();
@@ -57,7 +57,7 @@ class GameOverUI
 			resultLabel.SetText("Your base was overrun!");
 			resultLabel.TextColor = .(255, 80, 80, 255);
 		}
-		content.AddView(resultLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 28 });
+		content.AddView(resultLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(28)) });
 
 		let statsLabel = new Label();
 		statsLabel.FontSize = 13;
@@ -67,7 +67,7 @@ class GameOverUI
 		statsText.AppendF("Waves: {}  |  Gold: {}  |  Lives: {}",
 			gameSub.Waves.CurrentWave, gameSub.Gold, gameSub.Lives);
 		statsLabel.SetText(statsText);
-		content.AddView(statsLabel, new LinearLayout.LayoutParams() { Width = LayoutParams.MatchParent, Height = 20 });
+		content.AddView(statsLabel, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(20)) });
 
 		dialog.SetContent(content);
 		dialog.AddButton("OK", .OK);
