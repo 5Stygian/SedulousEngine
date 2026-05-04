@@ -1,4 +1,4 @@
-namespace UISandbox;
+namespace LegacyUISandbox;
 
 using System;
 using Sedulous.Core.Mathematics;
@@ -368,7 +368,7 @@ class CopyableLabel : Label
 	}
 }
 
-/// UISandbox - gallery/showcase for Sedulous.LegacyUI, growing with each phase.
+/// LegacyUISandbox - gallery/showcase for Sedulous.LegacyUI, growing with each phase.
 /// Per-window render data for secondary (dockable) windows.
 class DockableWindowRenderData
 {

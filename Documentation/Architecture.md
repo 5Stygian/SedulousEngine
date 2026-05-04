@@ -9,7 +9,7 @@ rendering pipeline, engine subsystems, application models, and how they compose.
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  Applications                                                               │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐ │
-│  │ Game          │  │ Editor        │  │ UISandbox     │  │ RHI Sample  │ │
+│  │ Game          │  │ Editor        │  │ LegacyUISandbox     │  │ RHI Sample  │ │
 │  │ (Engine.App)  │  │ (Editor.App)  │  │ (Rt.Client)   │  │ (Rt.Client) │ │
 │  │ full engine   │  │ multi-window  │  │ UI framework  │  │ raw GPU     │ │
 │  │ auto-subsys   │  │ viewports     │  │ no engine     │  │ no engine   │ │
@@ -108,7 +108,7 @@ WebGPU-inspired but lower-level. Interface-based - backends are swappable.
 |---------|---------|
 | **Sedulous.LegacyUI** | Android-inspired retained-mode UI: View/ViewGroup/RootView hierarchy, MeasureSpec layout, theme system, input routing, animation, drag-drop, overlays. Renders via VGContext. No engine dependency - runs headless for tests |
 | **Sedulous.LegacyUI.Shell** | Bridge: UIInputHelper (Shell -> UI input routing), InputMapping, ShellClipboardAdapter |
-| **Sedulous.LegacyUI.Runtime** | UISubsystem for standalone apps (owns UIContext + VGRenderer). Used by UISandbox |
+| **Sedulous.LegacyUI.Runtime** | UISubsystem for standalone apps (owns UIContext + VGRenderer). Used by LegacyUISandbox |
 | **Sedulous.LegacyUI.Toolkit** | Advanced widgets: DockManager, SplitView, MenuBar, StatusBar, Toolbar, PropertyGrid (with transactional editors), TreeView, ColorPicker, TabView (closable), DraggableTreeView, IDockableWindowHost |
 | **Sedulous.LegacyUI.Resources** | ThemeResource, UILayoutResource, ThemeXmlParser |
 
@@ -152,7 +152,7 @@ Logger (via virtual CreateLogger), ResourceSystem, JobSystem lifecycle.
 - Virtual hooks: OnInitialize, OnUpdate, OnRenderFrame, OnResize, CreateLogger, etc.
 - Can optionally create a Context with subsystems (e.g., UISubsystem)
 
-**Used by:** UISandbox, VGSandbox, DrawingSandbox, AudioSandbox, FontRendering, RHI samples
+**Used by:** LegacyUISandbox, VGSandbox, DrawingSandbox, AudioSandbox, FontRendering, RHI samples
 
 ### EngineApplication - Full Engine
 

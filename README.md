@@ -154,7 +154,7 @@ dependencies for those platforms and filling any gaps in RHI bootstrapping.
 cd Code
 BeefBuild -workspace=. -project=EngineSandbox     # Game sandbox
 BeefBuild -workspace=. -project=Sedulous.Editor.App # Editor
-BeefBuild -workspace=. -project=UISandbox          # UI demo
+BeefBuild -workspace=. -project=LegacyUISandbox          # UI demo
 ```
 
 **Shader compilation note:** The first run of EngineSandbox may take a while as
@@ -176,7 +176,7 @@ Code/
   Foundation/          -- Core libraries (RHI, Shell, VG, LegacyUI, Physics, Audio, etc.)
   Engine/              -- Engine.Core (scene model) + subsystems (Input, Physics, Render, LegacyUI, etc.)
   Editor/              -- Editor core + application
-  Samples/             -- EngineSandbox, UISandbox, RHI samples, etc.
+  Samples/             -- EngineSandbox, LegacyUISandbox, RHI samples, etc.
   Deprecated/          -- Sedulous.GUI (replaced by Sedulous.LegacyUI stack)
   Dependencies/        -- Third-party bindings (Bulkan, SDL3, Jolt, Recast, etc.)
 

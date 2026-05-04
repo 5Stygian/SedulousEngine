@@ -347,7 +347,7 @@ Bridge UI2 with the engine runtime and add declarative layout loading.
 
 Port existing applications from Sedulous.LegacyUI to UI2.
 
-- [ ] Port UISandbox demos to UI2 (verify feature parity)
+- [ ] Port LegacyUISandbox demos to UI2 (verify feature parity)
 - [ ] Port editor to UI2
 - [ ] Port tower defense game UI to UI2
 - [ ] Remove Sedulous.LegacyUI dependency from migrated projects

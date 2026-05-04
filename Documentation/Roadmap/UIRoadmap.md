@@ -58,7 +58,7 @@ more game-loop-friendly choice - usually the Android one.
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
 │  Samples                                                             │
-│  UISandbox - gallery/showcase; grows as each phase lands.            │
+│  LegacyUISandbox - gallery/showcase; grows as each phase lands.            │
 │  Uses Sedulous.LegacyUI.Runtime directly (no engine required).             │
 ├──────────────────────────────────────────────────────────────────────┤
 │  Sedulous.Engine.LegacyUI                                                  │
@@ -111,7 +111,7 @@ dedicated UI renderer. This is the existing engine pattern.
 
 - **`Sedulous.LegacyUI.Runtime`** provides the `UISubsystem` + Shell integration
   (input helper, clipboard adapter, input mapping). This is what standalone
-  apps - including `UISandbox` - use. Depends on `Sedulous.Runtime` +
+  apps - including `LegacyUISandbox` - use. Depends on `Sedulous.Runtime` +
   `Sedulous.Shell`, but **not** on `Sedulous.Engine.*`. Follows the
   existing `Sedulous.GUI.Runtime` precedent.
 
@@ -142,9 +142,9 @@ dedicated UI renderer. This is the existing engine pattern.
   windows. Apps that need scene-integrated UI pull this in; apps that just
   need a screen-space overlay can stop at `Sedulous.LegacyUI.Runtime`.
 
-### UISandbox
+### LegacyUISandbox
 
-Lives at `Code/Samples/UI/UISandbox/`, mirroring `VGSandbox`'s layout.
+Lives at `Code/Samples/UI/LegacyUISandbox/`, mirroring `VGSandbox`'s layout.
 Uses `Sedulous.Runtime.Client.Application` + `Sedulous.LegacyUI.Runtime` -
 does **not** require the full engine. **Established in Phase 1 along with
 the Runtime subsystem** - the sandbox is a running, rendering app from
@@ -1584,7 +1584,7 @@ A phase is **not complete** until all three conditions hold:
 2. **Tests passing** - `Sedulous.LegacyUI.Tests` has test coverage for the
    phase's features, and `BeefBuild -project=Sedulous.LegacyUI.Tests` runs
    clean. Tests are written alongside the feature, not deferred.
-3. **UISandbox updated** - `UISandbox` gains a new demo page / section
+3. **LegacyUISandbox updated** - `LegacyUISandbox` gains a new demo page / section
    exercising the phase's features. Layout can be refactored to match
    current API; sandbox is treated as a living gallery, not a fixed app.
 
@@ -1687,7 +1687,7 @@ items skipped or deferred from completed phases.
 
 > **Status: ✅ COMPLETE**
 
-**Goal: get the real `UISubsystem` driving the real `UISandbox` rendering
+**Goal: get the real `UISubsystem` driving the real `LegacyUISandbox` rendering
 real UI on screen.** VGRenderer is already proven, so there's no reason
 to spend a phase headless before seeing pixels. Phase 1 is bigger than
 a typical first phase but concludes with a running, demoable sandbox
@@ -1730,8 +1730,8 @@ app.
 - Basic frame loop: drain MutationQueue -> Layout if invalidated -> Draw
   -> Submit
 
-**Code (UISandbox - running app):**
-- `Code/Samples/UI/UISandbox/` created, mirrors `VGSandbox` layout
+**Code (LegacyUISandbox - running app):**
+- `Code/Samples/UI/LegacyUISandbox/` created, mirrors `VGSandbox` layout
 - `Application` subclass that creates `UISubsystem` via
   `Sedulous.LegacyUI.Runtime`
 - Shows a composed layout: a vertical `LinearLayout` filling the window,
@@ -1802,7 +1802,7 @@ demo page.
 - `UIDrawContext` correctly pushes/pops clip rects
 - Debug overlay toggles: batch empty when all flags false
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Widgets" page with Label/Button/ImageView/Panel (buttons still
   non-interactive until Phase 3)
 - "Drawables" page demonstrating all drawable primitives + composition
@@ -1864,7 +1864,7 @@ through to the tree.
 - Accelerator search hits correct target top-down
 - `UIInputHelper`: shell events arrive at the correct view
 
-**UISandbox:**
+**LegacyUISandbox:**
 - Existing Phase 2 pages gain interactivity - buttons actually respond
 - "Input" page: focus rings, hover-change demo, capture demo (slider
   thumb), tab-order visualization with DebugDraw overlays active
@@ -1884,7 +1884,7 @@ through to the tree.
   via `Resolve`, no crash)
 - Accelerator search hits correct target top-down
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Input" page: focus rings, hover-change demo, capture demo (slider
   thumb), tab-order visualization with DebugDraw overlays active
 - "Events" page showing a live log of routed events (capture/target/bubble
@@ -1920,7 +1920,7 @@ through to the tree.
 - Theme XML round-trip (parse -> re-serialize -> parse)
 - Theme change triggers layout invalidation on affected views
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Themes" page: toggle between Dark / Light themes at runtime;
   same widgets re-theme instantly
 - All widgets from Phase 2/3 retrofit to go through theme
@@ -1951,7 +1951,7 @@ Declarative UIs, file-I/O-free (parsing only).
 - Unknown element type -> clear error with location
 - Unknown property -> clear error with available properties listed
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "XML Loading" page: sidebar showing XML source, main area showing the
   rendered tree. Edit XML in a scratch file, reload via button (full
   hot reload comes with resource integration in Phase 6).
@@ -1975,7 +1975,7 @@ Declarative UIs, file-I/O-free (parsing only).
 - `UILayoutResource` republishes to listeners on file change
 - Dependency tracking: layout referencing theme reloads when theme changes
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Resource Integration" page: loads theme + layout from resource files,
   demonstrates hot reload by editing the theme file (color change visible
   without restart).
@@ -2045,7 +2045,7 @@ integration with screen-space and world-space UI.
 - `ScrollIntoView` computes correct offset for nested scrollable
   ancestors
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Scrolling" page: long content in `ScrollView` with various policies.
   Mouse wheel, drag on scrollbar, momentum after drag release.
 
@@ -2075,7 +2075,7 @@ integration with screen-space and world-space UI.
 - `SelectionModel.ShiftIndices` adjusts selection on insertion
 - Adapter `OnChanged` / `OnRangeChanged` notifications trigger rebinds
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Virtualized List" page: 10,000 items with heterogeneous view types
   (e.g., text rows + image rows). Recycler stats overlay visible.
 - "Tree View" page: filesystem-like browser using `ITreeAdapter` with
@@ -2113,7 +2113,7 @@ integration with screen-space and world-space UI.
 - Selection normalization regardless of anchor/caret order
 - `PasswordBox` blocks Ctrl+C / Ctrl+X
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Text Editing" page: multi-line `EditText` with undo/redo, word
   selection, copy/paste. Also `PasswordBox`, numeric-only input
   (`InputFilter.Digits`), and UTF-8 stress text (emoji, diacritics).
@@ -2149,7 +2149,7 @@ integration with screen-space and world-space UI.
 - `ContextMenu` submenu cascade delete (MenuItem owns submenu)
 - `TooltipManager` shows after delay, hides after auto-hide
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Overlays" page: buttons for Alert/Confirm dialogs, context menu on
   right-click with nested submenus (hover-open), tooltips on every
   button, modal test.
@@ -2183,7 +2183,7 @@ integration with screen-space and world-space UI.
 - `FillBehavior.Reset` restores original value on cancel
 - Pending-add/remove during manager Update doesn't corrupt iteration
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Animation" page: fade transitions on hover, sequential storyboard
   demo (card flip-in sequence), parallel storyboard (multiple properties
   tweening together), custom easing curves comparison.
@@ -2211,7 +2211,7 @@ integration with screen-space and world-space UI.
 - Double-click guards drag start
 - Adorner lifecycle: closed before OnDrop fires
 
-**UISandbox:**
+**LegacyUISandbox:**
 - "Drag and Drop" page: swap-reorder list where items drag within the
   same container (tests drag-source-as-drop-target), cross-container
   drag (move from left list to right), tab-drag to rearrange tabs.
@@ -2253,7 +2253,7 @@ libraries and the final polish items.
 - `Sedulous.LegacyUI.Tests/Gamekit/` - HealthBar value clamping, RadialGauge
   angle math
 
-**UISandbox (gallery finale):**
+**LegacyUISandbox (gallery finale):**
 - "Toolkit" page: a docked workspace demo with dockable panels, a
   PropertyGrid inspecting the selected view, a DataGrid, and the live
   tree inspector overlay
@@ -2269,7 +2269,7 @@ libraries and the final polish items.
 All design decisions resolved; ready to start.
 
 **Philosophy: sandbox runs from Phase 1.** `Sedulous.LegacyUI.Runtime` and
-`UISandbox` are established on day one - the sandbox is a running,
+`LegacyUISandbox` are established on day one - the sandbox is a running,
 rendering app from the first phase. Every later phase just grows the
 framework while the sandbox keeps working. No "big bang" moment where
 everything suddenly needs to integrate.
@@ -2625,7 +2625,7 @@ src/
   WorldUIPass.bf              // PipelinePass, render dirty views to textures
 ```
 
-### Samples/UI/UISandbox
+### Samples/UI/LegacyUISandbox
 
 Depends on `Sedulous.Runtime.Client`, `Sedulous.LegacyUI`, `Sedulous.LegacyUI.Runtime`,
 `Sedulous.LegacyUI.Toolkit`, `Sedulous.LegacyUI.Gamekit`, `Sedulous.LegacyUI.Resources`,

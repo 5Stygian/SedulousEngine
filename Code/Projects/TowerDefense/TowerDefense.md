@@ -5,7 +5,7 @@ A full tower defense game built on the Sedulous engine using the Kenney Tower De
 ## References
 - **Engine patterns:** Code/Samples/EngineSandbox/src/SandboxApp.bf
 - **FBX model loading:** Code/Samples/Showcase/src/ShowcaseApp.bf
-- **GUI patterns:** Code/Samples/UI/UISandbox/src/
+- **GUI patterns:** Code/Samples/UI/LegacyUISandbox/src/
 - **Messaging API:** Code/Foundation/Sedulous.Messaging/src/MessageBus.bf
 - **Component pattern:** Code/Engine/Sedulous.Engine.Core/src/ComponentManager.bf
 - **Assets:** Assets/samples/models/kenney_tower-defense-kit/
@@ -133,7 +133,7 @@ Place towers, they target and shoot enemies with projectiles.
 
 ## Phase 4 - UI
 
-HUD, tower selection, menus. Reference UISandbox for widget composition patterns.
+HUD, tower selection, menus. Reference LegacyUISandbox for widget composition patterns.
 
 - [ ] **HUDManager.bf** - top bar panel: gold label, lives label, wave label. Subscribes to ResourceChangedMsg/EnemyReachedEndMsg/WaveStartedMsg to update. Uses LinearLayout with Labels.
 - [ ] **TowerSelectionPanel.bf** - bottom panel: tower buy buttons (type name + cost), upgrade button, sell button. Sets selected tower type for TowerPlacement. Disables buttons when gold insufficient. Uses LinearLayout with Buttons.

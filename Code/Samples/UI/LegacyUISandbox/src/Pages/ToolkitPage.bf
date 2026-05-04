@@ -1,4 +1,4 @@
-namespace UISandbox;
+namespace LegacyUISandbox;
 
 using System;
 using Sedulous.LegacyUI;

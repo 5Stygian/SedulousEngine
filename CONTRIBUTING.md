@@ -17,7 +17,7 @@ Thank you for your interest in contributing to Sedulous.
 - `Code/Foundation/` -- Self-contained libraries (RHI, Shell, VG, UI, etc.)
 - `Code/Engine/` -- Engine.Core and subsystems (Render, Physics, Audio, etc.)
 - `Code/Editor/` -- Editor core and application
-- `Code/Samples/` -- Sample applications (EngineSandbox, UISandbox, etc.)
+- `Code/Samples/` -- Sample applications (EngineSandbox, LegacyUISandbox, etc.)
 - `Code/Dependencies/` -- Third-party Beeflang bindings
 - `Documentation/` -- Architecture reference and roadmaps
 
@@ -64,4 +64,4 @@ tests must pass.
 
 - Discuss architectural changes before implementing them
 - If unsure about an approach, open an issue or ask first
-- Reference existing patterns (UISandbox, EngineSandbox) before writing new code
+- Reference existing patterns (LegacyUISandbox, EngineSandbox) before writing new code
