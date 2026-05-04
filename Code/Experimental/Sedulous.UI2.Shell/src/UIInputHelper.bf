@@ -99,12 +99,22 @@ public class UIInputHelper
 		ProcessMouseInput(mouse, context, mouse.X, mouse.Y);
 	}
 
+	/// Update cached keyboard modifiers. Call before ProcessMouseInput when
+	/// routing input manually (not via Update) to ensure shift+wheel works.
+	public void UpdateModifiers(Sedulous.Shell.Input.IKeyboard keyboard)
+	{
+		if (keyboard != null)
+			mCurrentModifiers = InputMapping.MapModifiers(keyboard.Modifiers);
+		else
+			mCurrentModifiers = .None;
+	}
+
 	/// Route mouse input with explicit override coordinates.
 	/// Used for cross-window drag routing where the mouse position
 	/// must be transformed to a different window's coordinate space.
 	public void ProcessMouseInput(IMouse mouse, UIContext context, float overrideX, float overrideY)
 	{
-		// Mouse move — only when mouse actually moved.
+		// Mouse move - only when mouse actually moved.
 		if (mouse.DeltaX != 0 || mouse.DeltaY != 0)
 			context.InputManager.ProcessMouseMove(overrideX, overrideY);
 
@@ -123,21 +133,21 @@ public class UIInputHelper
 	{
 		let mods = InputMapping.MapModifiers(keyboard.Modifiers);
 
-		// Navigation and editing keys → KeyDown.
+		// Navigation and editing keys -> KeyDown.
 		for (let key in sNavigationKeys)
 		{
 			if (keyboard.IsKeyPressed(key))
 				context.InputManager.ProcessKeyDown(InputMapping.MapKey(key), mods, false);
 		}
 
-		// Function keys → KeyDown.
+		// Function keys -> KeyDown.
 		for (let key in sFunctionKeys)
 		{
 			if (keyboard.IsKeyPressed(key))
 				context.InputManager.ProcessKeyDown(InputMapping.MapKey(key), mods, false);
 		}
 
-		// Ctrl+key shortcuts → KeyDown.
+		// Ctrl+key shortcuts -> KeyDown.
 		if (mods.HasFlag(.Ctrl))
 		{
 			for (let key in sCtrlShortcutKeys)
@@ -147,7 +157,7 @@ public class UIInputHelper
 			}
 		}
 
-		// Alt+letter for menu accelerators → KeyDown.
+		// Alt+letter for menu accelerators -> KeyDown.
 		if (mods.HasFlag(.Alt))
 		{
 			for (let key in sLetterKeys)

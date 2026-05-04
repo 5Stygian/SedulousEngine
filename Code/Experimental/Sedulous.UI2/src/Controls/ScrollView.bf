@@ -132,7 +132,7 @@ public class ScrollView : ViewGroup
 	{
 		ClipsContent = true;
 
-		// Scrollbars are visual children (not logical) — they participate in
+		// Scrollbars are visual children (not logical) - they participate in
 		// draw and hit-test via VisualChildCount/GetVisualChild but don't
 		// affect content measurement or layout.
 		mVBar = new ScrollBar(false) { BarThickness = ScrollBarThickness, Visibility = .Gone };
@@ -235,20 +235,13 @@ public class ScrollView : ViewGroup
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		// Measure content: expand on scrollable axes, constrain on non-scrollable axes.
-		// This ensures children stretch to the viewport width (not infinity) on
-		// the non-scrollable axis.
-		let barW = (VScrollBarPolicy != .Never && ScrollBarMode == .Reserved) ? ScrollBarThickness : 0;
-		let barH = (HScrollBarPolicy != .Never && ScrollBarMode == .Reserved) ? ScrollBarThickness : 0;
-		let availW = Math.Max(0, constraints.MaxWidth - Padding.TotalHorizontal - barW);
-		let availH = Math.Max(0, constraints.MaxHeight - Padding.TotalVertical - barH);
+		// First pass: measure content WITHOUT reserving scrollbar space.
+		// This determines if scrolling is actually needed.
+		let fullW = Math.Max(0, constraints.MaxWidth - Padding.TotalHorizontal);
+		let fullH = Math.Max(0, constraints.MaxHeight - Padding.TotalVertical);
 
-		// Vertical: expand for Auto/Always so content can overflow and scroll.
-		// Horizontal: only expand for Always. Auto constrains to viewport
-		// width first — content only scrolls if explicitly sized beyond it.
-		// This prevents children like Separator from measuring to infinity.
-		let childMaxW = (HScrollBarPolicy == .Always) ? float.MaxValue : availW;
-		let childMaxH = (VScrollBarPolicy == .Never) ? availH : float.MaxValue;
+		let childMaxW = (HScrollBarPolicy == .Always) ? float.MaxValue : fullW;
+		let childMaxH = (VScrollBarPolicy == .Never) ? fullH : float.MaxValue;
 		let childConstraints = BoxConstraints(0, childMaxW, 0, childMaxH);
 
 		float maxW = 0, maxH = 0;
@@ -265,6 +258,41 @@ public class ScrollView : ViewGroup
 
 		mContentWidth = maxW;
 		mContentHeight = maxH;
+
+		// Second pass: if Reserved mode and content overflows, re-measure with
+		// scrollbar space subtracted so children account for the narrower viewport.
+		if (ScrollBarMode == .Reserved)
+		{
+			bool needsVBar = (VScrollBarPolicy == .Always) || (VScrollBarPolicy == .Auto && maxH > fullH);
+			bool needsHBar = (HScrollBarPolicy == .Always) || (HScrollBarPolicy == .Auto && maxW > fullW);
+
+			if (needsVBar || needsHBar)
+			{
+				let barW = needsVBar ? ScrollBarThickness : 0;
+				let barH = needsHBar ? ScrollBarThickness : 0;
+				let adjustedW = Math.Max(0, fullW - barW);
+				let adjustedH = Math.Max(0, fullH - barH);
+
+				let adjChildMaxW = (HScrollBarPolicy == .Always) ? float.MaxValue : adjustedW;
+				let adjChildMaxH = (VScrollBarPolicy == .Never) ? adjustedH : float.MaxValue;
+				let adjConstraints = BoxConstraints(0, adjChildMaxW, 0, adjChildMaxH);
+
+				maxW = 0; maxH = 0;
+				for (int i = 0; i < ChildCount; i++)
+				{
+					let child = GetChildAt(i);
+					if (child.Visibility == .Gone) continue;
+
+					let margin = child.LayoutParams?.Margin ?? Thickness();
+					child.Measure(adjConstraints.Deflate(margin));
+					maxW = Math.Max(maxW, child.MeasuredSize.X + margin.TotalHorizontal);
+					maxH = Math.Max(maxH, child.MeasuredSize.Y + margin.TotalVertical);
+				}
+
+				mContentWidth = maxW;
+				mContentHeight = maxH;
+			}
+		}
 
 		// Width: fill available if horizontal scrolling, else wrap to content
 		let measuredW = (HScrollBarPolicy == .Never)
@@ -295,17 +323,15 @@ public class ScrollView : ViewGroup
 		mScrollX = Math.Clamp(mScrollX, 0, MaxScrollX);
 		mScrollY = Math.Clamp(mScrollY, 0, MaxScrollY);
 
-		// Ensure scrollbars are attached to context (registered for hit-test/input)
+		// Ensure scrollbars have parent set and are attached to context.
+		// Parent must be set even if already attached (AttachView via
+		// VisualChild recursion may set Context before OnLayout runs).
+		mVBar.Parent = this;
+		mHBar.Parent = this;
 		if (Context != null && mVBar.Context == null)
-		{
-			mVBar.Parent = this;
 			Context.AttachView(mVBar);
-		}
 		if (Context != null && mHBar.Context == null)
-		{
-			mHBar.Parent = this;
 			Context.AttachView(mHBar);
-		}
 
 		// Layout content children at scrolled offset
 		for (int i = 0; i < ChildCount; i++)

@@ -13,6 +13,10 @@ public class Dialog : ViewGroup
 	public DialogResult Result = .None;
 	public Event<delegate void(Dialog, DialogResult)> OnClosed ~ _.Dispose();
 
+	/// Minimum dialog width.
+	public float MinWidth = 250;
+	/// Minimum dialog height.
+	public float MinHeight = 120;
 	/// Maximum dialog width. Clamped to 80% of viewport if larger.
 	public float MaxWidth = 400;
 	/// Maximum dialog height. Clamped to 80% of viewport if larger.
@@ -97,10 +101,10 @@ public class Dialog : ViewGroup
 		let viewportH = root.ViewportSize.Y;
 		let maxW = Math.Min(MaxWidth, viewportW * 0.8f);
 		let maxH = Math.Min(MaxHeight, viewportH * 0.8f);
-		Measure(BoxConstraints.Loose(maxW, maxH));
+		Measure(BoxConstraints(MinWidth, maxW, MinHeight, maxH));
 
-		let finalW = Math.Min(MeasuredSize.X, maxW);
-		let finalH = Math.Min(MeasuredSize.Y, maxH);
+		let finalW = MeasuredSize.X;
+		let finalH = MeasuredSize.Y;
 
 		let x = (viewportW - finalW) * 0.5f;
 		let y = (viewportH - finalH) * 0.5f;
@@ -131,16 +135,21 @@ public class Dialog : ViewGroup
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		var clampedMaxW = constraints.MaxWidth;
-		var clampedMaxH = constraints.MaxHeight;
-		if (MaxWidth > 0) clampedMaxW = Math.Min(MaxWidth, clampedMaxW);
-		if (MaxHeight > 0) clampedMaxH = Math.Min(MaxHeight, clampedMaxH);
+		// Apply Dialog's own min/max, then intersect with input constraints.
+		let effMinW = Math.Max(MinWidth, constraints.MinWidth);
+		let effMaxW = Math.Min(MaxWidth > 0 ? MaxWidth : float.MaxValue, constraints.MaxWidth);
+		let effMinH = Math.Max(MinHeight, constraints.MinHeight);
+		let effMaxH = Math.Min(MaxHeight > 0 ? MaxHeight : float.MaxValue, constraints.MaxHeight);
 
-		let inner = BoxConstraints.Loose(clampedMaxW, clampedMaxH);
+		// Measure content with unconstrained height so Grow children wrap
+		// to natural size. Width is capped to max so text wraps properly.
+		let inner = BoxConstraints(0, effMaxW, 0, float.MaxValue);
 		mLayout.Measure(inner);
+
+		// Clamp result to [min, max] range.
 		MeasuredSize = .(
-			Math.Min(mLayout.MeasuredSize.X, clampedMaxW),
-			Math.Min(mLayout.MeasuredSize.Y, clampedMaxH));
+			Math.Clamp(mLayout.MeasuredSize.X, effMinW, effMaxW),
+			Math.Clamp(mLayout.MeasuredSize.Y, effMinH, effMaxH));
 	}
 
 	protected override void OnLayout(float left, float top, float width, float height)

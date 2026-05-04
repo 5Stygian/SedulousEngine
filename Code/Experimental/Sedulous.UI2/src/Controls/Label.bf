@@ -23,6 +23,9 @@ public class Label : View
 	/// Whether text is truncated with "..." when it exceeds width.
 	public bool Ellipsis = false;
 
+	/// Per-instance font size override. When set, overrides the style-resolved FontSize.
+	public float? FontSize;
+
 	public this() { }
 	public this(StringView text) { Text = new String(text); }
 
@@ -41,7 +44,7 @@ public class Label : View
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		let fontSize = ResolveStyleFloat(.FontSize, 16);
+		let fontSize = (FontSize ?? ResolveStyleFloat(.FontSize, 16));
 		float textW = 0, textH = fontSize;
 
 		if (Text != null && Text.Length > 0 && Context?.FontService != null)
@@ -88,7 +91,7 @@ public class Label : View
 	{
 		if (Context?.FontService != null)
 		{
-			let font = Context.FontService.GetFont(ResolveStyleFloat(.FontSize, 16));
+			let font = Context.FontService.GetFont((FontSize ?? ResolveStyleFloat(.FontSize, 16)));
 			if (font != null)
 				return font.Font.Metrics.Ascent;
 		}
@@ -100,7 +103,7 @@ public class Label : View
 		if (Text == null || Text.Length == 0) return;
 		if (ctx.FontService == null) return;
 
-		let fontSize = ResolveStyleFloat(.FontSize, 16);
+		let fontSize = (FontSize ?? ResolveStyleFloat(.FontSize, 16));
 		let font = ctx.FontService.GetFont(fontSize);
 		if (font == null) return;
 

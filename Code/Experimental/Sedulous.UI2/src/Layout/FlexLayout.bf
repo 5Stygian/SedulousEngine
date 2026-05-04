@@ -53,14 +53,59 @@ public class FlexLayout : ViewGroup
 			MeasureVertical(inner, constraints);
 	}
 
+	/// Like MakeChildConstraints but treats .Match on the cross-axis as .Wrap (loose)
+	/// so that .Match children don't blow up to infinity during the first measurement pass.
+	private static BoxConstraints MakeChildConstraintsLooseCross(BoxConstraints parent, View child, bool isHorizontal)
+	{
+		let lp = child.LayoutParams;
+		let margin = (lp != null) ? lp.Margin : Thickness();
+		let dpiScale = child.Root?.DpiScale ?? 1.0f;
+
+		let availW = Math.Max(0, parent.MaxWidth - margin.TotalHorizontal);
+		let availH = Math.Max(0, parent.MaxHeight - margin.TotalVertical);
+
+		var widthSpec = (lp != null) ? lp.Width : SizeSpec.Wrap;
+		var heightSpec = (lp != null) ? lp.Height : SizeSpec.Wrap;
+
+		// Treat .Match on the cross-axis as .Wrap for initial sizing.
+		if (isHorizontal && heightSpec case .Match)
+			heightSpec = .Wrap;
+		else if (!isHorizontal && widthSpec case .Match)
+			widthSpec = .Wrap;
+
+		float minW, maxW, minH, maxH;
+
+		switch (widthSpec)
+		{
+		case .Fixed(let unit): let w = unit.Resolve(dpiScale); minW = w; maxW = w;
+		case .Match:           minW = availW; maxW = availW;
+		case .Wrap:            minW = 0; maxW = availW;
+		}
+
+		switch (heightSpec)
+		{
+		case .Fixed(let unit): let h = unit.Resolve(dpiScale); minH = h; maxH = h;
+		case .Match:           minH = availH; maxH = availH;
+		case .Wrap:            minH = 0; maxH = availH;
+		}
+
+		return .(minW, maxW, minH, maxH);
+	}
+
 	private void MeasureHorizontal(BoxConstraints inner, BoxConstraints outer)
 	{
 		float totalFixed = 0;
 		float maxCross = 0;
 		float totalGrow = 0;
 		int visibleCount = 0;
+		bool hasMatchCross = false;
 
-		// Pass 1: measure inflexible children
+		// Use loose cross-axis for initial measurement so .Match children don't
+		// blow up to infinity. We'll find the natural maxCross first, then
+		// re-measure .Match children with that as the constraint.
+		let looseInner = BoxConstraints(inner.MinWidth, inner.MaxWidth, 0, inner.MaxHeight);
+
+		// Pass 1: measure inflexible children with loose cross-axis
 		for (int i = 0; i < ChildCount; i++)
 		{
 			let child = GetChildAt(i);
@@ -69,6 +114,7 @@ public class FlexLayout : ViewGroup
 
 			let flp = child.LayoutParams as FlexLayout.LayoutParams;
 			let grow = (flp != null) ? flp.Grow : 0;
+			let heightSpec = (child.LayoutParams != null) ? child.LayoutParams.Height : SizeSpec.Wrap;
 
 			if (grow > 0)
 			{
@@ -76,20 +122,30 @@ public class FlexLayout : ViewGroup
 				continue; // measured in pass 2
 			}
 
-			child.Measure(MakeChildConstraints(inner, child));
+			// Measure with loose cross-axis so .Match doesn't resolve to infinity
+			let looseChild = MakeChildConstraintsLooseCross(looseInner, child, true);
+			child.Measure(looseChild);
 			let margin = child.LayoutParams?.Margin ?? Thickness();
 			totalFixed += child.MeasuredSize.X + margin.TotalHorizontal;
+
+			// Always collect natural size into maxCross (even .Match children,
+			// since they were measured with loose cross-axis).
 			maxCross = Math.Max(maxCross, child.MeasuredSize.Y + margin.TotalVertical);
+			if (heightSpec case .Match)
+				hasMatchCross = true;
 		}
 
 		// Add spacing
 		if (visibleCount > 1)
 			totalFixed += Spacing * (visibleCount - 1);
 
-		// Pass 2: distribute remaining space to grow children
+		// Pass 2: distribute remaining space to grow children.
+		// Only distribute when the main axis is definite (bounded).
+		// When loose (sizing to content), grow children wrap to their natural size.
 		if (totalGrow > 0)
 		{
-			let remaining = Math.Max(0, inner.MaxWidth - totalFixed);
+			let isMainAxisDefinite = inner.MaxWidth < 100000;
+			let remaining = isMainAxisDefinite ? Math.Max(0, inner.MaxWidth - totalFixed) : 0;
 
 			for (int i = 0; i < ChildCount; i++)
 			{
@@ -100,17 +156,52 @@ public class FlexLayout : ViewGroup
 				let grow = (flp != null) ? flp.Grow : 0;
 				if (grow <= 0) continue;
 
+				let heightSpec = (child.LayoutParams != null) ? child.LayoutParams.Height : SizeSpec.Wrap;
 				let margin = child.LayoutParams?.Margin ?? Thickness();
-				let childMain = remaining * grow / totalGrow;
 
-				// Main axis tight, cross axis loose (child determines own height).
-				let crossMax = Math.Max(0, inner.MaxHeight - margin.TotalVertical);
-				let childConstraints = BoxConstraints(
-					childMain - margin.TotalHorizontal, Math.Max(0, childMain - margin.TotalHorizontal),
-					0, crossMax);
-				child.Measure(childConstraints);
-				totalFixed += childMain;
+				if (isMainAxisDefinite)
+				{
+					// Definite main axis: distribute remaining space by grow ratio.
+					let childMain = remaining * grow / totalGrow;
+					let childConstraints = BoxConstraints(
+						childMain - margin.TotalHorizontal, Math.Max(0, childMain - margin.TotalHorizontal),
+						0, Math.Max(0, inner.MaxHeight - margin.TotalVertical));
+					child.Measure(childConstraints);
+					totalFixed += childMain;
+				}
+				else
+				{
+					// Loose main axis: grow children wrap to content (no space to distribute).
+					let looseChild = MakeChildConstraintsLooseCross(looseInner, child, true);
+					child.Measure(looseChild);
+					totalFixed += child.MeasuredSize.X + margin.TotalHorizontal;
+				}
+
 				maxCross = Math.Max(maxCross, child.MeasuredSize.Y + margin.TotalVertical);
+				if (heightSpec case .Match)
+					hasMatchCross = true;
+			}
+		}
+
+		// Pass 3: if any children had .Match height, re-measure them with maxCross
+		// so they match the tallest sibling, not infinity.
+		if (hasMatchCross && maxCross > 0)
+		{
+			for (int i = 0; i < ChildCount; i++)
+			{
+				let child = GetChildAt(i);
+				if (child.Visibility == .Gone) continue;
+
+				let heightSpec = (child.LayoutParams != null) ? child.LayoutParams.Height : SizeSpec.Wrap;
+				if (heightSpec case .Match)
+				{
+					let margin = child.LayoutParams?.Margin ?? Thickness();
+					let crossH = Math.Max(0, maxCross - margin.TotalVertical);
+					let childConstraints = BoxConstraints(
+						child.MeasuredSize.X, child.MeasuredSize.X,
+						crossH, crossH);
+					child.Measure(childConstraints);
+				}
 			}
 		}
 
@@ -125,8 +216,11 @@ public class FlexLayout : ViewGroup
 		float maxCross = 0;
 		float totalGrow = 0;
 		int visibleCount = 0;
+		bool hasMatchCross = false;
 
-		// Pass 1: measure inflexible children
+		let looseInner = BoxConstraints(0, inner.MaxWidth, inner.MinHeight, inner.MaxHeight);
+
+		// Pass 1: measure inflexible children with loose cross-axis
 		for (int i = 0; i < ChildCount; i++)
 		{
 			let child = GetChildAt(i);
@@ -135,6 +229,7 @@ public class FlexLayout : ViewGroup
 
 			let flp = child.LayoutParams as FlexLayout.LayoutParams;
 			let grow = (flp != null) ? flp.Grow : 0;
+			let widthSpec = (child.LayoutParams != null) ? child.LayoutParams.Width : SizeSpec.Wrap;
 
 			if (grow > 0)
 			{
@@ -142,19 +237,25 @@ public class FlexLayout : ViewGroup
 				continue;
 			}
 
-			child.Measure(MakeChildConstraints(inner, child));
+			let looseChild = MakeChildConstraintsLooseCross(looseInner, child, false);
+			child.Measure(looseChild);
 			let margin = child.LayoutParams?.Margin ?? Thickness();
 			totalFixed += child.MeasuredSize.Y + margin.TotalVertical;
+
 			maxCross = Math.Max(maxCross, child.MeasuredSize.X + margin.TotalHorizontal);
+			if (widthSpec case .Match)
+				hasMatchCross = true;
 		}
 
 		if (visibleCount > 1)
 			totalFixed += Spacing * (visibleCount - 1);
 
-		// Pass 2: distribute remaining space to grow children
+		// Pass 2: distribute remaining space to grow children.
+		// Only distribute when the main axis is definite (bounded).
 		if (totalGrow > 0)
 		{
-			let remaining = Math.Max(0, inner.MaxHeight - totalFixed);
+			let isMainAxisDefinite = inner.MaxHeight < 100000;
+			let remaining = isMainAxisDefinite ? Math.Max(0, inner.MaxHeight - totalFixed) : 0;
 
 			for (int i = 0; i < ChildCount; i++)
 			{
@@ -165,17 +266,50 @@ public class FlexLayout : ViewGroup
 				let grow = (flp != null) ? flp.Grow : 0;
 				if (grow <= 0) continue;
 
+				let widthSpec = (child.LayoutParams != null) ? child.LayoutParams.Width : SizeSpec.Wrap;
 				let margin = child.LayoutParams?.Margin ?? Thickness();
-				let childMain = remaining * grow / totalGrow;
 
-				// Main axis tight, cross axis loose (child determines own width).
-				let crossMax = Math.Max(0, inner.MaxWidth - margin.TotalHorizontal);
-				let childConstraints = BoxConstraints(
-					0, crossMax,
-					childMain - margin.TotalVertical, Math.Max(0, childMain - margin.TotalVertical));
-				child.Measure(childConstraints);
-				totalFixed += childMain;
+				if (isMainAxisDefinite)
+				{
+					let childMain = remaining * grow / totalGrow;
+					let childConstraints = BoxConstraints(
+						0, Math.Max(0, inner.MaxWidth - margin.TotalHorizontal),
+						childMain - margin.TotalVertical, Math.Max(0, childMain - margin.TotalVertical));
+					child.Measure(childConstraints);
+					totalFixed += childMain;
+				}
+				else
+				{
+					// Loose main axis: grow children wrap to content.
+					let looseChild = MakeChildConstraintsLooseCross(looseInner, child, false);
+					child.Measure(looseChild);
+					totalFixed += child.MeasuredSize.Y + margin.TotalVertical;
+				}
+
 				maxCross = Math.Max(maxCross, child.MeasuredSize.X + margin.TotalHorizontal);
+				if (widthSpec case .Match)
+					hasMatchCross = true;
+			}
+		}
+
+		// Pass 3: re-measure .Match width children with maxCross
+		if (hasMatchCross && maxCross > 0)
+		{
+			for (int i = 0; i < ChildCount; i++)
+			{
+				let child = GetChildAt(i);
+				if (child.Visibility == .Gone) continue;
+
+				let widthSpec = (child.LayoutParams != null) ? child.LayoutParams.Width : SizeSpec.Wrap;
+				if (widthSpec case .Match)
+				{
+					let margin = child.LayoutParams?.Margin ?? Thickness();
+					let crossW = Math.Max(0, maxCross - margin.TotalHorizontal);
+					let childConstraints = BoxConstraints(
+						crossW, crossW,
+						child.MeasuredSize.Y, child.MeasuredSize.Y);
+					child.Measure(childConstraints);
+				}
 			}
 		}
 
@@ -322,7 +456,7 @@ public class FlexLayout : ViewGroup
 		switch (justify)
 		{
 		case .Start:
-			// default — no changes
+			// default - no changes
 		case .End:
 			startOffset = freeSpace;
 		case .Center:

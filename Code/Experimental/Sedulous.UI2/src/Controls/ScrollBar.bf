@@ -119,26 +119,33 @@ public class ScrollBar : View
 	{
 		if (e.Button != .Left) return;
 
+		// Use ScreenToLocal for all coordinate calculations - e.X/e.Y may be
+		// in a different view's space due to event bubbling.
+		let screenX = Context?.InputManager?.MouseX ?? 0;
+		let screenY = Context?.InputManager?.MouseY ?? 0;
+		let local = ScreenToLocal(.(screenX, screenY));
+		let localPos = mIsHorizontal ? local.X : local.Y;
+		let screenPos = mIsHorizontal ? screenX : screenY;
+
 		let thumbRect = GetThumbRect();
-		let pos = mIsHorizontal ? e.X : e.Y;
 		let thumbStart = mIsHorizontal ? thumbRect.X : thumbRect.Y;
 		let thumbEnd = thumbStart + (mIsHorizontal ? thumbRect.Width : thumbRect.Height);
 
-		if (pos >= thumbStart && pos <= thumbEnd)
+		if (localPos >= thumbStart && localPos <= thumbEnd)
 		{
 			// Drag thumb
 			mDragging = true;
 			mDragStartValue = mValue;
-			mDragStartMouse = pos;
+			mDragStartMouse = screenPos;
 			Context?.FocusManager.SetCapture(this);
 		}
 		else
 		{
-			// Page scroll — jump toward click
+			// Page scroll - jump toward click
 			let trackSize = mIsHorizontal ? Width : Height;
 			let thumbSize = trackSize * ThumbRatio;
-			let clickNorm = (pos - thumbSize * 0.5f) / (trackSize - thumbSize);
-			Value = clickNorm * mMaxValue;
+			let clickNorm = (localPos - thumbSize * 0.5f) / (trackSize - thumbSize);
+			Value = Math.Clamp(clickNorm * mMaxValue, 0, mMaxValue);
 		}
 
 		e.Handled = true;
@@ -148,14 +155,17 @@ public class ScrollBar : View
 	{
 		if (!mDragging) return;
 
-		let pos = mIsHorizontal ? e.X : e.Y;
+		let screenX = Context?.InputManager?.MouseX ?? 0;
+		let screenY = Context?.InputManager?.MouseY ?? 0;
+		let screenPos = mIsHorizontal ? screenX : screenY;
+
 		let trackSize = mIsHorizontal ? Width : Height;
 		let thumbSize = trackSize * ThumbRatio;
 		let trackRange = trackSize - thumbSize;
 
 		if (trackRange > 0)
 		{
-			let delta = pos - mDragStartMouse;
+			let delta = screenPos - mDragStartMouse;
 			let valueDelta = (delta / trackRange) * mMaxValue;
 			Value = mDragStartValue + valueDelta;
 		}

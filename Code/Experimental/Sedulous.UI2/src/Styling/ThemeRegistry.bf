@@ -7,7 +7,7 @@ using System.Collections;
 /// theme StyleSheet created by DarkTheme/LightTheme factories.
 public static class ThemeRegistry
 {
-	private static List<IThemeExtension> sExtensions = new .() ~ delete _;
+	private static List<IThemeExtension> sExtensions = new .() ~ { for (let e in _) delete e; delete _; };
 
 	/// Register an extension. Applied to all themes created after registration.
 	public static void RegisterExtension(IThemeExtension ext)
