@@ -541,7 +541,7 @@ viewport but not in the editor UI.
 - SceneHierarchyAdapter: ITreeAdapter with Dictionary nodeId mapping
 - ViewportView: render-to-texture via VGRenderer.RegisterExternalTexture
 - ViewportCameraController: RMB+drag look, WASD movement, scroll zoom
-- IFloatingWindowHost: full OS floating window support
+- IDockableWindowHost: full OS floating window support
 - Cross-window input routing via focused window detection
 - Wire: selection -> inspector, command stack -> Edit menu undo/redo
 

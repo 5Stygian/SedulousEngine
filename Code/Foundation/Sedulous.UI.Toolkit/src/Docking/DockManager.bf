@@ -7,19 +7,18 @@ using Sedulous.Core.Mathematics;
 
 /// Multi-window docking system. Manages a tree of DockSplits, DockTabGroups,
 /// and DockablePanels with support for dragging, floating, and zone-based docking.
-/// Faithfully ported from legacy Sedulous.UI.Toolkit.
 public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 {
 	private View mRootNode;
 	private List<DockablePanel> mPanels = new .() ~ delete _; // Non-owning tracking
-	private List<FloatingWindow> mFloatingWindows = new .() ~ delete _; // Non-owning tracking
+	private List<DockableWindow> mDockableWindows = new .() ~ delete _; // Non-owning tracking
 	private DockZoneIndicator mZoneIndicator ~ delete _;
 	private bool mIsCleaningUp;
 
-	/// Optional host for OS-level floating windows.
-	/// When set and SupportsOSWindows is true, floating panels use real OS windows.
+	/// Optional host for OS-level dockable windows.
+	/// When set and SupportsOSWindows is true, dockable panels use real OS windows.
 	/// When null or unsupported, falls back to PopupLayer virtual floating.
-	public IFloatingWindowHost FloatingWindowHost;
+	public IDockableWindowHost DockableWindowHost;
 
 	public View RootNode => mRootNode;
 
@@ -31,11 +30,11 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 
 	public ~this()
 	{
-		// Don't call CloseAllFloatingWindows() here - during destruction,
+		// Don't call CloseAllDockableWindows() here - during destruction,
 		// UIContext services are already gone and DetachSubtree -> UnregisterElement
-		// would access freed memory. Floating windows live in PopupLayer and are
+		// would access freed memory. Dockable windows live in PopupLayer and are
 		// cleaned up by UIContext's tree destruction; panels inside them are owned
-		// by FloatingWindow (via AddView) and deleted by its ViewGroup destructor.
+		// by DockableWindow (via AddView) and deleted by its ViewGroup destructor.
 	}
 
 	// === IDockHost ===
@@ -47,9 +46,9 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		FloatPanel(panel, x, y);
 	}
 
-	void IDockHost.DestroyFloatingWindow(FloatingWindow fw)
+	void IDockHost.DestroyDockableWindow(DockableWindow dw)
 	{
-		DestroyFloatingWindow(fw);
+		DestroyDockableWindow(dw);
 	}
 
 	// === Public API ===
@@ -167,32 +166,32 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 	}
 
 	/// Float a panel at the given position.
-	/// Uses OS windows if FloatingWindowHost supports it, otherwise PopupLayer.
+	/// Uses OS windows if DockableWindowHost supports it, otherwise PopupLayer.
 	public void FloatPanel(DockablePanel panel, float x, float y)
 	{
 		RemoveFromTree(panel);
 
-		let floating = new FloatingWindow(panel);
-		mFloatingWindows.Add(floating);
+		let dockable = new DockableWindow(panel);
+		mDockableWindows.Add(dockable);
 
-		floating.OnDockRequested.Add(new (fw) => { RedockFloatingWindow(fw); });
-		floating.OnCloseRequested.Add(new (fw) => { CloseFloatingWindow(fw); });
+		dockable.OnDockRequested.Add(new (fw) => { RedockDockableWindow(fw); });
+		dockable.OnCloseRequested.Add(new (fw) => { CloseDockableWindow(fw); });
 
-		bool useOSWindow = (FloatingWindowHost != null && FloatingWindowHost.SupportsOSWindows);
+		bool useOSWindow = (DockableWindowHost != null && DockableWindowHost.SupportsOSWindows);
 
 		if (useOSWindow)
 		{
-			floating.IsOSWindow = true;
-			FloatingWindowHost.CreateFloatingWindow(floating, 300, 250, x, y,
+			dockable.IsOSWindow = true;
+			DockableWindowHost.CreateDockableWindow(dockable, 300, 250, x, y,
 				new (view) => {
-					if (let fw = view as FloatingWindow)
-						CloseFloatingWindow(fw);
+					if (let fw = view as DockableWindow)
+						CloseDockableWindow(fw);
 				});
 		}
 		else if (Context != null)
 		{
 			// Virtual mode via PopupLayer.
-			Root?.PopupLayer?.ShowPopup(floating, this, x, y, false, false, true);
+			Root?.PopupLayer?.ShowPopup(dockable, this, x, y, false, false, true);
 		}
 
 		CleanupEmptyNodes();
@@ -224,13 +223,13 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		}
 	}
 
-	/// Re-dock a floating window back into the dock tree.
-	public void RedockFloatingWindow(FloatingWindow floating)
+	/// Re-dock a dockable window back into the dock tree.
+	public void RedockDockableWindow(DockableWindow dockable)
 	{
-		let panel = floating.DetachPanel();
+		let panel = dockable.DetachPanel();
 		if (panel == null) return;
 
-		DestroyFloatingWindow(floating);
+		DestroyDockableWindow(dockable);
 
 		// Try to dock at last known position.
 		View relativeTo = null;
@@ -243,11 +242,11 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			DockPanel(panel, .Center);
 	}
 
-	/// Close a floating window.
-	public void CloseFloatingWindow(FloatingWindow floating)
+	/// Close a dockable window.
+	public void CloseDockableWindow(DockableWindow dockable)
 	{
-		let panel = floating.DetachPanel();
-		DestroyFloatingWindow(floating);
+		let panel = dockable.DetachPanel();
+		DestroyDockableWindow(dockable);
 
 		if (panel != null)
 		{
@@ -256,31 +255,31 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		}
 	}
 
-	/// Destroy a floating window (OS or virtual).
-	public void DestroyFloatingWindow(FloatingWindow floating)
+	/// Destroy a dockable window (OS or virtual).
+	public void DestroyDockableWindow(DockableWindow dockable)
 	{
-		mFloatingWindows.Remove(floating);
+		mDockableWindows.Remove(dockable);
 
-		if (floating.IsOSWindow && FloatingWindowHost != null)
+		if (dockable.IsOSWindow && DockableWindowHost != null)
 		{
-			FloatingWindowHost.DestroyFloatingWindow(floating);
-			QueueDeleteNode(floating);
+			DockableWindowHost.DestroyDockableWindow(dockable);
+			QueueDeleteNode(dockable);
 		}
 		else
 		{
 			// ClosePopup handles deletion (ownsView=true).
-			Root?.PopupLayer?.ClosePopup(floating);
+			Root?.PopupLayer?.ClosePopup(dockable);
 		}
 	}
 
-	private void CloseAllFloatingWindows()
+	private void CloseAllDockableWindows()
 	{
-		for (int i = mFloatingWindows.Count - 1; i >= 0; i--)
+		for (int i = mDockableWindows.Count - 1; i >= 0; i--)
 		{
-			let floating = mFloatingWindows[i];
-			let panel = floating.DetachPanel();
-			Root?.PopupLayer?.ClosePopup(floating);
-			mFloatingWindows.RemoveAt(i);
+			let dockable = mDockableWindows[i];
+			let panel = dockable.DetachPanel();
+			Root?.PopupLayer?.ClosePopup(dockable);
+			mDockableWindows.RemoveAt(i);
 
 			if (panel != null)
 			{
@@ -383,14 +382,14 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 			return;
 		}
 
-		// In a floating window.
-		for (int i = 0; i < mFloatingWindows.Count; i++)
+		// In a dockable window.
+		for (int i = 0; i < mDockableWindows.Count; i++)
 		{
-			if (mFloatingWindows[i].Panel === panel)
+			if (mDockableWindows[i].Panel === panel)
 			{
-				let floating = mFloatingWindows[i];
-				floating.DetachPanel();
-				DestroyFloatingWindow(floating);
+				let dockable = mDockableWindows[i];
+				dockable.DetachPanel();
+				DestroyDockableWindow(dockable);
 				return;
 			}
 		}
@@ -564,8 +563,8 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 
 	public void OnDragOver(DragData data, float localX, float localY)
 	{
-		// Move virtual floating window to follow cursor (PopupLayer mode).
-		// OS floating windows are moved by the application in OnInput using global coords.
+		// Move virtual dockable window to follow cursor (PopupLayer mode).
+		// OS dockable windows are moved by the application in OnInput using global coords.
 		if (let panelData = data as DockPanelDragData)
 		{
 			if (panelData.SourceWindow != null && !panelData.SourceWindow.IsOSWindow)
@@ -640,11 +639,11 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 
 	public void OnPopupClosed(View popup)
 	{
-		for (int i = mFloatingWindows.Count - 1; i >= 0; i--)
+		for (int i = mDockableWindows.Count - 1; i >= 0; i--)
 		{
-			if (mFloatingWindows[i] === popup)
+			if (mDockableWindows[i] === popup)
 			{
-				mFloatingWindows.RemoveAt(i);
+				mDockableWindows.RemoveAt(i);
 				break;
 			}
 		}

@@ -4,9 +4,9 @@ using Sedulous.Drawing;
 
 namespace Sedulous.GUI;
 
-/// A floating window containing a dockable panel.
+/// A dockable window containing a dockable panel.
 /// Can be dragged to reposition and docked back into the layout.
-public class FloatingWindow : Control
+public class DockableWindow : Control
 {
 	private DockManager mManager;
 	private DockablePanel mPanel /*~ delete _*/;
@@ -283,7 +283,7 @@ public class FloatingWindow : Control
 		{
 			// Close this floating window
 			if (mManager != null)
-				mManager.RemoveFloatingWindow(this);
+				mManager.RemoveDockableWindow(this);
 			e.Handled = true;
 			return;
 		}
@@ -374,7 +374,7 @@ public class FloatingWindow : Control
 
 					// Remove this floating window (deferred deletion)
 					// IMPORTANT: Don't access any instance members after this call
-					mManager.RemoveFloatingWindow(this);
+					mManager.RemoveDockableWindow(this);
 				}
 
 				e.Handled = true;
@@ -501,20 +501,20 @@ public class FloatingWindow : Control
 		if (!bounds.Contains(point.X, point.Y))
 			return null;
 
-		// Check resize edges first - FloatingWindow handles these
+		// Check resize edges first - DockableWindow handles these
 		if (GetResizeEdge(point) != .None)
 			return this;
 
 		// Check title bar
 		if (mPanel != null && mPanel.TitleBarBounds.Contains(point.X, point.Y))
 		{
-			// FloatingWindow handles close button directly (avoids event callback issues)
+			// DockableWindow handles close button directly (avoids event callback issues)
 			if (mPanel.IsPointOnCloseButton(point))
 				return this;
 			// Let panel handle other buttons (pin)
 			if (mPanel.IsPointOnTitleBarButton(point))
 				return mPanel;
-			// FloatingWindow handles window dragging for non-button areas
+			// DockableWindow handles window dragging for non-button areas
 			return this;
 		}
 

@@ -31,7 +31,7 @@ using Sedulous.Resources;
 /// The Sedulous Editor application.
 /// Extends Runtime.Client.Application for direct control over UI and rendering.
 /// Creates a RuntimeContext with engine subsystems for scene preview.
-class EditorApplication : Application, IFloatingWindowHost
+class EditorApplication : Application, IDockableWindowHost
 {
 	// Runtime context (embedded engine for scene preview)
 	// Deleted explicitly in OnShutdown before Device is destroyed.
@@ -79,7 +79,7 @@ class EditorApplication : Application, IFloatingWindowHost
 	private int32 mNewSceneCounter;
 
 	// Multi-window (floating dock panels + cross-window drag)
-	private Dictionary<View, SecondaryWindowContext> mFloatingWindowMap = new .() ~ delete _;
+	private Dictionary<View, SecondaryWindowContext> mDockableWindowMap = new .() ~ delete _;
 	private IWindow mDragSourceWindow;
 	private float mDragWindowOffsetX;
 	private float mDragWindowOffsetY;
@@ -384,7 +384,7 @@ class EditorApplication : Application, IFloatingWindowHost
 
 		// Dock manager (center area)
 		let dockManager = new DockManager();
-		dockManager.FloatingWindowHost = this;
+		dockManager.DockableWindowHost = this;
 		mEditorContext.DockManager = dockManager;
 		shell.AddView(dockManager, new LinearLayout.LayoutParams() {
 			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
@@ -961,11 +961,11 @@ class EditorApplication : Application, IFloatingWindowHost
 
 		// Determine which window has the mouse.
 		RootView inputRoot = mMainRoot;
-		for (let kv in mFloatingWindowMap)
+		for (let kv in mDockableWindowMap)
 		{
 			if (kv.value.Window.Focused)
 			{
-				if (let data = kv.value.UserData as FloatingWindowData)
+				if (let data = kv.value.UserData as DockableWindowData)
 					inputRoot = data.RootView;
 				break;
 			}
@@ -980,7 +980,7 @@ class EditorApplication : Application, IFloatingWindowHost
 			// Capture drag offset on first frame.
 			if (dragDrop.IsDragging && mDragSourceWindow == null)
 			{
-				for (let kv in mFloatingWindowMap)
+				for (let kv in mDockableWindowMap)
 				{
 					if (kv.value.Window.Focused)
 					{
@@ -992,7 +992,7 @@ class EditorApplication : Application, IFloatingWindowHost
 				}
 			}
 
-			// Move the floating OS window to follow cursor.
+			// Move the dockable OS window to follow cursor.
 			if (mDragSourceWindow != null)
 			{
 				mDragSourceWindow.X = (int32)(globalX - mDragWindowOffsetX);
@@ -1099,11 +1099,11 @@ class EditorApplication : Application, IFloatingWindowHost
 		return true;
 	}
 
-	// ==================== IFloatingWindowHost ====================
+	// ==================== IDockableWindowHost ====================
 
 	public bool SupportsOSWindows => true;
 
-	public void CreateFloatingWindow(View floatingWindow, float width, float height,
+	public void CreateDockableWindow(View dockableWindow, float width, float height,
 		float screenX, float screenY, delegate void(View) onCloseRequested = null)
 	{
 		let settings = Sedulous.Shell.WindowSettings()
@@ -1126,10 +1126,10 @@ class EditorApplication : Application, IFloatingWindowHost
 		ctx.Window.X = Window.X + (int32)screenX;
 		ctx.Window.Y = Window.Y + (int32)screenY;
 
-		let data = new FloatingWindowData();
+		let data = new DockableWindowData();
 		data.OnCloseDelegate = onCloseRequested;
 		if (onCloseRequested != null)
-			ctx.OnCloseRequested = new (swCtx) => { data.OnCloseDelegate(floatingWindow); };
+			ctx.OnCloseRequested = new (swCtx) => { data.OnCloseDelegate(dockableWindow); };
 		else
 			ctx.OnCloseRequested = new (swCtx) => { };
 
@@ -1137,8 +1137,8 @@ class EditorApplication : Application, IFloatingWindowHost
 		data.RootView.DpiScale = ctx.Window.ContentScale;
 		data.RootView.ViewportSize = .((float)ctx.Window.Width, (float)ctx.Window.Height);
 		mUIContext.AddRootView(data.RootView);
-		data.RootView.AddView(floatingWindow);
-		data.FloatingView = floatingWindow;
+		data.RootView.AddView(dockableWindow);
+		data.DockableView = dockableWindow;
 
 		data.VGContext = new VGContext(mFontService);
 		data.VGRenderer = new VGRenderer();
@@ -1147,34 +1147,34 @@ class EditorApplication : Application, IFloatingWindowHost
 		data.VGRenderer.SetExternalCache(mExternalTextureCache);
 
 		ctx.UserData = data;
-		mFloatingWindowMap[floatingWindow] = ctx;
+		mDockableWindowMap[dockableWindow] = ctx;
 	}
 
-	public void DestroyFloatingWindow(View floatingWindow)
+	public void DestroyDockableWindow(View dockableWindow)
 	{
-		DestroyFloatingWindowImpl(floatingWindow);
+		DestroyDockableWindowImpl(dockableWindow);
 	}
 
-	public void MoveFloatingWindow(View floatingWindow, float screenX, float screenY)
+	public void MoveDockableWindow(View dockableWindow, float screenX, float screenY)
 	{
-		if (mFloatingWindowMap.TryGetValue(floatingWindow, let ctx))
+		if (mDockableWindowMap.TryGetValue(dockableWindow, let ctx))
 		{
 			ctx.Window.X = Window.X + (int32)screenX;
 			ctx.Window.Y = Window.Y + (int32)screenY;
 		}
 	}
 
-	private void DestroyFloatingWindowImpl(View floatingWindow, bool detachView = true)
+	private void DestroyDockableWindowImpl(View dockableWindow, bool detachView = true)
 	{
-		if (!mFloatingWindowMap.TryGetValue(floatingWindow, let ctx))
+		if (!mDockableWindowMap.TryGetValue(dockableWindow, let ctx))
 			return;
 
-		mFloatingWindowMap.Remove(floatingWindow);
+		mDockableWindowMap.Remove(dockableWindow);
 
-		if (let data = ctx.UserData as FloatingWindowData)
+		if (let data = ctx.UserData as DockableWindowData)
 		{
-			if (detachView && floatingWindow.Parent == data.RootView)
-				data.RootView.DetachView(floatingWindow);
+			if (detachView && dockableWindow.Parent == data.RootView)
+				data.RootView.DetachView(dockableWindow);
 
 			mUIContext.RemoveRootView(data.RootView);
 			Device.WaitIdle();
@@ -1189,7 +1189,7 @@ class EditorApplication : Application, IFloatingWindowHost
 
 	protected override void OnPrepareSecondaryFrame(SecondaryWindowContext ctx, FrameContext frame)
 	{
-		if (let data = ctx.UserData as FloatingWindowData)
+		if (let data = ctx.UserData as DockableWindowData)
 		{
 			data.RootView.DpiScale = ctx.Window.ContentScale;
 			data.RootView.ViewportSize = .((float)ctx.Window.Width, (float)ctx.Window.Height);
@@ -1200,7 +1200,7 @@ class EditorApplication : Application, IFloatingWindowHost
 	protected override void OnRenderSecondaryWindow(SecondaryWindowContext ctx,
 		IRenderPassEncoder renderPass, FrameContext frame)
 	{
-		if (let data = ctx.UserData as FloatingWindowData)
+		if (let data = ctx.UserData as DockableWindowData)
 		{
 			let vg = data.VGContext;
 			let renderer = data.VGRenderer;
@@ -1253,9 +1253,9 @@ class EditorApplication : Application, IFloatingWindowHost
 		mRuntimeContext = null;
 
 		// Destroy floating windows (before UIContext so roots are removed cleanly)
-		for (let kv in mFloatingWindowMap)
-			DestroyFloatingWindowImpl(kv.key, detachView: false);
-		mFloatingWindowMap.Clear();
+		for (let kv in mDockableWindowMap)
+			DestroyDockableWindowImpl(kv.key, detachView: false);
+		mDockableWindowMap.Clear();
 
 		// Clean up UI
 		if (mUIContext != null)

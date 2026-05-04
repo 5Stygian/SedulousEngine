@@ -23,7 +23,7 @@ class DockingPage : DemoPage
 		HScrollPolicy = .Never;
 
 		mDockManager = new DockManager();
-		mDockManager.FloatingWindowHost = demo.FloatingWindowHost;
+		mDockManager.DockableWindowHost = demo.DockableWindowHost;
 		AddView(mDockManager, new Sedulous.UI.LayoutParams() {
 			Width = Sedulous.UI.LayoutParams.MatchParent,
 			Height = Sedulous.UI.LayoutParams.MatchParent

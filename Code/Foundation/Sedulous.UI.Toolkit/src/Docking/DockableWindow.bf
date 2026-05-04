@@ -4,17 +4,17 @@ using System;
 using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
-/// A floating window that wraps a DockablePanel.
+/// A dockable window that wraps a DockablePanel.
 /// Virtual mode: shown via PopupLayer as a draggable overlay.
 /// Double-click title bar to re-dock.
-public class FloatingWindow : ViewGroup, IDockableWindow
+public class DockableWindow : ViewGroup, IDockableWindow
 {
 	private DockablePanel mPanel;
 	private float mTitleBarHeight = 24;
 	public bool IsOSWindow;
 
-	public Event<delegate void(FloatingWindow)> OnDockRequested ~ _.Dispose();
-	public Event<delegate void(FloatingWindow)> OnCloseRequested ~ _.Dispose();
+	public Event<delegate void(DockableWindow)> OnDockRequested ~ _.Dispose();
+	public Event<delegate void(DockableWindow)> OnCloseRequested ~ _.Dispose();
 
 	/// The panel contained in this floating window.
 	public DockablePanel Panel => mPanel;
@@ -52,7 +52,7 @@ public class FloatingWindow : ViewGroup, IDockableWindow
 		if (!IsOSWindow)
 		{
 			// Virtual mode: draw background and border.
-			if (!ctx.TryDrawDrawable("FloatingWindow.Background", .(0, 0, Width, Height), .Normal))
+			if (!ctx.TryDrawDrawable("DockableWindow.Background", .(0, 0, Width, Height), .Normal))
 			{
 				let bgColor = ctx.Theme?.Palette.Surface ?? .(42, 44, 54, 255);
 				ctx.VG.FillRoundedRect(.(0, 0, Width, Height), 4, bgColor);

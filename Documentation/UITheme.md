@@ -160,7 +160,7 @@ The `NineSlice(left, top, right, bottom)` values define the border widths in pix
 | `dock_tab_inactive_hover.png` | DockTabGroup unselected tab on hover. | 48×24 | 4,4,4,4 |
 | `dock_split_divider.png` | DockSplit divider (normal). | 6×32 | 2,4,2,4 |
 | `dock_split_divider_hover.png` | DockSplit divider (hover/drag). | 6×32 | 2,4,2,4 |
-| `floating_window_bg.png` | FloatingWindow virtual mode background. | 48×48 | 6,6,6,6 |
+| `floating_window_bg.png` | DockableWindow virtual mode background. | 48×48 | 6,6,6,6 |
 
 ---
 
@@ -238,7 +238,7 @@ The `NineSlice(left, top, right, bottom)` values define the border widths in pix
 | `DockTabGroup.ActiveTab` | DockTabGroup | - | Selected tab |
 | `DockTabGroup.InactiveTab` | DockTabGroup | Hover | Unselected tab |
 | `DockSplit.Divider` | DockSplit | Normal, Hover | Split divider |
-| `FloatingWindow.Background` | FloatingWindow | - | Virtual window background |
+| `DockableWindow.Background` | DockableWindow | - | Virtual window background |
 
 ### SVG Icons (built-in via ThemeIcons)
 

@@ -79,7 +79,7 @@ Each needs its own image integration:
 - [x] DockablePanelHeader - title bar image (TitleBarImage)
 - [x] DockTabGroup - tab strip image (TabStripImage)
 - [x] DockTab - tab image (active/inactive) (ActiveTabImage/InactiveTabImage)
-- [x] FloatingWindow - window frame image (FrameImage)
+- [x] DockableWindow - window frame image (FrameImage)
 - [x] DockTarget/DockSplit - overlay images (DockTarget.OverlayImage, DockZoneIndicator.ButtonImage/ButtonHoverImage, DockSplit needs no changes)
 
 ### Data Controls (Deferred - tooling-specific)
@@ -305,7 +305,7 @@ to use distinct textures instead of auto-tint.
 | `ActiveTabImage`   | Selected tab background + accent  |                               |
 | `InactiveTabImage` | Unselected tab background         | Auto-tint lighten on hover    |
 
-### FloatingWindow
+### DockableWindow
 
 | Property      | Replaces                              | Notes                    |
 |---------------|---------------------------------------|--------------------------|

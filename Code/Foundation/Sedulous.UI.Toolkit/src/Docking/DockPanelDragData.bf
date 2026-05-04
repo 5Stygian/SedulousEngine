@@ -8,10 +8,10 @@ using System;
 public class DockPanelDragData : DragData
 {
 	public DockablePanel Panel;
-	/// If dragging from an existing FloatingWindow, this is set so
+	/// If dragging from an existing DockableWindow, this is set so
 	/// DockManager can move it in PopupLayer during drag.
-	public FloatingWindow SourceWindow;
-	/// Mouse offset within the floating window at drag start (for smooth repositioning).
+	public DockableWindow SourceWindow;
+	/// Mouse offset within the dockable window at drag start (for smooth repositioning).
 	public float DragOffsetX;
 	public float DragOffsetY;
 
@@ -21,7 +21,7 @@ public class DockPanelDragData : DragData
 	}
 }
 
-/// Drag visual that looks like a mini floating window (title bar + content area + border).
+/// Drag visual that looks like a mini dockable window (title bar + content area + border).
 /// Used as the adorner visual during dock panel drags.
 class DockDragPreview : View
 {

@@ -183,9 +183,9 @@ public class DockablePanel : ViewGroup, IDragSource
 
 	public View CreateDragVisual(DragData data)
 	{
-		// If dragging from a floating window, suppress the adorner -
-		// we'll move the actual FloatingWindow instead.
-		if (Parent is FloatingWindow)
+		// If dragging from a dockable window, suppress the adorner -
+		// we'll move the actual DockableWindow instead.
+		if (Parent is DockableWindow)
 			return null;
 
 		let preview = new DockDragPreview();
@@ -197,7 +197,7 @@ public class DockablePanel : ViewGroup, IDragSource
 	{
 		if (let panelData = data as DockPanelDragData)
 		{
-			if (let fw = Parent as FloatingWindow)
+			if (let fw = Parent as DockableWindow)
 			{
 				// Floating panel: move the actual window during drag.
 				// Dim + disable interaction so DockManager underneath receives drop events.
@@ -232,8 +232,8 @@ public class DockablePanel : ViewGroup, IDragSource
 		Alpha = 1.0f;
 
 		// Restore floating window state only when cancelled.
-		// On successful drop (.Move), the FloatingWindow was already destroyed
-		// by DestroyFloatingWindow -> ClosePopup (ownsView=true).
+		// On successful drop (.Move), the DockableWindow was already destroyed
+		// by DestroyDockableWindow -> ClosePopup (ownsView=true).
 		if (cancelled)
 		{
 			if (let panelData = data as DockPanelDragData)

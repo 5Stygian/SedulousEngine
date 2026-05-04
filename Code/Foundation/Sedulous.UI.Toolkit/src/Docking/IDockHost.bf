@@ -7,6 +7,6 @@ using Sedulous.UI;
 public interface IDockHost
 {
 	void FloatPanel(DockablePanel panel, float x, float y);
-	void DestroyFloatingWindow(FloatingWindow fw);
+	void DestroyDockableWindow(DockableWindow fw);
 	UIContext Context { get; }
 }

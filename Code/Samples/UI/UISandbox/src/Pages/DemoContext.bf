@@ -13,5 +13,5 @@ class DemoContext
 	public OwnedImageData ButtonNormal;
 	public OwnedImageData ButtonPressed;
 	public Label ClickLabel; // shared feedback label across pages
-	public IFloatingWindowHost FloatingWindowHost;
+	public IDockableWindowHost DockableWindowHost;
 }

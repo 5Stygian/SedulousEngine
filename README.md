@@ -100,11 +100,11 @@ what to render and where.
 - Runs headless for tests -- no engine dependency
 
 ### UI Toolkit (Sedulous.UI.Toolkit)
-- DockManager with floating OS windows
+- DockManager with dockable OS windows
 - SplitView, MenuBar, StatusBar, Toolbar
 - PropertyGrid with transactional editing (BeginEdit/EndEdit for undo)
 - TreeView, ColorPicker, TabView (closable)
-- DraggableTreeView, IFloatingWindowHost
+- DraggableTreeView, IDockableWindowHost
 
 ### Editor (Sedulous.Editor)
 - Plugin-based architecture ([EditorPlugin] auto-discovery)

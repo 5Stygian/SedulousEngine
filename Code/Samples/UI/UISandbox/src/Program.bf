@@ -369,17 +369,17 @@ class CopyableLabel : Label
 }
 
 /// UISandbox - gallery/showcase for Sedulous.UI, growing with each phase.
-/// Per-window render data for secondary (floating) windows.
-class FloatingWindowRenderData
+/// Per-window render data for secondary (dockable) windows.
+class DockableWindowRenderData
 {
 	public RootView RootView ~ delete _;
 	public Sedulous.VG.VGContext VGContext ~ delete _;
 	public Sedulous.VG.Renderer.VGRenderer VGRenderer ~ { _.Dispose(); delete _; };
-	public View FloatingView; // non-owning ref to the floating window in the root
+	public View DockableView; // non-owning ref to the dockable window in the root
 	public delegate void(View) OnCloseDelegate ~ delete _; // owns the callback from DockManager
 }
 
-class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
+class UISandboxApp : Application, Sedulous.UI.Toolkit.IDockableWindowHost
 {
 	private UISubsystem mUI;
 	private OwnedImageData mCheckerboard ~ delete _;
@@ -388,8 +388,8 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 	private DemoContext mDemoCtx ~ delete _;
 	private ControlsPage mControlsPage; // for progress bar tick
 
-	// Map floating window view -> secondary window context for OS floating windows.
-	private System.Collections.Dictionary<View, SecondaryWindowContext> mFloatingWindowMap = new .() ~ delete _;
+	// Map dockable window view -> secondary window context for OS dockable windows.
+	private System.Collections.Dictionary<View, SecondaryWindowContext> mDockableWindowMap = new .() ~ delete _;
 
 	// Cross-window drag state.
 	private IWindow mDragSourceWindow; // OS window being dragged
@@ -599,10 +599,10 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 		defer { delete dockDiv; delete dockDivH; }
 		images.AddStateImages("DockSplit.Divider", dockDiv, dockDivH, slices: .(2, 4, 2, 4));
 
-		// FloatingWindow
+		// DockableWindow
 		let floatBg = MakeRoundedRectImage(48, 48, .(42, 44, 54, 255), .(65, 70, 85, 255), 4);
 		defer delete floatBg;
-		images.AddImage("FloatingWindow.Background", floatBg, .(6, 6, 6, 6));
+		images.AddImage("DockableWindow.Background", floatBg, .(6, 6, 6, 6));
 
 		return TexturedTheme.Create(images);
 	}
@@ -740,7 +740,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 		mDemoCtx.Checkerboard = mCheckerboard;
 		mDemoCtx.ButtonNormal = mButtonNormal;
 		mDemoCtx.ButtonPressed = mButtonPressed;
-		mDemoCtx.FloatingWindowHost = this;
+		mDemoCtx.DockableWindowHost = this;
 
 		// Multi-window: app handles all input routing in OnInput.
 		mUI.ManualInputRouting = true;
@@ -1744,11 +1744,11 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 
 		// Determine which window has the mouse.
 		RootView inputRoot = mUI.Root;
-		for (let kv in mFloatingWindowMap)
+		for (let kv in mDockableWindowMap)
 		{
 			if (kv.value.Window.Focused)
 			{
-				if (let data = kv.value.UserData as FloatingWindowRenderData)
+				if (let data = kv.value.UserData as DockableWindowRenderData)
 					inputRoot = data.RootView;
 				break;
 			}
@@ -1763,7 +1763,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 			// Capture drag offset on first frame.
 			if (dragDrop.IsDragging && mDragSourceWindow == null)
 			{
-				for (let kv in mFloatingWindowMap)
+				for (let kv in mDockableWindowMap)
 				{
 					if (kv.value.Window.Focused)
 					{
@@ -1775,7 +1775,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 				}
 			}
 
-			// Move the floating OS window to follow cursor.
+			// Move the dockable OS window to follow cursor.
 			if (mDragSourceWindow != null)
 			{
 				mDragSourceWindow.X = (int32)(globalX - mDragWindowOffsetX);
@@ -1958,20 +1958,20 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 
 	protected override void OnShutdown()
 	{
-		// Destroy all floating windows before UI shutdown.
-		let floatingViews = scope System.Collections.List<View>();
-		for (let kv in mFloatingWindowMap)
-			floatingViews.Add(kv.key);
-		for (let view in floatingViews)
-			DestroyFloatingWindowImpl(view, detachView: false);
-		mFloatingWindowMap.Clear();
+		// Destroy all dockable windows before UI shutdown.
+		let dockableViews = scope System.Collections.List<View>();
+		for (let kv in mDockableWindowMap)
+			dockableViews.Add(kv.key);
+		for (let view in dockableViews)
+			DestroyDockableWindowImpl(view, detachView: false);
+		mDockableWindowMap.Clear();
 	}
 
-	// === IFloatingWindowHost ===
+	// === IDockableWindowHost ===
 
 	public bool SupportsOSWindows => true;
 
-	public void CreateFloatingWindow(View floatingWindow, float width, float height,
+	public void CreateDockableWindow(View dockableWindow, float width, float height,
 		float screenX, float screenY, delegate void(View) onCloseRequested)
 	{
 		let settings = Sedulous.Shell.WindowSettings()
@@ -1985,7 +1985,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 
 		if (CreateSecondaryWindow(settings) case .Err)
 		{
-			Console.WriteLine("Failed to create floating OS window");
+			Console.WriteLine("Failed to create dockable OS window");
 			delete onCloseRequested;
 			return;
 		}
@@ -1997,12 +1997,12 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 		ctx.Window.Y = mWindow.Y + (int32)screenY;
 
 		// Create per-window rendering resources.
-		let data = new FloatingWindowRenderData();
+		let data = new DockableWindowRenderData();
 
 		// Store the close delegate so it's properly owned and deleted.
 		data.OnCloseDelegate = onCloseRequested;
 		if (onCloseRequested != null)
-			ctx.OnCloseRequested = new (swCtx) => { data.OnCloseDelegate(floatingWindow); };
+			ctx.OnCloseRequested = new (swCtx) => { data.OnCloseDelegate(dockableWindow); };
 		else
 			ctx.OnCloseRequested = new (swCtx) => { };
 
@@ -2010,8 +2010,8 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 		data.RootView.DpiScale = ctx.Window.ContentScale;
 		data.RootView.ViewportSize = .((float)ctx.Window.Width, (float)ctx.Window.Height);
 		mUI.UIContext.AddRootView(data.RootView);
-		data.RootView.AddView(floatingWindow);
-		data.FloatingView = floatingWindow;
+		data.RootView.AddView(dockableWindow);
+		data.DockableView = dockableWindow;
 
 		data.VGContext = new Sedulous.VG.VGContext(mUI.FontService);
 
@@ -2019,21 +2019,21 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 		if (data.VGRenderer.Initialize(Device, ctx.SwapChain.Format,
 			(int32)ctx.SwapChain.BufferCount, mUI.ShaderSystem) case .Err)
 		{
-			Console.WriteLine("Failed to initialize VGRenderer for floating window");
+			Console.WriteLine("Failed to initialize VGRenderer for dockable window");
 		}
 
 		ctx.UserData = data;
-		mFloatingWindowMap[floatingWindow] = ctx;
+		mDockableWindowMap[dockableWindow] = ctx;
 	}
 
-	public void DestroyFloatingWindow(View floatingWindow)
+	public void DestroyDockableWindow(View fockableWindow)
 	{
-		DestroyFloatingWindowImpl(floatingWindow);
+		DestroyDockableWindowImpl(fockableWindow);
 	}
 
-	public void MoveFloatingWindow(View floatingWindow, float screenX, float screenY)
+	public void MoveDockableWindow(View fockableWindow, float screenX, float screenY)
 	{
-		if (mFloatingWindowMap.TryGetValue(floatingWindow, let ctx))
+		if (mDockableWindowMap.TryGetValue(fockableWindow, let ctx))
 		{
 			// screenX/screenY are main-window-relative (from DragDropManager.LastScreenX/Y).
 			// Convert to global screen coordinates for OS window positioning.
@@ -2042,24 +2042,24 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 		}
 	}
 
-	/// Destroy a floating window's secondary window and GPU resources.
-	/// During normal operation (IFloatingWindowHost.DestroyFloatingWindow), the floating
+	/// Destroy a dockable window's secondary window and GPU resources.
+	/// During normal operation (IDockableWindowHost.DestroyDockableWindow), the dockable
 	/// view is detached from its RootView so DockManager can queue-delete it separately.
 	/// During shutdown, cascade-delete via RootView cleans up everything.
-	private void DestroyFloatingWindowImpl(View floatingWindow, bool detachView = true)
+	private void DestroyDockableWindowImpl(View fockableWindow, bool detachView = true)
 	{
-		if (!mFloatingWindowMap.TryGetValue(floatingWindow, let ctx))
+		if (!mDockableWindowMap.TryGetValue(fockableWindow, let ctx))
 			return;
 
-		mFloatingWindowMap.Remove(floatingWindow);
+		mDockableWindowMap.Remove(fockableWindow);
 
-		if (let data = ctx.UserData as FloatingWindowRenderData)
+		if (let data = ctx.UserData as DockableWindowRenderData)
 		{
-			// Detach floating window from RootView so it survives for
+			// Detach dockable window from RootView so it survives for
 			// DockManager's QueueDeleteNode. During shutdown, skip detach
 			// to let RootView's destructor cascade-delete everything.
-			if (detachView && floatingWindow.Parent == data.RootView)
-				data.RootView.DetachView(floatingWindow);
+			if (detachView && fockableWindow.Parent == data.RootView)
+				data.RootView.DetachView(fockableWindow);
 
 			mUI.UIContext.RemoveRootView(data.RootView);
 			mDevice.WaitIdle(); // Ensure GPU is done before freeing VGRenderer resources.
@@ -2074,7 +2074,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 
 	protected override void OnPrepareSecondaryFrame(SecondaryWindowContext ctx, FrameContext frame)
 	{
-		if (let data = ctx.UserData as FloatingWindowRenderData)
+		if (let data = ctx.UserData as DockableWindowRenderData)
 		{
 			data.RootView.DpiScale = ctx.Window.ContentScale;
 			data.RootView.ViewportSize = .((float)ctx.Window.Width, (float)ctx.Window.Height);
@@ -2085,7 +2085,7 @@ class UISandboxApp : Application, Sedulous.UI.Toolkit.IFloatingWindowHost
 	protected override void OnRenderSecondaryWindow(SecondaryWindowContext ctx,
 		IRenderPassEncoder renderPass, FrameContext frame)
 	{
-		if (let data = ctx.UserData as FloatingWindowRenderData)
+		if (let data = ctx.UserData as DockableWindowRenderData)
 		{
 			let vg = data.VGContext;
 			let renderer = data.VGRenderer;

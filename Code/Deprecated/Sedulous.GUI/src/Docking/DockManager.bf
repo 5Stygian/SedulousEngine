@@ -14,7 +14,7 @@ public class DockManager : Control, IDropTarget
 	private Control mRootNode ~ delete _;
 
 	// Floating panels (popup windows)
-	private List<FloatingWindow> mFloatingWindows = new .() ~ DeleteContainerAndItems!(_);
+	private List<DockableWindow> mDockableWindows = new .() ~ DeleteContainerAndItems!(_);
 
 	// Currently dragged panel (for drag-dock operations)
 	private DockablePanel mDraggedPanel;
@@ -369,10 +369,10 @@ public class DockManager : Control, IDropTarget
 		}
 
 		// Create floating window
-		let floatWindow = new FloatingWindow(this, panel);
+		let floatWindow = new DockableWindow(this, panel);
 		floatWindow.Position = position;
 		floatWindow.Size = size;
-		mFloatingWindows.Add(floatWindow);
+		mDockableWindows.Add(floatWindow);
 
 		if (Context != null)
 			floatWindow.OnAttachedToContext(Context);
@@ -384,12 +384,12 @@ public class DockManager : Control, IDropTarget
 	public void RedockPanel(DockablePanel panel, DockPosition position)
 	{
 		// Find and remove from floating windows
-		for (int i = 0; i < mFloatingWindows.Count; i++)
+		for (int i = 0; i < mDockableWindows.Count; i++)
 		{
-			if (mFloatingWindows[i].Panel == panel)
+			if (mDockableWindows[i].Panel == panel)
 			{
-				let floatWindow = mFloatingWindows[i];
-				mFloatingWindows.RemoveAt(i);
+				let floatWindow = mDockableWindows[i];
+				mDockableWindows.RemoveAt(i);
 				floatWindow.Panel = null;  // Prevent panel deletion
 				delete floatWindow;
 				break;
@@ -401,13 +401,13 @@ public class DockManager : Control, IDropTarget
 	}
 
 	/// Gets the number of floating windows.
-	public int FloatingWindowCount => mFloatingWindows.Count;
+	public int DockableWindowCount => mDockableWindows.Count;
 
 	/// Gets a floating window by index.
-	public FloatingWindow GetFloatingWindow(int index)
+	public DockableWindow GetDockableWindow(int index)
 	{
-		if (index >= 0 && index < mFloatingWindows.Count)
-			return mFloatingWindows[index];
+		if (index >= 0 && index < mDockableWindows.Count)
+			return mDockableWindows[index];
 		return null;
 	}
 
@@ -422,21 +422,21 @@ public class DockManager : Control, IDropTarget
 		else
 		{
 			// Check floating windows
-			RemovePanelFromFloatingWindow(panel);
+			RemovePanelFromDockableWindow(panel);
 		}
 	}
 
 	/// Removes a panel from its floating window (if any) without deleting the panel.
 	/// Returns true if the panel was found and removed from a floating window.
-	public bool RemovePanelFromFloatingWindow(DockablePanel panel)
+	public bool RemovePanelFromDockableWindow(DockablePanel panel)
 	{
-		for (int i = 0; i < mFloatingWindows.Count; i++)
+		for (int i = 0; i < mDockableWindows.Count; i++)
 		{
-			if (mFloatingWindows[i].Panel == panel)
+			if (mDockableWindows[i].Panel == panel)
 			{
-				let floatWindow = mFloatingWindows[i];
+				let floatWindow = mDockableWindows[i];
 				floatWindow.Panel = null;  // Detach panel without deleting it
-				mFloatingWindows.RemoveAt(i);
+				mDockableWindows.RemoveAt(i);
 				delete floatWindow;
 				return true;
 			}
@@ -446,13 +446,13 @@ public class DockManager : Control, IDropTarget
 
 	/// Removes a floating window from the list and schedules it for deletion.
 	/// Safe to call from within the window's event handlers.
-	public void RemoveFloatingWindow(FloatingWindow window)
+	public void RemoveDockableWindow(DockableWindow window)
 	{
-		for (int i = 0; i < mFloatingWindows.Count; i++)
+		for (int i = 0; i < mDockableWindows.Count; i++)
 		{
-			if (mFloatingWindows[i] == window)
+			if (mDockableWindows[i] == window)
 			{
-				mFloatingWindows.RemoveAt(i);
+				mDockableWindows.RemoveAt(i);
 
 				// Use context's deferred deletion so ElementHandles properly see it as deleted
 				if (Context != null)
@@ -732,7 +732,7 @@ public class DockManager : Control, IDropTarget
 		}
 
 		// Arrange floating windows (they position themselves but need Arrange called for layout)
-		for (let floatWindow in mFloatingWindows)
+		for (let floatWindow in mDockableWindows)
 		{
 			floatWindow.Arrange(floatWindow.WindowBounds);
 		}
@@ -753,7 +753,7 @@ public class DockManager : Control, IDropTarget
 		}
 
 		// Render floating windows
-		for (let floatWindow in mFloatingWindows)
+		for (let floatWindow in mDockableWindows)
 		{
 			floatWindow.Render(ctx);
 		}
@@ -841,7 +841,7 @@ public class DockManager : Control, IDropTarget
 		else
 		{
 			// May be from a floating window
-			RemovePanelFromFloatingWindow(panel);
+			RemovePanelFromDockableWindow(panel);
 		}
 
 		// Dock at the target position
@@ -888,9 +888,9 @@ public class DockManager : Control, IDropTarget
 
 		// Check floating windows first (they're rendered on top)
 		// Note: check in reverse order so topmost windows are hit first
-		for (int i = mFloatingWindows.Count - 1; i >= 0; i--)
+		for (int i = mDockableWindows.Count - 1; i >= 0; i--)
 		{
-			let floatWindow = mFloatingWindows[i];
+			let floatWindow = mDockableWindows[i];
 			let hit = floatWindow.HitTest(point);
 			if (hit != null)
 				return hit;

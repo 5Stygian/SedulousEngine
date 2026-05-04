@@ -815,7 +815,7 @@ public class DockTabGroup : Control, IDragSource, IDropTarget
 				return;
 			}
 
-			// Remove from source (either tab group or floating window)
+			// Remove from source (either tab group or dockable window)
 			if (panelData.SourceGroup != null)
 			{
 				panelData.SourceGroup.RemovePanel(panel);
@@ -826,8 +826,8 @@ public class DockTabGroup : Control, IDragSource, IDropTarget
 			}
 			else
 			{
-				// May be from a floating window
-				manager.RemovePanelFromFloatingWindow(panel);
+				// May be from a dockable window
+				manager.RemovePanelFromDockableWindow(panel);
 			}
 
 			// Dock relative to this group
@@ -869,7 +869,7 @@ public class DockTabGroup : Control, IDragSource, IDropTarget
 			return;
 		}
 
-		// Center drop - add panel from different group or floating window
+		// Center drop - add panel from different group or dockable window
 		// Remove from source
 		if (panelData.SourceGroup != null)
 		{
@@ -881,8 +881,8 @@ public class DockTabGroup : Control, IDragSource, IDropTarget
 		}
 		else if (manager != null)
 		{
-			// May be from a floating window
-			manager.RemovePanelFromFloatingWindow(panel);
+			// May be from a dockable window
+			manager.RemovePanelFromDockableWindow(panel);
 		}
 
 		// Add to this group at insert position
@@ -894,9 +894,9 @@ public class DockTabGroup : Control, IDragSource, IDropTarget
 		args.Handled = true;
 	}
 
-	// === Floating Window Drag Support ===
+	// === Dockable Window Drag Support ===
 
-	/// Updates drop zone feedback for floating window drag (bypasses drag-drop system).
+	/// Updates drop zone feedback for dockable window drag (bypasses drag-drop system).
 	/// Returns the calculated drop zone if point is within this group's bounds, null otherwise.
 	public DockPosition? UpdateFloatingDragFeedback(Vector2 point)
 	{
@@ -910,7 +910,7 @@ public class DockTabGroup : Control, IDragSource, IDropTarget
 		return mDropZone;
 	}
 
-	/// Clears floating window drag feedback.
+	/// Clears dockable window drag feedback.
 	public void ClearFloatingDragFeedback()
 	{
 		mDropZone = null;

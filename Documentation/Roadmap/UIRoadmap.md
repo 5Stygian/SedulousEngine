@@ -64,12 +64,12 @@ more game-loop-friendly choice - usually the Android one.
 │  Sedulous.Engine.UI                                                  │
 │  - Full engine integration: scene hooks, resource system wiring      │
 │  - WorldSpaceUIComponent + manager (3D-anchored UI)                  │
-│  - Default IFloatingWindowHost using engine windows                  │
+│  - Default IDockableWindowHost using engine windows                  │
 │  - Builds on Sedulous.UI.Runtime's subsystem                         │
 ├──────────────────────────────────────────────────────────────────────┤
 │  Sedulous.UI.Runtime      Sedulous.UI.Toolkit    Sedulous.UI.Gamekit │
 │  - UISubsystem            - Dock manager         - HUD widgets       │
-│    (owns UIContext +      - Floating windows     - Radial gauges     │
+│    (owns UIContext +      - Dockable windows     - Radial gauges     │
 │     VGContext +           - PropertyGrid         - Action bars       │
 │     VGRenderer)           - DataGrid             - Nameplates        │
 │  - UIInputHelper          - UI Inspector         - Minimap widgets   │
@@ -116,7 +116,7 @@ dedicated UI renderer. This is the existing engine pattern.
   existing `Sedulous.GUI.Runtime` precedent.
 
 - **`Sedulous.UI.Toolkit`** builds advanced/tooling widgets on top of core
-  UI - dock manager, floating windows, property grid, data grid, UI tree
+  UI - dock manager, dockable windows, property grid, data grid, UI tree
   inspector, and anything an editor-style app needs. Separated so games
   that don't need tools don't pull in the overhead.
 
@@ -138,7 +138,7 @@ dedicated UI renderer. This is the existing engine pattern.
 
 - **`Sedulous.Engine.UI`** adds full engine integration on top of
   `Sedulous.UI.Runtime`: scene components (world-space UI), resource
-  system registration, and the default `IFloatingWindowHost` using engine
+  system registration, and the default `IDockableWindowHost` using engine
   windows. Apps that need scene-integrated UI pull this in; apps that just
   need a screen-space overlay can stop at `Sedulous.UI.Runtime`.
 
@@ -1181,16 +1181,16 @@ target, time since hover started. Ticked by `UIContext` each frame.
 Default: show after 0.5s, auto-hide after 5s. Position via
 `PopupPositioner.PositionBestFit` near cursor or anchor.
 
-### IFloatingWindowHost
+### IDockableWindowHost
 
 ```beef
-public interface IFloatingWindowHost
+public interface IDockableWindowHost
 {
     bool SupportsOSWindows { get; }
-    void CreateFloatingWindow(View root, float width, float height,
+    void CreateDockableWindow(View root, float width, float height,
         float screenX = -1, float screenY = -1,
         delegate void(View) onCloseRequested = null);
-    void DestroyFloatingWindow(View root);
+    void DestroyDockableWindow(View root);
 }
 ```
 
@@ -1649,7 +1649,7 @@ Phase 14 (in progress): Sedulous.UI.Toolkit library with:
 - ✅ View.Root property (each view knows its owning RootView)
 - ✅ Drawable-based theming (Option C: drawable first, color fallback) across all ~30 controls
 - ✅ SVGDrawable, AtlasImageDrawable, AtlasNineSliceDrawable, ThemeAtlas, TexturedTheme
-- ✅ IFloatingWindowHost + OS floating windows (multi-window)
+- ✅ IDockableWindowHost + OS floating windows (multi-window)
 - 🔲 FileBrowser / AssetBrowser (see below)
 - 🔲 UI Tree Inspector (follow-up)
 
@@ -1664,7 +1664,7 @@ Toolkit. Each page is a self-contained DemoPage class in its own file.
 
 **Docking** - tree operations (ReplaceNode, Center docking) have
 context attachment issues that crash in headless tests. Needs
-interactive debugging. FloatingWindow not yet implemented.
+interactive debugging. DockableWindow not yet implemented.
 
 **FileBrowser / AssetBrowser** - generic browsable content viewer:
 - Data-model driven (not hardcoded to filesystem). Model provides
@@ -2223,7 +2223,7 @@ libraries and the final polish items.
 
 **Code (`Sedulous.UI.Toolkit`):**
 - `DockManager` (binary split tree + tab groups)
-- `DockablePanel`, `FloatingWindow` (uses `IFloatingWindowHost`)
+- `DockablePanel`, `DockableWindow` (uses `IDockableWindowHost`)
 - `PropertyGrid` (delegate getter/setter + type enum + custom editor)
 - `DataGrid` (column definitions, sort/resize, row virtualization via
   Phase 9's adapter)
@@ -2294,9 +2294,9 @@ everything suddenly needs to integrate.
 - Toolkit controls: SplitView, Toolbar, StatusBar, MenuBar, ColorPicker,
   DraggableTreeView, PropertyGrid (6 typed editors)
 - Docking system: DockManager, DockSplit, DockTabGroup, DockablePanel,
-  FloatingWindow, DockZoneIndicator - fully ported from legacy
+  DockableWindow, DockZoneIndicator - fully ported from legacy
 - Multi-window OS floating windows: UIContext multi-root, View.Root,
-  IFloatingWindowHost, IMouse.GlobalX/GlobalY, cross-window drag
+  IDockableWindowHost, IMouse.GlobalX/GlobalY, cross-window drag
 - DockView layout (DockPanel equivalent)
 - Closable tabs on TabView
 - Drawable-based theming: Option C (drawable first, color fallback) on
@@ -2474,7 +2474,7 @@ src/
     MenuItem.bf
     TooltipManager.bf
     TooltipView.bf
-    IFloatingWindowHost.bf
+    IDockableWindowHost.bf
 
   Commands/
     ICommand.bf
@@ -2544,7 +2544,7 @@ src/
   Docking/
     DockManager.bf
     DockablePanel.bf
-    FloatingWindow.bf
+    DockableWindow.bf
     DockSplit.bf
     DockTabGroup.bf
     DockPosition.bf
@@ -2750,7 +2750,7 @@ not everything needs to be adopted.
 | M6 | **SelectionModel.SelectedPositions** | SelectionModel | DONE - returns full HashSet |
 | M7 | **Button.Command (ICommand)** | Button | DONE - ICommand + auto-disable via CanExecute |
 | M8 | **ScanCode on KeyEventArgs** | Input | DONE - int32 ScanCode field |
-| M9 | **Multi-window support architecture** | UIContext | DONE - multi-root, AddRootView/RemoveRootView, IFloatingWindowHost, OS floating windows |
+| M9 | **Multi-window support architecture** | UIContext | DONE - multi-root, AddRootView/RemoveRootView, IDockableWindowHost, OS floating windows |
 | M10 | **AnimationManager in UIContext** | UIContext | DONE - Phase 12 |
 
 ### Things We Do Better (keep as-is)

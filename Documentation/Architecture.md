@@ -109,7 +109,7 @@ WebGPU-inspired but lower-level. Interface-based - backends are swappable.
 | **Sedulous.UI** | Android-inspired retained-mode UI: View/ViewGroup/RootView hierarchy, MeasureSpec layout, theme system, input routing, animation, drag-drop, overlays. Renders via VGContext. No engine dependency - runs headless for tests |
 | **Sedulous.UI.Shell** | Bridge: UIInputHelper (Shell -> UI input routing), InputMapping, ShellClipboardAdapter |
 | **Sedulous.UI.Runtime** | UISubsystem for standalone apps (owns UIContext + VGRenderer). Used by UISandbox |
-| **Sedulous.UI.Toolkit** | Advanced widgets: DockManager, SplitView, MenuBar, StatusBar, Toolbar, PropertyGrid (with transactional editors), TreeView, ColorPicker, TabView (closable), DraggableTreeView, IFloatingWindowHost |
+| **Sedulous.UI.Toolkit** | Advanced widgets: DockManager, SplitView, MenuBar, StatusBar, Toolbar, PropertyGrid (with transactional editors), TreeView, ColorPicker, TabView (closable), DraggableTreeView, IDockableWindowHost |
 | **Sedulous.UI.Resources** | ThemeResource, UILayoutResource, ThemeXmlParser |
 
 > **Sedulous.GUI** (deprecated, moved to `Code/Deprecated/`) -- the original UI
