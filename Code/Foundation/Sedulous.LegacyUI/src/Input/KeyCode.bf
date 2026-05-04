@@ -1,5 +1,5 @@
-namespace System;
-using Sedulous.LegacyUI;
+using System;
+namespace Sedulous.LegacyUI;
 
 /// UI keyboard key codes. Values match Shell.Input.KeyCode so mapping
 /// is a trivial cast. UI owns its own enum to avoid depending on Shell.
