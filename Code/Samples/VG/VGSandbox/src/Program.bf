@@ -10,6 +10,7 @@ using Sedulous.Shaders;
 using Sedulous.Images;
 using Sedulous.Fonts;
 using Sedulous.Fonts.TTF;
+using Sedulous.VG.SVG;
 
 /// VG Sandbox - NanoVG-inspired demo showcasing Sedulous.VG capabilities.
 class VGSandboxApp : Application
@@ -26,6 +27,10 @@ class VGSandboxApp : Application
 	private CachedFont mFontSmall;
 	private CachedFont mFontMedium;
 	private CachedFont mFontLarge;
+
+	// SVG documents for SVG rendering demo.
+	private SVGDocument mSVGBadge ~ delete _;
+	private SVGDocument mSVGIcon ~ delete _;
 
 	private float mTime = 0;
 
@@ -80,6 +85,24 @@ class VGSandboxApp : Application
 			}
 		}
 		mCheckerboard = new OwnedImageData(img.Width, img.Height, .RGBA8, img.Data);
+
+		// Parse SVG documents for the SVG rendering demo.
+		if (SVGLoader.Load("""
+			<svg viewBox="0 0 100 100">
+			  <circle cx="50" cy="50" r="45" fill="#2A6BC0" stroke="#1A4A90" stroke-width="3"/>
+			  <circle cx="50" cy="50" r="30" fill="none" stroke="#4A9AFF" stroke-width="1.5" opacity="0.6"/>
+			  <text x="50" y="58" text-anchor="middle" font-size="28" font-weight="bold" fill="#FFFFFF">VG</text>
+			</svg>
+			""") case .Ok(let doc))
+			mSVGBadge = doc;
+
+		if (SVGLoader.Load("""
+			<svg viewBox="0 0 24 24">
+			  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFD700" stroke="#B8960F" stroke-width="0.8"/>
+			  <text x="12" y="14" text-anchor="middle" font-size="6" fill="#8B6914">5</text>
+			</svg>
+			""") case .Ok(let doc))
+			mSVGIcon = doc;
 	}
 
 	protected override void OnUpdate(FrameContext frame)
@@ -107,6 +130,7 @@ class VGSandboxApp : Application
 		DrawTextDemo(mVG, 150, 170, mTime);
 		DrawUIConvenience(mVG, 150, 340);
 		DrawImmediatePath(mVG, 150, 410, mTime);
+		DrawSVGDemo(mVG, 150, 470);
 
 		let batch = mVG.GetBatch();
 		mVGRenderer.Prepare(batch, frame.FrameIndex);
@@ -493,6 +517,31 @@ class VGSandboxApp : Application
 		vg.ClosePath();
 		vg.Fill(Color(220, 140, 255, 255));
 		vg.Stroke(Color(255, 255, 255, 120), 1.0f);
+	}
+
+	/// Demonstrates SVG rendering via SVGRenderer (standalone, no UI framework).
+	private void DrawSVGDemo(VGContext vg, float x, float y)
+	{
+		vg.DrawText("SVG Rendering", mFontMedium, .(x, y + 16), Color(240, 240, 245, 255));
+
+		if (mSVGBadge != null)
+		{
+			// Large badge
+			SVGRenderer.Render(vg, mSVGBadge, .(x, y + 24, 80, 80));
+			// Smaller
+			SVGRenderer.Render(vg, mSVGBadge, .(x + 90, y + 34, 48, 48));
+			// Tinted
+			SVGRenderer.Render(vg, mSVGBadge, .(x + 148, y + 34, 48, 48), Color(255, 120, 80, 255));
+		}
+
+		if (mSVGIcon != null)
+		{
+			// Row of star icons at different sizes
+			SVGRenderer.Render(vg, mSVGIcon, .(x + 210, y + 30, 56, 56));
+			SVGRenderer.Render(vg, mSVGIcon, .(x + 272, y + 38, 40, 40));
+			SVGRenderer.Render(vg, mSVGIcon, .(x + 318, y + 46, 28, 28));
+			SVGRenderer.Render(vg, mSVGIcon, .(x + 352, y + 50, 20, 20));
+		}
 	}
 
 	/// Demonstrates Phase 4 UI convenience primitives: DrawLine, StrokeEllipse,
