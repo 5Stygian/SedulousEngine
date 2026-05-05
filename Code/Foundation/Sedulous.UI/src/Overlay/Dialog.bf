@@ -141,15 +141,22 @@ public class Dialog : ViewGroup
 		let effMinH = Math.Max(MinHeight, constraints.MinHeight);
 		let effMaxH = Math.Min(MaxHeight > 0 ? MaxHeight : float.MaxValue, constraints.MaxHeight);
 
-		// Measure content with unconstrained height so Grow children wrap
-		// to natural size. Width is capped to max so text wraps properly.
+		// First pass: measure with unconstrained height so simple content
+		// (text labels) wraps to its natural size.
 		let inner = BoxConstraints(0, effMaxW, 0, float.MaxValue);
 		mLayout.Measure(inner);
 
-		// Clamp result to [min, max] range.
-		MeasuredSize = .(
-			Math.Clamp(mLayout.MeasuredSize.X, effMinW, effMaxW),
-			Math.Clamp(mLayout.MeasuredSize.Y, effMinH, effMaxH));
+		// Clamp to [min, max].
+		let finalW = Math.Clamp(mLayout.MeasuredSize.X, effMinW, effMaxW);
+		let finalH = Math.Clamp(mLayout.MeasuredSize.Y, effMinH, effMaxH);
+
+		// Second pass: if height was clamped (content was larger or smaller
+		// than bounds), re-measure with the final bounded height so Grow
+		// children (e.g., SplitView) distribute space correctly.
+		if (finalH != mLayout.MeasuredSize.Y)
+			mLayout.Measure(BoxConstraints(finalW, finalW, finalH, finalH));
+
+		MeasuredSize = .(finalW, finalH);
 	}
 
 	protected override void OnLayout(float left, float top, float width, float height)
