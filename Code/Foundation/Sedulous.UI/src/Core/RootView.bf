@@ -1,6 +1,7 @@
 namespace Sedulous.UI;
 
 using Sedulous.Core.Mathematics;
+using System;
 
 /// Top-level view representing the entire viewport.
 /// One per window. Fills the viewport, lays out children, and owns a
@@ -45,11 +46,13 @@ public class RootView : ViewGroup
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		// RootView always fills the viewport
-		MeasuredSize = ViewportSize;
+		// RootView fills the viewport in logical coordinates (physical / DpiScale).
+		let logicalW = ViewportSize.X / Math.Max(DpiScale, 0.01f);
+		let logicalH = ViewportSize.Y / Math.Max(DpiScale, 0.01f);
+		MeasuredSize = .(logicalW, logicalH);
 
 		// Measure children with tight viewport constraints
-		let childConstraints = BoxConstraints.Tight(ViewportSize.X, ViewportSize.Y);
+		let childConstraints = BoxConstraints.Tight(logicalW, logicalH);
 		for (int i = 0; i < ChildCount; i++)
 		{
 			let child = GetChildAt(i);

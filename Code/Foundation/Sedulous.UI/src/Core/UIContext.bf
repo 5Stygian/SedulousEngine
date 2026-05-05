@@ -252,9 +252,12 @@ public class UIContext
 
 		mPhase = .Layout;
 
-		let constraints = BoxConstraints.Tight(root.ViewportSize.X, root.ViewportSize.Y);
+		let dpi = Math.Max(root.DpiScale, 0.01f);
+		let logicalW = root.ViewportSize.X / dpi;
+		let logicalH = root.ViewportSize.Y / dpi;
+		let constraints = BoxConstraints.Tight(logicalW, logicalH);
 		root.Measure(constraints);
-		root.Layout(0, 0, root.ViewportSize.X, root.ViewportSize.Y);
+		root.Layout(0, 0, logicalW, logicalH);
 
 		mPhase = .Idle;
 	}
