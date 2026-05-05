@@ -93,16 +93,16 @@ class VGSandboxApp : Application
 			  <circle cx="50" cy="50" r="30" fill="none" stroke="#4A9AFF" stroke-width="1.5" opacity="0.6"/>
 			  <text x="50" y="58" text-anchor="middle" font-size="28" font-weight="bold" fill="#FFFFFF">VG</text>
 			</svg>
-			""") case .Ok(let doc))
-			mSVGBadge = doc;
+			""") case .Ok(let badgeDoc))
+			mSVGBadge = badgeDoc;
 
 		if (SVGLoader.Load("""
 			<svg viewBox="0 0 24 24">
 			  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#FFD700" stroke="#B8960F" stroke-width="0.8"/>
 			  <text x="12" y="14" text-anchor="middle" font-size="6" fill="#8B6914">5</text>
 			</svg>
-			""") case .Ok(let doc))
-			mSVGIcon = doc;
+			""") case .Ok(let iconDoc))
+			mSVGIcon = iconDoc;
 	}
 
 	protected override void OnUpdate(FrameContext frame)

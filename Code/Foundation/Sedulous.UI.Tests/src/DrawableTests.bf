@@ -120,7 +120,7 @@ class DrawableTests
 	{
 		// ShapeDrawable has no state-aware override - should delegate
 		bool called = false;
-		let shape = scope ShapeDrawable(new [&called] (ctx, bounds) => { called = true; });
+		scope ShapeDrawable(new [&called] (ctx, bounds) => { called = true; });
 		// We can't call Draw without a real VGContext, but we can verify the interface exists
 		Test.Assert(!called); // just the creation shouldn't call it
 	}

@@ -148,14 +148,14 @@ class TowerDefenseApp : EngineApplication
 
 		// Set up audio
 		let audioSub = Context.GetSubsystem<AudioSubsystem>();
-		let messaging2 = Context.GetSubsystem<MessagingSubsystem>();
+		let messaging = Context.GetSubsystem<MessagingSubsystem>();
 		if (audioSub != null)
-			mGameAudio.Initialize(audioSub, messaging2?.Bus);
+			mGameAudio.Initialize(audioSub, messaging?.Bus);
 
 		// Set up particle effects
 		let assetDir2 = scope String();
 		GetAssetPath("", assetDir2);
-		mParticleEffects.Initialize(mScene, messaging2?.Bus, ResourceSystem, assetDir2);
+		mParticleEffects.Initialize(mScene, messaging?.Bus, ResourceSystem, assetDir2);
 
 		Console.WriteLine("=== Tower Defense Ready ===");
 	}
@@ -260,7 +260,6 @@ class TowerDefenseApp : EngineApplication
 			return;
 
 		let root = uiSub.ScreenView.Root;
-		let ctx = uiSub.UIContext;
 		let messaging = Context.GetSubsystem<MessagingSubsystem>();
 		let bus = messaging?.Bus;
 
