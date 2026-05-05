@@ -120,8 +120,23 @@ public abstract class AudioMixer : IDisposable
 	/// Platform-specific: push the mixed float32 stereo buffer to the audio device.
 	protected abstract void OutputMix(float* buffer, int32 frameCount, int32 sampleRate);
 
+	/// Flushes any pending commands that were enqueued but never drained.
+	/// Call after stopping the audio thread but before deleting resources.
+	public void FlushPendingCommands()
+	{
+		mCommandLock.Enter();
+		for (let cmd in mCommandQueue)
+		{
+			cmd();
+			delete cmd;
+		}
+		mCommandQueue.Clear();
+		mCommandLock.Exit();
+	}
+
 	public virtual void Dispose()
 	{
+		FlushPendingCommands();
 		mThreaded = false;
 
 		if (mBusSystem != null)
