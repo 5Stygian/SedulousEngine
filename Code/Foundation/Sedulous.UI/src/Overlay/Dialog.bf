@@ -97,8 +97,10 @@ public class Dialog : ViewGroup
 			closeOnClickOutside: false, isModal: true, ownsView: ownsView);
 
 		// Now measure with context available, then reposition to center.
-		let viewportW = root.ViewportSize.X;
-		let viewportH = root.ViewportSize.Y;
+		// Use logical coordinates (physical / DpiScale) to match layout space.
+		let dpi = Math.Max(root.DpiScale, 0.01f);
+		let viewportW = root.ViewportSize.X / dpi;
+		let viewportH = root.ViewportSize.Y / dpi;
 		let maxW = Math.Min(MaxWidth, viewportW * 0.8f);
 		let maxH = Math.Min(MaxHeight, viewportH * 0.8f);
 		Measure(BoxConstraints(MinWidth, maxW, MinHeight, maxH));
