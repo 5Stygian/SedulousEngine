@@ -34,6 +34,12 @@ public class CheckBox : View
 		}
 	}
 
+	/// Override font size for the label text.
+	public float? FontSize;
+
+	/// Override text color for the label text.
+	public Color? TextColor;
+
 	/// Fired when checked state changes.
 	public Event<delegate void(CheckBox, bool)> OnCheckedChanged ~ _.Dispose();
 
@@ -45,7 +51,7 @@ public class CheckBox : View
 	{
 		let boxSize = ResolveStyleFloat(.BoxSize, 18);
 		let spacing = ResolveStyleFloat(.Spacing, 6);
-		let fontSize = ResolveStyleFloat(.FontSize, 16);
+		let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 16);
 
 		float textW = 0, textH = 0;
 		if (mText != null && !mText.IsEmpty)
@@ -68,7 +74,7 @@ public class CheckBox : View
 	{
 		let boxSize = ResolveStyleFloat(.BoxSize, 18);
 		let spacing = ResolveStyleFloat(.Spacing, 6);
-		let fontSize = ResolveStyleFloat(.FontSize, 16);
+		let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 16);
 		let state = GetControlState();
 
 		// Box position (vertically centered)
@@ -105,7 +111,7 @@ public class CheckBox : View
 			let font = ctx.FontService?.GetFont(fontSize);
 			if (font != null)
 			{
-				var textColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
+				var textColor = TextColor ?? ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
 				if (!IsEffectivelyEnabled)
 					textColor = Palette.ComputeDisabled(textColor);
 

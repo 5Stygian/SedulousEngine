@@ -34,6 +34,15 @@ public class EditableLabel : EditText
 	/// Horizontal text alignment in label mode.
 	public TextAlignment HAlign = .Left;
 
+	/// Whether to truncate text with "..." when it overflows in label mode.
+	public bool Ellipsis = false;
+
+	/// Override font size. When set, takes precedence over style resolution.
+	public float? FontSize;
+
+	/// Override text color. When set, takes precedence over style resolution.
+	public Color? TextColor;
+
 	/// Whether double-click enters edit mode.
 	public bool DoubleClickToEdit = true;
 
@@ -215,16 +224,54 @@ public class EditableLabel : EditText
 		}
 		else
 		{
-			// Label mode: just draw text
-			let fontSize = ResolveStyleFloat(.FontSize, 14);
+			// Label mode: draw text with optional ellipsis truncation.
+			let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 14);
 			if (Text.Length > 0 && ctx.FontService != null)
 			{
 				let font = ctx.FontService.GetFont(fontSize);
 				if (font != null)
 				{
-					let textColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
+					let textColor = TextColor ?? ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
 					let textBounds = RectangleF(TextOffsetX, 0, Width - TextOffsetX, Height);
-					ctx.VG.DrawText(Text, font, textBounds, HAlign, .Middle, textColor);
+
+					if (Ellipsis)
+					{
+						let textW = font.Font.MeasureString(Text);
+						if (textW > textBounds.Width)
+						{
+							let ellipsisStr = "...";
+							let ellipsisW = font.Font.MeasureString(ellipsisStr);
+							let availW = textBounds.Width - ellipsisW;
+
+							if (availW <= 0)
+							{
+								ctx.VG.DrawText(ellipsisStr, font, textBounds, HAlign, .Middle, textColor);
+							}
+							else
+							{
+								let truncated = scope String();
+								for (let c in Text.RawChars)
+								{
+									truncated.Append(c);
+									if (font.Font.MeasureString(truncated) > availW)
+									{
+										truncated.RemoveFromEnd(1);
+										break;
+									}
+								}
+								truncated.Append(ellipsisStr);
+								ctx.VG.DrawText(truncated, font, textBounds, HAlign, .Middle, textColor);
+							}
+						}
+						else
+						{
+							ctx.VG.DrawText(Text, font, textBounds, HAlign, .Middle, textColor);
+						}
+					}
+					else
+					{
+						ctx.VG.DrawText(Text, font, textBounds, HAlign, .Middle, textColor);
+					}
 				}
 			}
 		}
@@ -233,7 +280,7 @@ public class EditableLabel : EditText
 	/// Draw edit content (selection, glyphs, cursor) offset to the given X.
 	private void DrawEditContent(UIDrawContext ctx, float offsetX)
 	{
-		let fontSize = ResolveStyleFloat(.FontSize, 14);
+		let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 14);
 		let contentW = Width - offsetX;
 
 		ctx.VG.PushClipRect(.(offsetX, 0, contentW, Height));

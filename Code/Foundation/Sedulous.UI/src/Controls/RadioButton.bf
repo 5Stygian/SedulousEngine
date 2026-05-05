@@ -37,6 +37,12 @@ public class RadioButton : View
 		}
 	}
 
+	/// Override font size for the label text.
+	public float? FontSize;
+
+	/// Override text color for the label text.
+	public Color? TextColor;
+
 	public Event<delegate void(RadioButton, bool)> OnCheckedChanged ~ _.Dispose();
 
 	public this() { IsFocusable = true; IsTabStop = true; Cursor = .Hand; StyleId = new String("radiobutton"); }
@@ -44,7 +50,7 @@ public class RadioButton : View
 
 	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		let fontSize = ResolveStyleFloat(.FontSize, 16);
+		let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 16);
 		float textW = 0, textH = 0;
 
 		if (mText != null && !mText.IsEmpty)
@@ -65,7 +71,7 @@ public class RadioButton : View
 
 	public override void OnDraw(UIDrawContext ctx)
 	{
-		let fontSize = ResolveStyleFloat(.FontSize, 16);
+		let fontSize = FontSize ?? ResolveStyleFloat(.FontSize, 16);
 		let r = CircleSize * 0.5f;
 		let cy = Height * 0.5f;
 
@@ -101,7 +107,7 @@ public class RadioButton : View
 			let font = ctx.FontService?.GetFont(fontSize);
 			if (font != null)
 			{
-				var textColor = ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
+				var textColor = TextColor ?? ResolveStyleColor(.TextColor, .(220, 225, 235, 255));
 				if (!IsEffectivelyEnabled)
 					textColor = Palette.ComputeDisabled(textColor);
 
