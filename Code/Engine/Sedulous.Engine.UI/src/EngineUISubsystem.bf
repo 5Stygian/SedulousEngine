@@ -481,6 +481,14 @@ class EngineUISubsystem : Subsystem, ISceneAware, IWindowAware, IOverlayRenderer
 			mFontService = null;
 		}
 
+		// WorldUIPass is owned by the Pipeline once registered (Pipeline.Shutdown
+		// deletes its passes). If no scene was ever created, we still own it.
+		if (!mWorldUIPassRegistered && mWorldUIPass != null)
+		{
+			delete mWorldUIPass;
+			mWorldUIPass = null;
+		}
+
 		if (mUIContext != null)
 		{
 			delete mUIContext;
