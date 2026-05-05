@@ -174,4 +174,53 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 		for (let entity in toDestroy)
 			scene.DestroyEntity(entity);
 	}
+
+	/// Draws camera-facing health bar quads above all active enemies.
+	public void DrawHealthBars(Sedulous.Renderer.Debug.DebugDraw debugDraw, Vector3 camRight, Vector3 camUp)
+	{
+		let scene = Scene;
+		if (scene == null || debugDraw == null) return;
+
+		let barWidth = 0.6f;
+		let barHeight = 0.08f;
+		let barY = 1.2f;
+
+		let right = camRight;
+		let up = camUp;
+
+		for (let comp in ActiveComponents)
+		{
+			if (!comp.IsActive || !comp.Initialized || comp.CurrentHealth <= 0)
+				continue;
+
+			let pos = scene.GetLocalTransform(comp.Owner).Position;
+			let healthRatio = Math.Clamp((float)comp.CurrentHealth / (float)comp.MaxHealth, 0, 1);
+
+			let halfW = barWidth * 0.5f;
+			let halfH = barHeight * 0.5f;
+			let center = pos + .(0, barY, 0);
+
+			// Background (dark red)
+			debugDraw.DrawQuad(
+				center - right * halfW + up * halfH,
+				center + right * halfW + up * halfH,
+				center + right * halfW - up * halfH,
+				center - right * halfW - up * halfH,
+				.(60, 20, 20, 200), overlay: true);
+
+			// Health fill — left-aligned, billboard
+			let fillW = barWidth * healthRatio;
+			let fillLeft = center - right * halfW;
+
+			uint8 r = (uint8)(255 * (1.0f - healthRatio));
+			uint8 g = (uint8)(255 * healthRatio);
+
+			debugDraw.DrawQuad(
+				fillLeft + up * halfH,
+				fillLeft + right * fillW + up * halfH,
+				fillLeft + right * fillW - up * halfH,
+				fillLeft - up * halfH,
+				.(r, g, 0, 230), overlay: true);
+		}
+	}
 }

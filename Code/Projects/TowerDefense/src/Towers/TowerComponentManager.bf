@@ -17,7 +17,7 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => UpdateTowers, simulationOnly: true);
+		RegisterUpdate(.PostTransform, new => UpdateTowers, simulationOnly: true);
 	}
 
 	private void UpdateTowers(float deltaTime)

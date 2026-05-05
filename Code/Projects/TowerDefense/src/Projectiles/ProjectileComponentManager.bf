@@ -21,7 +21,7 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => UpdateProjectiles, simulationOnly: true);
+		RegisterUpdate(.PostTransform, new => UpdateProjectiles, simulationOnly: true);
 	}
 
 	/// Spawns a projectile entity heading toward a target.

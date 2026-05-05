@@ -219,7 +219,18 @@ class TowerDefenseApp : EngineApplication
 			// Draw debug markers on tower slots and hover
 			let renderSub = Context.GetSubsystem<RenderSubsystem>();
 			if (renderSub != null)
+			{
 				mTowerPlacement.DrawDebug(renderSub.DebugDraw, mGameSub);
+
+				// Health bars — billboard using camera vectors
+			let offsetY = mCamera.Zoom * Math.Cos(mCamera.ViewAngle);
+			let offsetZ = mCamera.Zoom * Math.Sin(mCamera.ViewAngle);
+			let camPos = mCamera.LookTarget + Vector3(0, offsetY, offsetZ);
+			let camFwd = Vector3.Normalize(mCamera.LookTarget - camPos);
+			let camRight = Vector3.Normalize(Vector3.Cross(camFwd, .(0, 1, 0)));
+			let camUp = Vector3.Cross(camRight, camFwd);
+			mGameSub.EnemyMgr?.DrawHealthBars(renderSub.DebugDraw, camRight, camUp);
+			}
 		}
 	}
 
