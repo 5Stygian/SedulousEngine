@@ -5,8 +5,8 @@ and LayoutParams pattern from Sedulous.LegacyUI but replaces MeasureSpec with Bo
 adds CSS Flex-inspired containers, and fixes the defaults and friction points
 discovered building real applications.
 
-Sedulous.LegacyUI remains stable with ~700 unit tests. UI2 is experimental - if it works
-out, projects migrate. If not, lessons inform improvements to LegacyUI.
+The experiment was a success. UI2 has been promoted to Sedulous.UI (old UI became
+Sedulous.LegacyUI). All applications including the editor have been migrated.
 
 ---
 
@@ -50,9 +50,9 @@ FloatAnimation, ColorAnimation, Vector2Animation, Storyboard, ViewAnimator
 
 **Shell Bridge:** UIInputHelper, InputMapping, ShellClipboardAdapter
 
-**Runtime:** UI2Subsystem (with input routing, clipboard bridge, cursor sync)
+**Runtime:** UISubsystem (with input routing, clipboard bridge, cursor sync)
 
-**Sandbox:** UI2Sandbox app (Application-based, not EngineApplication)
+**Sandbox:** UISandbox app (Application-based, not EngineApplication)
 
 ---
 
@@ -109,7 +109,9 @@ rendering without subpixel artifacts.
 
 All controls implemented with drawable-based theming, SVG icons, and full sandbox demo.
 
-- [x] Button - background drawable (StateListDrawable), ControlState, OnClick
+- [x] ButtonBase - abstract base with click event, pressed state, ICommand, input handling
+- [x] Button - text-only button with Text/SetText/FontSize, extends ButtonBase
+- [x] ContentButton - arbitrary View content (icons, icon+text), extends ButtonBase
 - [x] RepeatButton - fires OnClick repeatedly while held
 - [x] Label - text, HAlign/VAlign, word wrap
 - [x] Panel - background drawable, padding container
@@ -122,6 +124,7 @@ All controls implemented with drawable-based theming, SVG icons, and full sandbo
 - [x] Slider - TrackDrawable/FillDrawable/ThumbDrawable, value range, drag
 - [x] ProgressBar - TrackDrawable/FillDrawable, value 0-1
 - [x] ImageView - image display with ScaleType (None/FitCenter/FillBounds/CenterCrop), tint
+- [x] DrawableView - renders any Drawable at a given size, optional ownership
 - [x] ColorView - solid color swatch
 - [x] Expander - collapsible header with ChevronExpandedIcon/ChevronCollapsedIcon (SVG)
 - [x] ScrollView - VisualChild pattern for scrollbars, Overlay/Reserved modes,
@@ -314,9 +317,48 @@ Advanced controls for editor and application chrome. Separate project: Sedulous.
 
 ---
 
-## Phase 7.5 - Toolkit Enhancements
+## Phase 8 - Runtime Integration (COMPLETE)
 
-### Docking enhancements (second pass)
+Engine integration libraries and application migration.
+
+- [x] UISubsystem (renamed from UI2Subsystem) - theme setup, clipboard bridge, cursor sync,
+      ManualInputRouting for multi-window apps
+- [x] Shell integration - UIInputHelper dispatches shell events to InputManager
+- [x] Sedulous.Engine.UI - EngineUISubsystem, ScreenUIView, UIComponent, UIComponentManager,
+      WorldUIPass (ported from Engine.LegacyUI)
+- [x] Sedulous.UI.Viewport - ViewportView, IViewportInputHandler
+- [x] TexturedTheme - atlas-packed image themes via ThemeAtlas/ThemeImageSet
+
+---
+
+## Phase 9 - Migration (COMPLETE)
+
+All applications migrated from Sedulous.LegacyUI to Sedulous.UI.
+
+- [x] AudioSandbox - migrated (UISubsystem with app-owned UIContext/RootView)
+- [x] ModelViewer - migrated (no UISubsystem, app manages its own rendering)
+- [x] EngineSandbox - migrated (EngineUISubsystem, world-space UI panels)
+- [x] TowerDefense - migrated with major gameplay upgrade (SVG icons, ContentButton,
+      DrawableView, full game flow, tower upgrades, audio, particles)
+- [x] Editor - migrated (Editor.Core + Editor.App, manages own UIContext/RootView)
+- [x] Engine.App - EngineApplication updated to use EngineUISubsystem
+- [x] LegacyUISandbox - intentionally NOT migrated (kept as LegacyUI reference)
+- [x] StyleSheet leak fix - ReleaseRef after DarkTheme.Create() in EngineUISubsystem
+- [x] Initial viewport size seeded from window dimensions for dialogs shown before first render
+
+---
+
+## Phase 10 - Future Enhancements
+
+### XML Layout Loading
+- [ ] XML layout loader - element names -> View types (factory registry), attributes -> properties + LayoutParams
+- [ ] XML id resolution - FindById<T> after load
+- [ ] XML styleClass attribute -> View.StyleId for stylesheet matching
+- [ ] **Tests:** XML loader creates correct view hierarchy from XML string
+- [ ] **Tests:** XML attributes map to correct properties and LayoutParams
+- [ ] **UISandbox:** XML layout demo page
+
+### Docking Enhancements (second pass)
 - [ ] Tabs at top of DockTabGroup (currently at bottom, matching current UI)
 - [ ] Per-tab close buttons in tab headers
 - [ ] Tab reordering within groups via drag (midpoint detection + insertion indicator)
@@ -326,32 +368,8 @@ Advanced controls for editor and application chrome. Separate project: Sedulous.
 - [ ] Layout persistence via ISerializerProvider (serialize/deserialize dock tree)
 - [ ] PersistenceId on DockablePanel and DockSplit for layout save/restore
 
----
-
-## Phase 8 - Runtime Integration + XML Loading
-
-Bridge UI2 with the engine runtime and add declarative layout loading.
-
-- [ ] UI2Subsystem enhancements - theme setup, clipboard bridge, cursor sync
-- [ ] Shell integration - input dispatch from shell events to InputManager
-- [ ] XML layout loader - element names -> View types (factory registry), attributes -> properties + LayoutParams
-- [ ] XML id resolution - FindById<T> after load
-- [ ] XML styleClass attribute -> View.StyleId for stylesheet matching
-- [ ] **Tests:** XML loader creates correct view hierarchy from XML string
-- [ ] **Tests:** XML attributes map to correct properties and LayoutParams
-- [ ] **UI2Sandbox:** XML layout demo page
-
----
-
-## Phase 9 - Migration
-
-Port existing applications from Sedulous.LegacyUI to UI2.
-
-- [ ] Port LegacyUISandbox demos to UI2 (verify feature parity)
-- [ ] Port editor to UI2
-- [ ] Port tower defense game UI to UI2
-- [ ] Remove Sedulous.LegacyUI dependency from migrated projects
-- [ ] Performance comparison: measure/layout time LegacyUI vs UI2
+### Other
+- [ ] Performance comparison: measure/layout time LegacyUI vs UI
 
 ---
 
@@ -397,16 +415,26 @@ Port existing applications from Sedulous.LegacyUI to UI2.
 
 ## Control Specifications
 
-### Button
+### ButtonBase (abstract)
 
 **Properties:**
-- `View Content` - arbitrary content (default: Label when constructed with text)
 - `Drawable Background` - inline override, null = resolve from StyleSheet
 - `ICommand Command` - optional command binding
 
-**Events:** `Event<delegate void(Button)> OnClick`
+**Events:** `Event<delegate void(ButtonBase)> OnClick`
 
 **State:** ControlState drives StyleSheet state matching. Overrides GetControlState to add Pressed.
+
+### Button (extends ButtonBase)
+
+**Properties:**
+- `String Text` - button text (no child view overhead)
+- `float? FontSize` - per-instance font size override
+
+### ContentButton (extends ButtonBase)
+
+**Properties:**
+- `View Content` - arbitrary content (icons, icon+text combos, custom layouts)
 
 ### Label
 
@@ -429,8 +457,9 @@ Port existing applications from Sedulous.LegacyUI to UI2.
 
 ### Content-bearing Controls
 
-Button, ToggleButton, and Expander have a `View Content` property. Set it to
-a Label for text (default), ImageView for icon, or Flex with icon+text.
+ContentButton and ToggleButton have a `View Content` property. Set it to
+an ImageView for icon, or FlexLayout with icon+text. Button (text-only) uses
+a String Text property directly — no child view overhead for the common case.
 
 Controls with fixed visual structure (CheckBox, RadioButton, ToggleSwitch,
 Slider, ProgressBar) use String properties, not Content.
@@ -446,12 +475,11 @@ camera orbit + gizmo + selection) implement handler lists themselves in their
 OnMouseDown/OnMouseUp overrides. This avoids adding a handler list to every
 View when only 2-3 controls need it.
 
-### IModel is minimal
+### Adapter pattern replaces IModel
 
-IModel provides GetItemCount, GetDisplayText, HasChildren, GetChildCount,
-GetChildIndex, GetParent, and OnDataChanged. No role-based dispatch - controls
-query the data they need through the interface directly. Typed model
-implementations (ListModel<T>, TreeModel) provide the concrete data.
+IModel was replaced with IListAdapter/ITreeAdapter (Android-style adapters).
+Adapters own view creation and binding. This proved more flexible for custom
+list items and tree nodes than the role-based IModel approach.
 
 ### Property<T> uses operator constraint
 
