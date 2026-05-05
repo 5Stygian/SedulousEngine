@@ -21,4 +21,7 @@ class TowerComponent : Component
 
 	/// Child entity holding the weapon model (for rotation).
 	public EntityHandle WeaponEntity = .Invalid;
+
+	/// Total gold invested in this tower (initial cost + all upgrades). Used for sell refund.
+	public int32 TotalInvested;
 }

@@ -15,6 +15,10 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 	/// Message bus for publishing game events.
 	public MessageBus Bus;
 
+	/// Game speed multiplier. Set by GameSubsystem each frame.
+	public float GameSpeed = 1.0f;
+
+
 	/// Waypoints that enemies follow (set by GameSubsystem from MapData).
 	public List<Vector3> Waypoints;
 
@@ -28,7 +32,7 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => UpdateEnemies);
+		RegisterUpdate(.Update, new => UpdateEnemies, simulationOnly: true);
 	}
 
 	/// Spawns an enemy entity at the first waypoint.
@@ -106,14 +110,14 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 			{
 				if (Bus != null)
 				{
-					let worldMatrix = scene.GetWorldMatrix(comp.Owner);
+					let deathPos = scene.GetLocalTransform(comp.Owner).Position;
 					EnemyKilledMsg msg = .()
 					{
 						EntityId = comp.Owner,
 						Reward = comp.Reward,
-						Position = worldMatrix.Translation
+						Position = deathPos
 					};
-					Bus.Queue<EnemyKilledMsg>(msg);
+					Bus.Publish<EnemyKilledMsg>(ref msg);
 				}
 				toDestroy.Add(comp.Owner);
 				continue;
@@ -137,8 +141,8 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 			}
 
 			let targetPos = Waypoints[comp.WaypointIndex];
-			let worldMatrix = scene.GetWorldMatrix(comp.Owner);
-			let currentPos = worldMatrix.Translation;
+			let localT = scene.GetLocalTransform(comp.Owner);
+			let currentPos = localT.Position;
 			let direction = targetPos - currentPos;
 			let distance = direction.Length();
 
@@ -151,7 +155,7 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 			{
 				// Move toward waypoint
 				let moveDir = Vector3.Normalize(direction);
-				let moveAmount = comp.Speed * deltaTime;
+				let moveAmount = comp.Speed * deltaTime * GameSpeed;
 				let newPos = currentPos + moveDir * Math.Min(moveAmount, distance);
 
 				comp.DistanceAlongPath += Math.Min(moveAmount, distance);

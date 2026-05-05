@@ -30,6 +30,27 @@ struct WaveStartedMsg : IMessage
 struct WaveCompletedMsg : IMessage
 {
 	public int32 WaveNumber;
+	public int32 BonusGold;
+	public void Dispose() mut { }
+}
+
+struct GameSpeedChangedMsg : IMessage
+{
+	public float NewSpeed;
+	public void Dispose() mut { }
+}
+
+struct TowerSoldMsg : IMessage
+{
+	public EntityHandle EntityId;
+	public TowerType Type;
+	public int32 Refund;
+	public void Dispose() mut { }
+}
+
+struct TowerSelectedMsg : IMessage
+{
+	public EntityHandle EntityId;
 	public void Dispose() mut { }
 }
 
@@ -74,6 +95,7 @@ struct TowerShotMsg : IMessage
 	public EntityHandle TowerEntity;
 	public EntityHandle TargetEntity;
 	public Vector3 Origin;
+	public TowerType TowerType;
 	public void Dispose() mut { }
 }
 

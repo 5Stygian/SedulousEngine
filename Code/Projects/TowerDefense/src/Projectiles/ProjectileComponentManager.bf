@@ -15,12 +15,13 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 	public EnemyComponentManager EnemyMgr;
 	public ModelRegistry Models;
 	public ResourceSystem Resources;
+	public float GameSpeed = 1.0f;
 
 	public override StringView SerializationTypeId => "TowerDefense.ProjectileComponent";
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => UpdateProjectiles);
+		RegisterUpdate(.Update, new => UpdateProjectiles, simulationOnly: true);
 	}
 
 	/// Spawns a projectile entity heading toward a target.
@@ -83,7 +84,7 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 			if (!comp.IsActive || !comp.Initialized)
 				continue;
 
-			comp.Age += deltaTime;
+			comp.Age += deltaTime * GameSpeed;
 
 			// Self-destruct on lifetime expire
 			if (comp.Age >= comp.Lifetime)
@@ -121,7 +122,7 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 				moveDir = comp.LastDirection;
 			}
 
-			let moveAmount = comp.Speed * deltaTime;
+			let moveAmount = comp.Speed * deltaTime * GameSpeed;
 			let newPos = currentPos + moveDir * moveAmount;
 
 			var transform = Transform();

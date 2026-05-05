@@ -11,12 +11,13 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 	public MessageBus Bus;
 	public EnemyComponentManager EnemyMgr;
 	public ProjectileComponentManager ProjectileMgr;
+	public float GameSpeed = 1.0f;
 
 	public override StringView SerializationTypeId => "TowerDefense.TowerComponent";
 
 	protected override void OnRegisterUpdateFunctions()
 	{
-		RegisterUpdate(.Update, new => UpdateTowers);
+		RegisterUpdate(.Update, new => UpdateTowers, simulationOnly: true);
 	}
 
 	private void UpdateTowers(float deltaTime)
@@ -30,8 +31,8 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 			if (!comp.IsActive || !comp.Initialized)
 				continue;
 
-			// Decrement fire cooldown
-			comp.FireCooldown -= deltaTime;
+			// Decrement fire cooldown (scaled by game speed)
+			comp.FireCooldown -= deltaTime * GameSpeed;
 
 			// Acquire or validate target
 			let towerPos = scene.GetWorldMatrix(comp.Owner).Translation;
@@ -63,7 +64,8 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 					{
 						TowerEntity = comp.Owner,
 						TargetEntity = comp.TargetEntity,
-						Origin = towerPos + .(0, 0.6f, 0) // fire from above base
+						Origin = towerPos + .(0, 0.6f, 0), // fire from above base
+						TowerType = comp.Type
 					};
 					Bus.Queue<TowerShotMsg>(msg);
 				}

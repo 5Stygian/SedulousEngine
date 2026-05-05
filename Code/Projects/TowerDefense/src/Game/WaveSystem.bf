@@ -98,11 +98,12 @@ class WaveSystem
 		if (mAllSpawned && mEnemiesAlive <= 0)
 		{
 			mWaveActive = false;
-			Console.WriteLine("[Wave] Wave {}/{} completed", mCurrentWave, mWaves.Count);
+			let bonusGold = (int32)(25 + mCurrentWave * 5);
+			Console.WriteLine("[Wave] Wave {}/{} completed, bonus: {} gold", mCurrentWave, mWaves.Count, bonusGold);
 
 			if (mBus != null)
 			{
-				WaveCompletedMsg msg = .() { WaveNumber = mCurrentWave };
+				WaveCompletedMsg msg = .() { WaveNumber = mCurrentWave, BonusGold = bonusGold };
 				mBus.Queue<WaveCompletedMsg>(msg);
 			}
 			return;

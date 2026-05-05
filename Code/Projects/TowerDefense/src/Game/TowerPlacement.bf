@@ -9,12 +9,15 @@ using Sedulous.Messaging;
 using Sedulous.Shell.Input;
 using Sedulous.Renderer.Debug;
 
-/// Handles tower placement: mouse ray to grid, validation, building.
+/// Handles tower placement, selection, upgrade, and sell.
 /// Draws debug markers on tower slots and shows a preview tower at the cursor.
 class TowerPlacement
 {
 	/// Currently selected tower type for placement. null = nothing selected.
 	public TowerType? SelectedType;
+
+	/// Currently selected placed tower (for info/upgrade/sell). Invalid = none.
+	public EntityHandle SelectedTower = .Invalid;
 
 	/// Hover grid position (valid when mouse is over a valid cell).
 	public int32 HoverX;
@@ -26,7 +29,7 @@ class TowerPlacement
 	private EntityHandle mPreviewWeapon = .Invalid;
 	private TowerType? mPreviewType;
 
-	/// Places a tower or updates hover. Call each frame from OnUpdate.
+	/// Places a tower, selects a placed tower, or updates hover. Call each frame.
 	public void Update(
 		IMouse mouse, Scene scene, GameSubsystem gameSub,
 		TowerComponentManager towerMgr, ModelRegistry models,
@@ -34,35 +37,35 @@ class TowerPlacement
 	{
 		HoverValid = false;
 
-		// Right click cancels tower selection
-		if (mouse.IsButtonPressed(.Right) && SelectedType != null)
-		{
-			SelectedType = null;
-			Console.WriteLine("[Input] Tower selection cancelled");
-		}
-
-		if (SelectedType == null || scene == null || gameSub.Phase != .Playing)
+		if (scene == null || !gameSub.IsGameplayPhase)
 		{
 			HidePreview(scene);
 			return;
 		}
 
+		// Right click cancels tower selection or deselects placed tower
+		if (mouse.IsButtonPressed(.Right))
+		{
+			if (SelectedType != null)
+			{
+				SelectedType = null;
+			}
+			else if (scene.IsValid(SelectedTower))
+			{
+				DeselectTower(gameSub);
+			}
+			return;
+		}
+
 		// Get camera matrices for unprojection
 		let cameraMgr = scene.GetModule<CameraComponentManager>();
-		if (cameraMgr == null)
-			return;
-
+		if (cameraMgr == null) return;
 		let camComp = cameraMgr.GetForEntity(cameraEntity);
-		if (camComp == null)
-			return;
-
+		if (camComp == null) return;
 		let renderSub = gameSub.Context.GetSubsystem<RenderSubsystem>();
-		if (renderSub == null)
-			return;
-
+		if (renderSub == null) return;
 		let pipeline = renderSub.GetPipeline(scene);
-		if (pipeline == null)
-			return;
+		if (pipeline == null) return;
 
 		let viewMatrix = camComp.GetViewMatrix(scene);
 		let aspect = (float)pipeline.OutputWidth / (float)pipeline.OutputHeight;
@@ -92,8 +95,7 @@ class TowerPlacement
 			return;
 
 		let t = -nearPos.Y / rayDir.Y;
-		if (t < 0)
-			return;
+		if (t < 0) return;
 
 		let hitPos = nearPos + rayDir * t;
 
@@ -107,47 +109,174 @@ class TowerPlacement
 
 		HoverX = gx;
 		HoverZ = gz;
-		HoverValid = gameSub.Map.CanPlaceTower(gx, gz);
 
-		// Update preview entity position
-		let worldPos = gameSub.Map.CurrentMap.GridToWorld(gx, gz);
-		UpdatePreview(scene, models, resources, worldPos);
-
-		// Place on left click
-		if (mouse.IsButtonPressed(.Left) && HoverValid)
+		if (SelectedType != null)
 		{
-			let towerType = SelectedType.Value;
-			let stats = TowerStats.Get(towerType);
-			let cost = stats.Levels[0].Cost;
+			// Placement mode
+			HoverValid = gameSub.Map.CanPlaceTower(gx, gz);
 
-			if (gameSub.SpendGold(cost))
+			let worldPos = gameSub.Map.CurrentMap.GridToWorld(gx, gz);
+			UpdatePreview(scene, models, resources, worldPos);
+
+			// Place on left click
+			if (mouse.IsButtonPressed(.Left) && HoverValid)
 			{
-				let entity = BuildTower(scene, towerMgr, models, resources, gameSub, towerType, gx, gz);
+				let towerType = SelectedType.Value;
+				let stats = TowerStats.Get(towerType);
+				let cost = stats.Levels[0].Cost;
 
-				if (entity != .Invalid)
+				if (gameSub.SpendGold(cost))
 				{
-					gameSub.Map.OccupyCell(gx, gz);
+					let entity = BuildTower(scene, towerMgr, models, resources, gameSub, towerType, gx, gz);
 
-					if (gameSub.[Friend]mBus != null)
+					if (entity != .Invalid)
 					{
-						TowerPlacedMsg msg = .()
-						{
-							EntityId = entity,
-							Type = towerType,
-							GridX = gx,
-							GridZ = gz
-						};
-						gameSub.[Friend]mBus.Queue<TowerPlacedMsg>(msg);
-					}
+						gameSub.Map.OccupyCell(gx, gz);
 
-					Console.WriteLine("[Tower] Placed {} at ({}, {}), cost {}", towerType, gx, gz, cost);
+						if (gameSub.Bus != null)
+						{
+							TowerPlacedMsg msg = .()
+							{
+								EntityId = entity,
+								Type = towerType,
+								GridX = gx,
+								GridZ = gz
+							};
+							gameSub.Bus.Queue<TowerPlacedMsg>(msg);
+						}
+
+						Console.WriteLine("[Tower] Placed {} at ({}, {}), cost {}", towerType, gx, gz, cost);
+					}
+				}
+				else
+				{
+					Console.WriteLine("[Tower] Not enough gold for {} (need {}, have {})", towerType, cost, gameSub.Gold);
 				}
 			}
-			else
+		}
+		else
+		{
+			// Selection mode — no tower type selected, click to select placed tower
+			HidePreview(scene);
+
+			if (mouse.IsButtonPressed(.Left))
 			{
-				Console.WriteLine("[Tower] Not enough gold for {} (need {}, have {})", towerType, cost, gameSub.Gold);
+				// Find tower at clicked grid position
+				let found = FindTowerAt(towerMgr, gx, gz);
+				if (found != .Invalid)
+					SelectTower(found, gameSub);
+				else
+					DeselectTower(gameSub);
 			}
 		}
+	}
+
+	// ==================== Tower Selection ====================
+
+	/// Select a placed tower for info/upgrade/sell.
+	public void SelectTower(EntityHandle entity, GameSubsystem gameSub)
+	{
+		SelectedTower = entity;
+		SelectedType = null; // deselect placement mode
+
+		if (gameSub.Bus != null)
+		{
+			TowerSelectedMsg msg = .() { EntityId = entity };
+			gameSub.Bus.Queue<TowerSelectedMsg>(msg);
+		}
+	}
+
+	/// Deselect the currently selected placed tower.
+	public void DeselectTower(GameSubsystem gameSub)
+	{
+		SelectedTower = .Invalid;
+
+		if (gameSub.Bus != null)
+		{
+			TowerSelectedMsg msg = .() { EntityId = .Invalid };
+			gameSub.Bus.Queue<TowerSelectedMsg>(msg);
+		}
+	}
+
+	/// Upgrade the selected tower. Returns true if successful.
+	public bool UpgradeTower(GameSubsystem gameSub, TowerComponentManager towerMgr)
+	{
+		if (!towerMgr.Scene.IsValid(SelectedTower))
+			return false;
+
+		let comp = towerMgr.GetForEntity(SelectedTower);
+		if (comp == null || comp.Level >= 3)
+			return false;
+
+		let stats = TowerStats.Get(comp.Type);
+		let upgradeCost = stats.Levels[comp.Level].Cost; // next level's cost
+		if (!gameSub.SpendGold(upgradeCost))
+			return false;
+
+		comp.Level++;
+		let newStats = stats.Levels[comp.Level - 1];
+		comp.Damage = newStats.Damage;
+		comp.Range = newStats.Range;
+		comp.FireRate = newStats.FireRate;
+		comp.TotalInvested += upgradeCost;
+
+		if (gameSub.Bus != null)
+		{
+			TowerUpgradedMsg msg = .() { EntityId = SelectedTower, NewLevel = comp.Level };
+			gameSub.Bus.Queue<TowerUpgradedMsg>(msg);
+		}
+
+		Console.WriteLine("[Tower] Upgraded to level {}, cost {}", comp.Level, upgradeCost);
+		return true;
+	}
+
+	/// Sell the selected tower. Returns refund amount.
+	public int32 SellTower(GameSubsystem gameSub, TowerComponentManager towerMgr, Scene scene)
+	{
+		if (!scene.IsValid(SelectedTower))
+			return 0;
+
+		let comp = towerMgr.GetForEntity(SelectedTower);
+		if (comp == null)
+			return 0;
+
+		let refund = comp.TotalInvested / 2;
+		let type = comp.Type;
+		let gx = comp.GridX;
+		let gz = comp.GridZ;
+
+		gameSub.AddGold(refund);
+		gameSub.Map.FreeCell(gx, gz);
+		scene.DestroyEntity(SelectedTower);
+
+		if (gameSub.Bus != null)
+		{
+			TowerSoldMsg msg = .() { EntityId = SelectedTower, Type = type, Refund = refund };
+			gameSub.Bus.Queue<TowerSoldMsg>(msg);
+		}
+
+		SelectedTower = .Invalid;
+
+		// Auto-deselect
+		if (gameSub.Bus != null)
+		{
+			TowerSelectedMsg selMsg = .() { EntityId = .Invalid };
+			gameSub.Bus.Queue<TowerSelectedMsg>(selMsg);
+		}
+
+		Console.WriteLine("[Tower] Sold {} at ({}, {}), refund {}", type, gx, gz, refund);
+		return refund;
+	}
+
+	/// Find a tower entity at the given grid position.
+	private EntityHandle FindTowerAt(TowerComponentManager towerMgr, int32 gx, int32 gz)
+	{
+		for (let comp in towerMgr.ActiveComponents)
+		{
+			if (comp.IsActive && comp.Initialized && comp.GridX == gx && comp.GridZ == gz)
+				return comp.Owner;
+		}
+		return .Invalid;
 	}
 
 	/// Draws a flat rectangle as overlay lines at a given Y height.
@@ -163,69 +292,83 @@ class TowerPlacement
 		dbg.DrawLineOverlay(c3, c0, color);
 	}
 
-	/// Draws debug markers on tower slots and hover cell. Only when placing.
+	/// Draws debug markers on tower slots and hover cell.
 	public void DrawDebug(DebugDraw dbg, GameSubsystem gameSub)
 	{
-		if (dbg == null || gameSub.Map.CurrentMap == null || SelectedType == null)
+		if (dbg == null || gameSub.Map.CurrentMap == null)
 			return;
 
 		let map = gameSub.Map.CurrentMap;
-		let slotColor = Color(50, 200, 50, 255);     // green for available
-		let occupiedColor = Color(150, 150, 150, 255); // gray for occupied
-		let hoverValidColor = Color(50, 255, 50, 255); // bright green for valid hover
-		let hoverInvalidColor = Color(255, 50, 50, 255); // red for invalid hover
+		let y = 0.3f;
 
-		// Draw all tower slots
-		for (int32 z = 0; z < map.Height; z++)
-		{
-			for (int32 x = 0; x < map.Width; x++)
-			{
-				if (map.GetCell(x, z) != .TowerSlot)
-					continue;
-
-				let pos = map.GridToWorld(x, z);
-				let occupied = !gameSub.Map.CanPlaceTower(x, z);
-				let color = occupied ? occupiedColor : slotColor;
-
-				// Draw a flat wire rect as overlay (above mesh height)
-				let half = MapData.TileSize * 0.45f;
-				let y = 0.3f;
-				DrawFlatRectOverlay(dbg, pos, half, y, color);
-			}
-		}
-
-		// Draw hover highlight
+		// Draw tower slot markers when in placement mode
 		if (SelectedType != null)
 		{
-			let pos = gameSub.Map.CurrentMap.GridToWorld(HoverX, HoverZ);
-			let color = HoverValid ? hoverValidColor : hoverInvalidColor;
-			let half = MapData.TileSize * 0.48f;
-			let y = 0.3f;
-			DrawFlatRectOverlay(dbg, pos, half, y, color);
+			let slotColor = Color(50, 200, 50, 255);
+			let occupiedColor = Color(150, 150, 150, 255);
 
-			// Draw range circle as overlay (renders on top, avoids clipping into meshes)
+			for (int32 z = 0; z < map.Height; z++)
+			{
+				for (int32 x = 0; x < map.Width; x++)
+				{
+					if (map.GetCell(x, z) != .TowerSlot)
+						continue;
+
+					let pos = map.GridToWorld(x, z);
+					let occupied = !gameSub.Map.CanPlaceTower(x, z);
+					let color = occupied ? occupiedColor : slotColor;
+					let half = MapData.TileSize * 0.45f;
+					DrawFlatRectOverlay(dbg, pos, half, y, color);
+				}
+			}
+
+			// Hover highlight
+			let hoverPos = map.GridToWorld(HoverX, HoverZ);
+			let hoverColor = HoverValid ? Color(50, 255, 50, 255) : Color(255, 50, 50, 255);
+			DrawFlatRectOverlay(dbg, hoverPos, MapData.TileSize * 0.48f, y, hoverColor);
+
+			// Range circle for placement preview
 			if (HoverValid)
 			{
 				let stats = TowerStats.Get(SelectedType.Value);
 				let range = stats.Levels[0].Range;
-				let rangeColor = Color(255, 255, 100, 200);
-				let segments = 48;
+				DrawRangeCircle(dbg, hoverPos, range, y, Color(255, 255, 100, 200));
+			}
+		}
 
-				for (int i = 0; i < segments; i++)
+		// Draw range circle around selected placed tower
+		if (SelectedTower != .Invalid)
+		{
+			let towerMgr = gameSub.TowerMgr;
+			if (towerMgr != null)
+			{
+				let comp = towerMgr.GetForEntity(SelectedTower);
+				if (comp != null)
 				{
-					let a0 = (float)i / (float)segments * Math.PI_f * 2.0f;
-					let a1 = (float)(i + 1) / (float)segments * Math.PI_f * 2.0f;
-					let p0 = pos + Vector3(Math.Cos(a0) * range, y, Math.Sin(a0) * range);
-					let p1 = pos + Vector3(Math.Cos(a1) * range, y, Math.Sin(a1) * range);
-					dbg.DrawLineOverlay(p0, p1, rangeColor);
+					let pos = map.GridToWorld(comp.GridX, comp.GridZ);
+					DrawRangeCircle(dbg, pos, comp.Range, y, Color(100, 200, 255, 200));
+					// Highlight ring around selected tower
+					DrawFlatRectOverlay(dbg, pos, MapData.TileSize * 0.48f, y, Color(100, 200, 255, 255));
 				}
 			}
 		}
 	}
 
+	private static void DrawRangeCircle(DebugDraw dbg, Vector3 center, float range, float y, Color color)
+	{
+		let segments = 48;
+		for (int i = 0; i < segments; i++)
+		{
+			let a0 = (float)i / (float)segments * Math.PI_f * 2.0f;
+			let a1 = (float)(i + 1) / (float)segments * Math.PI_f * 2.0f;
+			let p0 = center + Vector3(Math.Cos(a0) * range, y, Math.Sin(a0) * range);
+			let p1 = center + Vector3(Math.Cos(a1) * range, y, Math.Sin(a1) * range);
+			dbg.DrawLineOverlay(p0, p1, color);
+		}
+	}
+
 	// ==================== Preview Entity ====================
 
-	/// Creates or moves the preview tower entity at the cursor position.
 	private void UpdatePreview(Scene scene, ModelRegistry models, ResourceSystem resources, Vector3 worldPos)
 	{
 		if (SelectedType == null)
@@ -234,7 +377,6 @@ class TowerPlacement
 			return;
 		}
 
-		// Recreate preview if tower type changed
 		if (mPreviewType != SelectedType)
 		{
 			HidePreview(scene);
@@ -242,7 +384,6 @@ class TowerPlacement
 			mPreviewType = SelectedType;
 		}
 
-		// Move preview to cursor position
 		if (scene.IsValid(mPreviewBase))
 		{
 			var transform = Transform();
@@ -253,7 +394,6 @@ class TowerPlacement
 		}
 	}
 
-	/// Creates the preview entity (base + weapon, no component).
 	private void CreatePreview(Scene scene, ModelRegistry models, ResourceSystem resources)
 	{
 		if (SelectedType == null)
@@ -261,7 +401,6 @@ class TowerPlacement
 
 		let stats = TowerStats.Get(SelectedType.Value);
 
-		// Create base preview entity
 		mPreviewBase = scene.CreateEntity("TowerPreview");
 		var transform = Transform();
 		transform.Position = .Zero;
@@ -287,7 +426,6 @@ class TowerPlacement
 			}
 		}
 
-		// Create weapon preview as child of base preview
 		mPreviewWeapon = scene.CreateEntity("WeaponPreview");
 		scene.SetParent(mPreviewWeapon, mPreviewBase);
 
@@ -315,7 +453,6 @@ class TowerPlacement
 		}
 	}
 
-	/// Removes the preview entity.
 	private void HidePreview(Scene scene)
 	{
 		if (scene != null && scene.IsValid(mPreviewBase))
@@ -328,7 +465,6 @@ class TowerPlacement
 
 	// ==================== Tower Building ====================
 
-	/// Creates the tower entity with base + weapon child entities.
 	private EntityHandle BuildTower(Scene scene, TowerComponentManager towerMgr,
 		ModelRegistry models, ResourceSystem resources, GameSubsystem gameSub,
 		TowerType type, int32 gx, int32 gz)
@@ -337,7 +473,6 @@ class TowerPlacement
 		let levelStats = stats.Levels[0];
 		let worldPos = gameSub.Map.CurrentMap.GridToWorld(gx, gz);
 
-		// Create base entity
 		let baseEntity = scene.CreateEntity("Tower");
 		var transform = Transform();
 		transform.Position = worldPos;
@@ -345,7 +480,6 @@ class TowerPlacement
 		transform.Scale = .One;
 		scene.SetLocalTransform(baseEntity, transform);
 
-		// Attach base mesh
 		let meshMgr = scene.GetModule<MeshComponentManager>();
 		if (meshMgr != null)
 		{
@@ -364,12 +498,11 @@ class TowerPlacement
 			}
 		}
 
-		// Create weapon as child entity
 		let weaponEntity = scene.CreateEntity("Weapon");
 		scene.SetParent(weaponEntity, baseEntity);
 
 		var weaponTransform = Transform();
-		weaponTransform.Position = .(0, 0.5f, 0); // local offset above base
+		weaponTransform.Position = .(0, 0.5f, 0);
 		weaponTransform.Rotation = .Identity;
 		weaponTransform.Scale = .One;
 		scene.SetLocalTransform(weaponEntity, weaponTransform);
@@ -391,7 +524,6 @@ class TowerPlacement
 			}
 		}
 
-		// Attach tower component
 		let compHandle = towerMgr.CreateComponent(baseEntity);
 		if (let comp = towerMgr.Get(compHandle))
 		{
@@ -404,6 +536,7 @@ class TowerPlacement
 			comp.GridX = gx;
 			comp.GridZ = gz;
 			comp.WeaponEntity = weaponEntity;
+			comp.TotalInvested = levelStats.Cost;
 		}
 
 		return baseEntity;

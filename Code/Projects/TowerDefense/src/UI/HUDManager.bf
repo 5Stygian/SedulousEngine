@@ -17,8 +17,22 @@ class HUDManager
 	private Label mWaveLabel;
 	private Label mStatusLabel;
 
+	// Top bar controls
+	private Button mStartWaveBtn;
+	private Button mSpeed1Btn;
+	private Button mSpeed2Btn;
+	private Button mSpeed3Btn;
+	private float mCurrentSpeed = 1.0f;
+
+	// Callbacks
+	public delegate void() StartWaveCallback ~ delete _;
+	public delegate void(float) SetSpeedCallback ~ delete _;
+
 	// Tower preview images (owned).
 	private List<OwnedImageData> mTowerImages = new .() ~ DeleteContainerAndItems!(_);
+
+	// Tower info panel (right side)
+	private TowerInfoPanel mTowerInfo = new .() ~ delete _;
 
 	// Message subscriptions
 	private SubscriptionHandle mResourceSub;
@@ -105,6 +119,33 @@ class HUDManager
 		mStatusLabel.HAlign = .Right;
 		topLayout.AddView(mStatusLabel, new FlexLayout.LayoutParams() { Grow = 1 });
 
+		// Start Wave button
+		mStartWaveBtn = new Button("Start Wave");
+		mStartWaveBtn.FontSize = 12;
+		mStartWaveBtn.Background = new ColorDrawable(.(40, 120, 60, 255));
+		mStartWaveBtn.OnClick.Add(new (btn) => { if (StartWaveCallback != null) StartWaveCallback(); });
+		topLayout.AddView(mStartWaveBtn);
+
+		// Speed controls
+		let speedGroup = new FlexLayout() { Direction = .Horizontal, Spacing = 2, AlignItems = .Center };
+		mSpeed1Btn = new Button("1x");
+		mSpeed1Btn.FontSize = 11;
+		mSpeed1Btn.Background = new ColorDrawable(.(80, 140, 200, 255)); // active by default
+		mSpeed1Btn.OnClick.Add(new (btn) => SetSpeed(1.0f));
+		speedGroup.AddView(mSpeed1Btn);
+
+		mSpeed2Btn = new Button("2x");
+		mSpeed2Btn.FontSize = 11;
+		mSpeed2Btn.OnClick.Add(new (btn) => SetSpeed(2.0f));
+		speedGroup.AddView(mSpeed2Btn);
+
+		mSpeed3Btn = new Button("3x");
+		mSpeed3Btn.FontSize = 11;
+		mSpeed3Btn.OnClick.Add(new (btn) => SetSpeed(3.0f));
+		speedGroup.AddView(mSpeed3Btn);
+
+		topLayout.AddView(speedGroup);
+
 		mRoot.AddView(topBar, new DockLayout.LayoutParams(.Top) { Height = .Fixed(.Px(36)) });
 
 		// === Bottom bar ===
@@ -132,9 +173,13 @@ class HUDManager
 
 		mRoot.AddView(bottomBar, new DockLayout.LayoutParams(.Bottom) { Height = .Fixed(.Px(60)) });
 
+		// Tower info panel (right side, hidden by default)
+		mTowerInfo.Setup(bus, placement, gameSub);
+		mRoot.AddView(mTowerInfo.Root, new DockLayout.LayoutParams(.Right) { Width = .Fixed(.Px(180)) });
+
 		// Initial values
 		UpdateLabels(gameSub);
-		mStatusLabel.SetText("Press Enter to start");
+		mStatusLabel.SetText("Place towers, then start wave");
 
 		// Message subscriptions for live updates
 		if (bus != null)
@@ -142,17 +187,40 @@ class HUDManager
 			mResourceSub = bus.Subscribe<ResourceChangedMsg>(new (msg) => { UpdateGold(gameSub); });
 			mEnemyReachedSub = bus.Subscribe<EnemyReachedEndMsg>(new (msg) => { UpdateLives(gameSub); });
 			mWaveStartedSub = bus.Subscribe<WaveStartedMsg>(new (msg) => { UpdateWave(gameSub); mStatusLabel.SetText("Wave in progress..."); });
-			mWaveCompletedSub = bus.Subscribe<WaveCompletedMsg>(new (msg) => { UpdateWave(gameSub); mStatusLabel.SetText("Press Space for next wave"); });
+			mWaveCompletedSub = bus.Subscribe<WaveCompletedMsg>(new (msg) =>
+				{
+					UpdateWave(gameSub);
+					if (msg.BonusGold > 0)
+					{
+						let bonusText = scope String();
+						bonusText.AppendF("Wave complete! +{} bonus gold", msg.BonusGold);
+						mStatusLabel.SetText(bonusText);
+					}
+					else
+						mStatusLabel.SetText("Wave complete! Start next wave");
+				});
 			mGameOverSub = bus.Subscribe<GameOverMsg>(new (msg) => { mStatusLabel.SetText(msg.Won ? "VICTORY!" : "GAME OVER"); });
 			mPhaseChangedSub = bus.Subscribe<GamePhaseChangedMsg>(new (msg) =>
 				{
-					if (msg.NewPhase == .Playing) { mStatusLabel.SetText("Place towers, then Space"); UpdateLabels(gameSub); }
+					if (msg.NewPhase == .WaitingToStart) { mStatusLabel.SetText("Place towers, then start wave"); UpdateLabels(gameSub); }
+					else if (msg.NewPhase == .WavePaused) { mStatusLabel.SetText("Start next wave when ready"); }
+
+					// Show/hide Start Wave button based on phase
+					if (mStartWaveBtn != null)
+					{
+						if (msg.NewPhase == .WaitingToStart || msg.NewPhase == .WavePaused)
+							mStartWaveBtn.Visibility = .Visible;
+						else
+							mStartWaveBtn.Visibility = .Gone;
+					}
 				});
 		}
 	}
 
 	public void Shutdown(MessageBus bus)
 	{
+		mTowerInfo.Shutdown(bus);
+
 		if (bus != null)
 		{
 			bus.Unsubscribe(mResourceSub);
@@ -216,6 +284,25 @@ class HUDManager
 		let capturedType = type;
 		btn.OnClick.Add(new (b) => { placement.SelectedType = capturedType; });
 		layout.AddView(btn, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(48)) });
+	}
+
+	private void SetSpeed(float speed)
+	{
+		mCurrentSpeed = speed;
+		UpdateSpeedButtons();
+		if (SetSpeedCallback != null)
+			SetSpeedCallback(speed);
+	}
+
+	private void UpdateSpeedButtons()
+	{
+		// Highlight active speed button, reset others
+		let activeColor = new ColorDrawable(.(80, 140, 200, 255));
+		if (mSpeed1Btn != null) { delete mSpeed1Btn.Background; mSpeed1Btn.Background = (mCurrentSpeed == 1.0f) ? activeColor : null; }
+		if (mSpeed2Btn != null) { delete mSpeed2Btn.Background; mSpeed2Btn.Background = (mCurrentSpeed == 2.0f) ? new ColorDrawable(.(80, 140, 200, 255)) : null; }
+		if (mSpeed3Btn != null) { delete mSpeed3Btn.Background; mSpeed3Btn.Background = (mCurrentSpeed == 3.0f) ? new ColorDrawable(.(80, 140, 200, 255)) : null; }
+		// If none matched 1x, we used activeColor above; otherwise delete it
+		if (mCurrentSpeed != 1.0f) delete activeColor;
 	}
 
 	private void UpdateLabels(GameSubsystem gs) { UpdateGold(gs); UpdateLives(gs); UpdateWave(gs); }

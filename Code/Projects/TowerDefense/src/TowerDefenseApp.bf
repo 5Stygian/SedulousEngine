@@ -16,6 +16,7 @@ using Sedulous.Images.SDL;
 using Sedulous.Messaging.Runtime;
 using Sedulous.Engine;
 using Sedulous.Engine.UI;
+using Sedulous.Engine.Audio;
 using Sedulous.UI;
 
 class TowerDefenseApp : EngineApplication
@@ -39,6 +40,13 @@ class TowerDefenseApp : EngineApplication
 	private HUDManager mHUD = new .() ~ delete _;
 	private MainMenuUI mMainMenu = new .() ~ delete _;
 	private GameOverUI mGameOverUI = new .() ~ delete _;
+	private PauseUI mPauseUI = new .() ~ delete _;
+
+	// Audio
+	private GameAudio mGameAudio = new .() ~ delete _;
+
+	// Particles
+	private ParticleEffects mParticleEffects = new .() ~ delete _;
 
 	// ==================== Configuration ====================
 
@@ -138,6 +146,17 @@ class TowerDefenseApp : EngineApplication
 		// Set up UI
 		SetupUI();
 
+		// Set up audio
+		let audioSub = Context.GetSubsystem<AudioSubsystem>();
+		let messaging2 = Context.GetSubsystem<MessagingSubsystem>();
+		if (audioSub != null)
+			mGameAudio.Initialize(audioSub, messaging2?.Bus);
+
+		// Set up particle effects
+		let assetDir2 = scope String();
+		GetAssetPath("", assetDir2);
+		mParticleEffects.Initialize(mScene, messaging2?.Bus, ResourceSystem, assetDir2);
+
 		Console.WriteLine("=== Tower Defense Ready ===");
 	}
 
@@ -148,35 +167,51 @@ class TowerDefenseApp : EngineApplication
 		if (mScene == null)
 			return;
 
+		// Clean up expired particle effects
+		mParticleEffects.Update(deltaTime);
+
 		let keyboard = mShell.InputManager.Keyboard;
 		let mouse = mShell.InputManager.Mouse;
 
-		// Camera controls
-		mCamera.Update(deltaTime, keyboard, mouse);
-		mCamera.ApplyToScene(mScene);
-
-		// Enter to start playing (from main menu - enables all gameplay interaction)
-		if (keyboard.IsKeyPressed(.Return) && mGameSub.Phase == .MainMenu)
+		// Camera controls (always available except menu)
+		if (mGameSub.Phase != .MainMenu)
 		{
-			StartGame();
+			mCamera.Update(deltaTime, keyboard, mouse);
+			mCamera.ApplyToScene(mScene);
 		}
 
-		// Everything below requires Playing phase
-		if (mGameSub.Phase == .Playing)
+		// Pause toggle (P or Escape during gameplay)
+		if (keyboard.IsKeyPressed(.P) || keyboard.IsKeyPressed(.Escape))
+		{
+			if (mGameSub.IsGameplayPhase)
+			{
+				mGameSub.PauseGame();
+				let uiSub = Context.GetSubsystem<EngineUISubsystem>();
+				if (uiSub?.ScreenView != null)
+					mPauseUI.Show();
+			}
+			else if (mGameSub.Phase == .Paused)
+			{
+				mGameSub.ResumeGame();
+				mPauseUI.Hide();
+			}
+		}
+
+		// Gameplay input (active gameplay phases only)
+		if (mGameSub.IsGameplayPhase)
 		{
 			// Space to start next wave
-			if (keyboard.IsKeyPressed(.Space) && !mGameSub.Waves.IsWaveActive)
+			if (keyboard.IsKeyPressed(.Space) && (mGameSub.Phase == .WaitingToStart || mGameSub.Phase == .WavePaused))
 			{
-				Console.WriteLine("[Input] Starting wave");
-				mGameSub.Waves.StartNextWave();
+				StartWave();
 			}
 
 			// Tower selection (1-4 keys, 0 to deselect)
-			if (keyboard.IsKeyPressed(.Num1)) { mTowerPlacement.SelectedType = .Ballista; Console.WriteLine("[Input] Selected: Ballista"); }
-			if (keyboard.IsKeyPressed(.Num2)) { mTowerPlacement.SelectedType = .Cannon; Console.WriteLine("[Input] Selected: Cannon"); }
-			if (keyboard.IsKeyPressed(.Num3)) { mTowerPlacement.SelectedType = .Catapult; Console.WriteLine("[Input] Selected: Catapult"); }
-			if (keyboard.IsKeyPressed(.Num4)) { mTowerPlacement.SelectedType = .Turret; Console.WriteLine("[Input] Selected: Turret"); }
-			if (keyboard.IsKeyPressed(.Num0)) { mTowerPlacement.SelectedType = null; Console.WriteLine("[Input] Deselected tower"); }
+			if (keyboard.IsKeyPressed(.Num1)) { mTowerPlacement.SelectedType = .Ballista; }
+			if (keyboard.IsKeyPressed(.Num2)) { mTowerPlacement.SelectedType = .Cannon; }
+			if (keyboard.IsKeyPressed(.Num3)) { mTowerPlacement.SelectedType = .Catapult; }
+			if (keyboard.IsKeyPressed(.Num4)) { mTowerPlacement.SelectedType = .Turret; }
+			if (keyboard.IsKeyPressed(.Num0)) { mTowerPlacement.SelectedType = null; }
 
 			// Tower placement (mouse click on grid)
 			mTowerPlacement.Update(mouse, mScene, mGameSub, mGameSub.TowerMgr, mModels, ResourceSystem, mCamera.CameraEntity);
@@ -186,16 +221,16 @@ class TowerDefenseApp : EngineApplication
 			if (renderSub != null)
 				mTowerPlacement.DrawDebug(renderSub.DebugDraw, mGameSub);
 		}
-
-		// Escape to quit (always available)
-		if (keyboard.IsKeyPressed(.Escape))
-			Exit();
 	}
 
 	// ==================== Shutdown ====================
 
 	protected override void OnShutdown()
 	{
+		// Clean up effects and audio
+		mParticleEffects.Shutdown();
+		mGameAudio.Shutdown();
+
 		// Clean up UI message subscriptions
 		let messaging = Context.GetSubsystem<MessagingSubsystem>();
 		let bus = messaging?.Bus;
@@ -224,18 +259,58 @@ class TowerDefenseApp : EngineApplication
 
 		// HUD (DockLayout with top and bottom bars, fills screen)
 		mHUD.Setup(bus, mGameSub, mTowerPlacement, previewDir);
+		mHUD.StartWaveCallback = new () => StartWave();
+		mHUD.SetSpeedCallback = new (speed) => mGameSub.SetGameSpeed(speed);
 		root.AddView(mHUD.Root, new LayoutParams() { Width = .Match, Height = .Match });
 
-		// Game over dialog (subscribes to GameOverMsg, shows dialog when triggered)
-		mGameOverUI.Setup(ctx, bus, mGameSub);
+		// Game over / victory overlay (subscribes to GameOverMsg)
+		mGameOverUI.Setup(root, bus,
+			new () => RestartGame(),
+			new () => { ReturnToMainMenu(); }
+		);
 
-		// Main menu dialog (shown immediately, auto-centered)
-		mMainMenu.Show(ctx, mGameSub, new => StartGame);
+		// Pause overlay
+		mPauseUI.Setup(root,
+			new () => { mGameSub.ResumeGame(); mPauseUI.Hide(); },
+			new () => { mPauseUI.Hide(); ReturnToMainMenu(); }
+		);
+
+		// Main menu (full-screen overlay, shown on top of everything)
+		mMainMenu.Setup(root, new () => StartGame());
+		mMainMenu.Show();
 	}
 
 	private void StartGame()
 	{
-		mGameSub.SetPhase(.Playing);
-		Console.WriteLine("[Game] Playing - place towers, then press Space to start wave");
+		mMainMenu.Hide();
+		mGameSub.SetPhase(.WaitingToStart);
+		Console.WriteLine("[Game] Ready - place towers, then press Space or click Start Wave");
+	}
+
+	private void RestartGame()
+	{
+		// Reset game state
+		mGameSub.ResetGame();
+		mGameSub.SetPhase(.WaitingToStart);
+		Console.WriteLine("[Game] Restarted");
+	}
+
+	private void ReturnToMainMenu()
+	{
+		mGameSub.SetPhase(.MainMenu);
+		mGameSub.ResetGame();
+
+		let uiSub = Context.GetSubsystem<EngineUISubsystem>();
+		if (uiSub?.ScreenView != null)
+			mMainMenu.Show();
+	}
+
+	private void StartWave()
+	{
+		if (!mGameSub.Waves.IsWaveActive)
+		{
+			mGameSub.Waves.StartNextWave();
+			mGameSub.SetPhase(.WaveInProgress);
+		}
 	}
 }

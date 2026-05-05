@@ -4,49 +4,79 @@ using System;
 using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
-/// Main menu shown at game start. Uses Dialog for auto-centered modal.
+/// Full-screen main menu overlay. Added to RootView, removed when game starts.
 class MainMenuUI
 {
-	private Dialog mDialog;
+	private Panel mRoot; // Owned by view tree (parent deletes)
+	public delegate void() OnStartGame ~ delete _;
 
-	/// Shows the main menu dialog.
-	public void Show(UIContext ctx, GameSubsystem gameSub, delegate void() onStart)
+	public Panel Root => mRoot;
+
+	public void Setup(RootView root, delegate void() onStartGame)
 	{
-		mDialog = new Dialog("Tower Defense");
-		mDialog.MaxWidth = 500;
-		mDialog.MaxHeight = 250;
+		OnStartGame = onStartGame;
 
-		// Content
+		// Full-screen dark overlay
+		mRoot = new Panel();
+		mRoot.Background = new ColorDrawable(.(15, 20, 25, 255));
+		mRoot.IsHitTestVisible = true;
+		mRoot.Visibility = .Gone;
+
+		// Centered content
 		let content = new FlexLayout();
 		content.Direction = .Vertical;
-		content.Spacing = 12;
+		content.Spacing = 16;
+		content.AlignItems = .Center;
+		content.JustifyContent = .Center;
+		mRoot.AddView(content, new LayoutParams() { Width = .Match, Height = .Match });
 
+		// Title
+		let title = new Label("TOWER DEFENSE");
+		title.FontSize = 32;
+		title.TextColor = .(220, 230, 240, 255);
+		title.HAlign = .Center;
+		content.AddView(title);
+
+		// Subtitle
 		let subtitle = new Label("Defend your base against waves of enemies!");
 		subtitle.FontSize = 14;
-		subtitle.TextColor = .(200, 200, 200, 255);
+		subtitle.TextColor = .(150, 160, 170, 255);
 		subtitle.HAlign = .Center;
-		content.AddView(subtitle, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
+		content.AddView(subtitle);
 
-		let controls = new Label("1-4: Select tower | Click: Place | Space: Wave | RMB: Cancel");
-		controls.FontSize = 11;
-		controls.TextColor = .(140, 140, 140, 255);
-		controls.HAlign = .Center;
-		content.AddView(controls, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(18)) });
-
-		mDialog.SetContent(content);
+		// Spacer
+		content.AddView(new Spacer(0, 20));
 
 		// Start button
-		let startBtn = mDialog.AddButton("Start Game", .OK);
-
-		let capturedOnStart = onStart;
-		mDialog.OnClosed.Add(new (dlg, result) =>
+		let startBtn = new Button("Start Game");
+		startBtn.FontSize = 18;
+		startBtn.Background = new ColorDrawable(.(40, 120, 60, 255));
+		startBtn.OnClick.Add(new (btn) =>
 			{
-				if (result == .OK && capturedOnStart != null){
-					capturedOnStart();
-					delete capturedOnStart;
-				}
+				if (OnStartGame != null)
+					OnStartGame();
 			});
+		content.AddView(startBtn);
 
-		mDialog.Show(ctx);
+		// Controls hint
+		content.AddView(new Spacer(0, 20));
+		let controls = new Label("1-4: Select tower  |  Click: Place  |  Space: Start wave  |  P: Pause");
+		controls.FontSize = 11;
+		controls.TextColor = .(120, 125, 130, 255);
+		controls.HAlign = .Center;
+		content.AddView(controls);
+
+		// Add to view tree immediately — view tree owns mRoot
+		root.AddView(mRoot, new LayoutParams() { Width = .Match, Height = .Match });
+	}
+
+	public void Show()
+	{
+		mRoot.Visibility = .Visible;
+	}
+
+	public void Hide()
+	{
+		mRoot.Visibility = .Gone;
 	}
 }
