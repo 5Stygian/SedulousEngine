@@ -2,7 +2,7 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
 /// Scrollable log view with level-based color coding and auto-scroll.
@@ -44,6 +44,7 @@ class LogView : ViewGroup
 
 	public this()
 	{
+		StyleId = new String("logview");
 		mAdapter = new LogAdapter(this);
 		mListView = new ListView();
 		mListView.ItemHeight = mItemHeight;
@@ -144,22 +145,22 @@ class LogView : ViewGroup
 
 	// === Layout ===
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		let w = wSpec.Resolve(200);
-		let h = hSpec.Resolve(100);
-		mListView.Measure(.Exactly(w), .Exactly(h));
+		let w = constraints.ConstrainWidth(200);
+		let h = constraints.ConstrainHeight(100);
+		mListView.Measure(BoxConstraints.Tight(w, h));
 		MeasuredSize = .(w, h);
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
-		mListView.Layout(0, 0, right - left, bottom - top);
+		mListView.Layout(0, 0, width, height);
 	}
 
 	public override void OnDraw(UIDrawContext ctx)
 	{
-		let bg = ctx.Theme?.GetColor("LogView.Background", .(25, 27, 35, 255)) ?? .(25, 27, 35, 255);
+		let bg = ResolveStyleColor(.Background, .(25, 27, 35, 255));
 		ctx.VG.FillRect(.(0, 0, Width, Height), bg);
 		DrawChildren(ctx);
 	}
@@ -174,9 +175,9 @@ class LogView : ViewGroup
 			ctx.VG.FillRect(.(0, 0, Width, Height), StripColor);
 		}
 
-		protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+		protected override void OnMeasure(BoxConstraints constraints)
 		{
-			MeasuredSize = .(wSpec.Resolve(4), hSpec.Resolve(20));
+			MeasuredSize = .(constraints.ConstrainWidth(4), constraints.ConstrainHeight(20));
 		}
 	}
 
@@ -191,21 +192,21 @@ class LogView : ViewGroup
 
 		public override View CreateView(int32 viewType)
 		{
-			let row = new LinearLayout();
-			row.Orientation = .Horizontal;
+			let row = new FlexLayout();
+			row.Direction = .Horizontal;
 			row.Spacing = 4;
 
 			// Color indicator strip
-			row.AddView(new ColorStrip(), new LinearLayout.LayoutParams() {
-				Width = 4, Height = Sedulous.LegacyUI.LayoutParams.MatchParent
+			row.AddView(new ColorStrip(), new FlexLayout.LayoutParams() {
+				Width = .Fixed(.Px(4)), Height = .Match
 			});
 
 			// Message text
 			let label = new Label();
 			label.FontSize = mOwner.mFontSize;
 			label.VAlign = .Middle;
-			row.AddView(label, new LinearLayout.LayoutParams() {
-				Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1
+			row.AddView(label, new FlexLayout.LayoutParams() {
+				Height = .Match, Grow = 1
 			});
 
 			return row;
@@ -213,7 +214,7 @@ class LogView : ViewGroup
 
 		public override void BindView(View view, int32 position)
 		{
-			if (let row = view as LinearLayout)
+			if (let row = view as FlexLayout)
 			{
 				let entry = mOwner.GetFilteredEntry(position);
 				let color = mOwner.GetLevelColor(entry.Level);

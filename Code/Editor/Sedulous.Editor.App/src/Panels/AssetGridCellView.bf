@@ -1,7 +1,7 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
 /// View for a single cell in the asset browser grid/tile mode.
@@ -21,11 +21,13 @@ class AssetGridCellView : ViewGroup
 
 	public this()
 	{
+		StyleId = new String("gridcell");
 		ClipsContent = true;
 
 		mNameLabel = new EditableLabel();
 		mNameLabel.FontSize = 10;
 		mNameLabel.HAlign = .Center;
+		mNameLabel.Ellipsis = true;
 		mNameLabel.DoubleClickToEdit = false;
 		mNameLabel.SlowClickToEdit = false; // Rename via context menu or F2 only in grid
 		mNameLabel.ValidateRename = new (name) => {
@@ -66,21 +68,19 @@ class AssetGridCellView : ViewGroup
 		}
 	}
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		MeasuredSize = .(wSpec.Resolve(80), hSpec.Resolve(96));
+		MeasuredSize = .(constraints.ConstrainWidth(80), constraints.ConstrainHeight(96));
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
-		let w = right - left;
-		let h = bottom - top;
 		let nameHeight = 18.0f;
-		let nameY = h - nameHeight;
+		let nameY = height - nameHeight;
 
 		// Position name label at the bottom
-		mNameLabel.Measure(.Exactly(w - 4), .Exactly(nameHeight));
-		mNameLabel.Layout(2, nameY, w - 4, nameHeight);
+		mNameLabel.Measure(BoxConstraints.Tight(width - 4, nameHeight));
+		mNameLabel.Layout(2, nameY, width - 4, nameHeight);
 	}
 
 	public override void OnDraw(UIDrawContext ctx)
@@ -93,7 +93,7 @@ class AssetGridCellView : ViewGroup
 		let iconBounds = RectangleF(2, 2, Width - 4, iconAreaHeight - 4);
 
 		// Background for icon area
-		let bgColor = ctx.Theme?.GetColor("GridCell.Background", .(35, 38, 48, 255)) ?? .(35, 38, 48, 255);
+		let bgColor = ResolveStyleColor(.Background, .(35, 38, 48, 255));
 		ctx.VG.FillRoundedRect(iconBounds, 4, bgColor);
 
 		// Icon text centered in area

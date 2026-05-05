@@ -2,10 +2,10 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 
-using internal Sedulous.LegacyUI;
+using internal Sedulous.UI;
 
 /// A flow-layout grid view for the asset browser tile/grid mode.
 /// Fixed-size cells arranged in rows, wrapping on container width.
@@ -70,13 +70,14 @@ class GridContentView : ViewGroup, IListAdapterObserver
 
 	public this()
 	{
+		StyleId = new String("gridcontentview");
 		ClipsContent = true;
 		IsFocusable = true;
 
 		mScrollBar = new ScrollBar();
-		mScrollBar.Orientation = .Vertical;
+		mScrollBar.IsHorizontal = false;
 		mScrollBar.Parent = this;
-		mScrollBar.OnValueChanged = new (val) => { mScrollY = val; InvalidateLayout(); };
+		mScrollBar.OnValueChanged.Add(new (sb, val) => { mScrollY = val; Invalidate(); });
 	}
 
 	public IListAdapter Adapter
@@ -90,7 +91,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 			if (mAdapter != null)
 				mAdapter.SetObserver(this);
 			RecycleAllActive();
-			InvalidateLayout();
+			Invalidate();
 		}
 	}
 
@@ -114,7 +115,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 	public void ScrollBy(float dy)
 	{
 		mScrollY = Math.Clamp(mScrollY + dy, 0, MaxScrollY);
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	public void ScrollToPosition(int32 position)
@@ -123,7 +124,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 		let row = position / mColumnsPerRow;
 		let targetY = row * (CellHeight + SpacingY);
 		mScrollY = Math.Clamp(targetY, 0, MaxScrollY);
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	// === IListAdapterObserver ===
@@ -131,7 +132,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 	public void OnDataSetChanged()
 	{
 		RecycleAllActive();
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	public void OnItemRangeChanged(int32 start, int32 count)
@@ -167,17 +168,17 @@ class GridContentView : ViewGroup, IListAdapterObserver
 
 	// === Layout ===
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		MeasuredSize = .(wSpec.Resolve(200), hSpec.Resolve(200));
+		MeasuredSize = .(constraints.ConstrainWidth(200), constraints.ConstrainHeight(200));
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
 		if (mAdapter == null) return;
 
-		let viewportW = (right - left) - GridPadding.Left - GridPadding.Right - (mScrollBarVisible ? mScrollBar.BarThickness : 0);
-		let viewportH = (bottom - top) - GridPadding.Top - GridPadding.Bottom;
+		let viewportW = width - GridPadding.Left - GridPadding.Right - (mScrollBarVisible ? mScrollBar.BarThickness : 0);
+		let viewportH = height - GridPadding.Top - GridPadding.Bottom;
 
 		// Compute columns per row
 		mColumnsPerRow = Math.Max(1, (int32)((viewportW + SpacingX) / (CellWidth + SpacingX)));
@@ -220,9 +221,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 		{
 			let view = mActiveViews[pos];
 			let viewType = (mAdapter != null) ? mAdapter.GetItemViewType(pos) : 0;
-			if (view.Context != null)
-				ViewGroup.DetachSubtree(view);
-			view.Parent = null;
+			RemoveView(view, false);
 			mActiveViews.Remove(pos);
 			mRecycler.Recycle(view, viewType);
 		}
@@ -233,9 +232,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 			if (!mActiveViews.ContainsKey(pos))
 			{
 				let view = mRecycler.GetOrCreate(mAdapter, pos);
-				view.Parent = this;
-				if (Context != null)
-					ViewGroup.AttachSubtree(view, Context);
+				AddView(view);
 				mActiveViews[pos] = view;
 			}
 			else
@@ -249,7 +246,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 			let cellX = GridPadding.Left + col * (CellWidth + SpacingX);
 			let cellY = GridPadding.Top + row * (CellHeight + SpacingY) - mScrollY;
 
-			mActiveViews[pos].Measure(.Exactly(CellWidth), .Exactly(CellHeight));
+			mActiveViews[pos].Measure(BoxConstraints.Tight(CellWidth, CellHeight));
 			mActiveViews[pos].Layout(cellX, cellY, CellWidth, CellHeight);
 		}
 
@@ -260,8 +257,8 @@ class GridContentView : ViewGroup, IListAdapterObserver
 			mScrollBar.MaxValue = MaxScrollY;
 			mScrollBar.ViewportSize = viewportH;
 			let sbW = mScrollBar.BarThickness;
-			mScrollBar.Measure(.Exactly(sbW), .Exactly(bottom - top));
-			mScrollBar.Layout(right - left - sbW, 0, sbW, bottom - top);
+			mScrollBar.Measure(BoxConstraints.Tight(sbW, height));
+			mScrollBar.Layout(width - sbW, 0, sbW, height);
 		}
 
 		// Selection highlight rendering handled in OnDraw
@@ -273,7 +270,14 @@ class GridContentView : ViewGroup, IListAdapterObserver
 	{
 		if (mAdapter == null) return;
 
-		let itemIndex = GetItemAtPosition(e.X, e.Y);
+		// Convert screen coords to local — the new UI bubbles mouse events
+		// with coordinates local to the original hit view, not this view.
+		let screenPos = Vector2(Context.InputManager.MouseX, Context.InputManager.MouseY);
+		let local = ScreenToLocal(screenPos);
+		let localX = local.X;
+		let localY = local.Y;
+
+		let itemIndex = GetItemAtPosition(localX, localY);
 
 		if (e.Button == .Right)
 		{
@@ -281,12 +285,12 @@ class GridContentView : ViewGroup, IListAdapterObserver
 			{
 				if (!Selection.IsSelected(itemIndex))
 					Selection.Select(itemIndex);
-				OnItemRightClicked(itemIndex, e.X, e.Y);
+				OnItemRightClicked(itemIndex, localX, localY);
 				e.Handled = true;
 			}
 			else
 			{
-				OnBackgroundRightClicked(e.X, e.Y);
+				OnBackgroundRightClicked(localX, localY);
 				e.Handled = true;
 			}
 			return;
@@ -303,7 +307,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 				else
 					Selection.Select(itemIndex);
 
-				OnItemClicked(itemIndex, e.ClickCount, e.X, e.Y);
+				OnItemClicked(itemIndex, e.ClickCount, localX, localY);
 
 				// Double-click detection
 				if (e.ClickCount >= 2)
@@ -378,7 +382,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 		// Draw selection highlights
 		if (mAdapter != null && Selection.SelectedCount > 0)
 		{
-			let selColor = ctx.Theme?.GetColor("GridView.Selection", .(60, 120, 200, 80)) ?? .(60, 120, 200, 80);
+			let selColor = ResolveStyleColor(.SelectionColor, .(60, 120, 200, 80));
 			for (let pos in Selection.SelectedPositions)
 			{
 				if (mActiveViews.TryGetValue(pos, let view))
@@ -399,9 +403,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 		for (let kv in mActiveViews)
 		{
 			let viewType = (mAdapter != null) ? mAdapter.GetItemViewType(kv.key) : 0;
-			if (kv.value.Context != null)
-				ViewGroup.DetachSubtree(kv.value);
-			kv.value.Parent = null;
+			RemoveView(kv.value, false);
 			mRecycler.Recycle(kv.value, viewType);
 		}
 		mActiveViews.Clear();

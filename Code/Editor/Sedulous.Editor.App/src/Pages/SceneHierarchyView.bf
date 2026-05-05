@@ -1,7 +1,7 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Engine.Core;
 
@@ -38,6 +38,7 @@ class SceneHierarchyView : ViewGroup, IDragSource, IDropTarget
 
 	public this(Scene scene)
 	{
+		StyleId = new String("scenehierarchy");
 		mScene = scene;
 		mTreeView = new TreeView();
 		AddView(mTreeView);
@@ -63,15 +64,15 @@ class SceneHierarchyView : ViewGroup, IDragSource, IDropTarget
 
 	// === Layout ===
 
-	protected override void OnMeasure(MeasureSpec wSpec, MeasureSpec hSpec)
+	protected override void OnMeasure(BoxConstraints constraints)
 	{
-		mTreeView.Measure(wSpec, hSpec);
+		mTreeView.Measure(constraints);
 		MeasuredSize = mTreeView.MeasuredSize;
 	}
 
-	protected override void OnLayout(float left, float top, float right, float bottom)
+	protected override void OnLayout(float left, float top, float width, float height)
 	{
-		mTreeView.Layout(0, 0, right - left, bottom - top);
+		mTreeView.Layout(0, 0, width, height);
 	}
 
 	// === Drawing ===
@@ -96,7 +97,7 @@ class SceneHierarchyView : ViewGroup, IDragSource, IDropTarget
 		let depth = flatAdapter.GetDepth(mDropTargetPosition);
 		let indent = (depth + 1) * mTreeView.IndentWidth;
 
-		let accentColor = ctx.Theme?.Palette.PrimaryAccent ?? .(80, 160, 255, 255);
+		let accentColor = ResolveStyleColor(.AccentColor, .(80, 160, 255, 255));
 
 		switch (mDropZone)
 		{

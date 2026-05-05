@@ -1,6 +1,6 @@
 namespace Sedulous.Editor.App;
 
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Core.Mathematics;
 using Sedulous.Fonts;
 using System;
@@ -13,6 +13,7 @@ class HierarchyItemView : EditText
 	public int32 Depth;
 	public bool IsEditing;
 	private float mIndentWidth = 20;
+	private float mFontSize = 12;
 	private String mPreEditText = new .() ~ delete _;
 
 	/// Fired when the user commits a rename. Parameter: new name.
@@ -23,8 +24,11 @@ class HierarchyItemView : EditText
 
 	public this()
 	{
-		FontSize = 12;
-		Padding = .(0);
+		if(StyleId == null)
+		{
+			StyleId = new .();
+		}
+		StyleId.Set("hierarchyitem");
 		Cursor = .Arrow;
 		IsReadOnly = true;
 		IsFocusable = false;
@@ -126,10 +130,10 @@ class HierarchyItemView : EditText
 		{
 			// Draw editing state: subtle background + full EditText content
 			let editBounds = RectangleF(indent - 2, 0, Width - indent + 2, Height);
-			let bgColor = ctx.Theme?.GetColor("EditText.Background", .(30, 32, 42, 255)) ?? .(30, 32, 42, 255);
+			let bgColor = ResolveStyleColor(.Background, .(30, 32, 42, 255));
 			ctx.VG.FillRoundedRect(editBounds, 2, bgColor);
 
-			let borderColor = ctx.Theme?.Palette.PrimaryAccent ?? .(80, 160, 255, 255);
+			let borderColor = ResolveStyleColor(.AccentColor, .(80, 160, 255, 255));
 			ctx.VG.StrokeRoundedRect(editBounds, 2, borderColor, 1);
 
 			// Offset EditText content drawing to indent position
@@ -141,10 +145,10 @@ class HierarchyItemView : EditText
 			// Label mode: just draw text
 			if (Text.Length > 0 && ctx.FontService != null)
 			{
-				let font = ctx.FontService.GetFont(FontSize);
+				let font = ctx.FontService.GetFont(mFontSize);
 				if (font != null)
 				{
-					let textColor = ctx.Theme?.GetColor("Label.Foreground") ?? .(220, 220, 230, 255);
+					let textColor = ResolveStyleColor(.TextColor, .(220, 220, 230, 255));
 					ctx.VG.DrawText(Text, font, .(indent, 0, Width - indent, Height), .Left, .Middle, textColor);
 				}
 			}
@@ -156,7 +160,7 @@ class HierarchyItemView : EditText
 	{
 		if (ctx.FontService == null) return;
 
-		let font = ctx.FontService.GetFont(FontSize);
+		let font = ctx.FontService.GetFont(mFontSize);
 		if (font == null) return;
 
 		let lineH = font.Font.Metrics.LineHeight;
@@ -174,7 +178,7 @@ class HierarchyItemView : EditText
 		// Selection highlight
 		if (IsFocused && mBehavior.IsSelecting && font.Shaper != null)
 		{
-			let selColor = ctx.Theme?.GetColor("EditText.Selection", .(60, 120, 200, 100)) ?? .(60, 120, 200, 100);
+			let selColor = ResolveStyleColor(.SelectionColor, .(60, 120, 200, 100));
 			let selStart = font.Shaper.GetCursorPosition(font.Font, mGlyphPositions, mBehavior.SelectionStart);
 			let selEnd = font.Shaper.GetCursorPosition(font.Font, mGlyphPositions, mBehavior.SelectionEnd);
 			ctx.VG.FillRect(.(textX + selStart, textY, selEnd - selStart, lineH), selColor);
@@ -183,7 +187,7 @@ class HierarchyItemView : EditText
 		// Text glyphs
 		if (mGlyphPositions.Count > 0)
 		{
-			let textColor = ctx.Theme?.GetColor("Label.Foreground") ?? .(220, 220, 230, 255);
+			let textColor = ResolveStyleColor(.TextColor, .(220, 220, 230, 255));
 			ctx.VG.DrawPositionedGlyphs(mGlyphPositions, font,
 				textX, textY + font.Font.Metrics.Ascent, textColor);
 		}
@@ -196,7 +200,7 @@ class HierarchyItemView : EditText
 			if (cursorVisible && font.Shaper != null)
 			{
 				let cursorX = font.Shaper.GetCursorPosition(font.Font, mGlyphPositions, mBehavior.CursorPosition);
-				let cursorColor = ctx.Theme?.Palette.Text ?? .(220, 225, 235, 255);
+				let cursorColor = ResolveStyleColor(.CursorColor, .(220, 225, 235, 255));
 				ctx.VG.FillRect(.(textX + cursorX - 1, textY, 2, lineH), cursorColor);
 			}
 		}

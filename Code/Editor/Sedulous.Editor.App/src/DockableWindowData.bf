@@ -1,6 +1,6 @@
 namespace Sedulous.Editor.App;
 
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 
 /// Per-dockable-window rendering resources.
 /// Owns RootView, VGContext, VGRenderer for rendering UI in secondary OS windows.

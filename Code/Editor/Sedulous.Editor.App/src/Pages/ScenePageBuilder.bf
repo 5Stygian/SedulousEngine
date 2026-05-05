@@ -1,14 +1,14 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.RHI;
 using Sedulous.VG.Renderer;
 using Sedulous.Engine.Core;
 using Sedulous.Renderer;
 using Sedulous.Engine.Render;
-using Sedulous.LegacyUI.Viewport;
+using Sedulous.UI.Viewport;
 using Sedulous.Shell.Input;
 using Sedulous.Editor.Core;
 using Sedulous.Core.Mathematics;
@@ -36,30 +36,28 @@ static class ScenePageBuilder
 
 	private static View BuildHierarchy(SceneEditorPage page)
 	{
-		let container = new LinearLayout();
-		container.Orientation = .Vertical;
+		let container = new FlexLayout();
+		container.Direction = .Vertical;
 
 		// Toolbar
-		let toolbar = new LinearLayout();
-		toolbar.Orientation = .Horizontal;
+		let toolbar = new FlexLayout();
+		toolbar.Direction = .Horizontal;
 		toolbar.Spacing = 4;
 		toolbar.Padding = .(4, 2, 4, 2);
-		container.AddView(toolbar, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		container.AddView(toolbar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
-		let addBtn = new Button();
-		addBtn.SetText("+");
+		let addBtn = new Button("+");
 		addBtn.OnClick.Add(new /*[page]*/ (btn) =>
 		{
 			let entity = page.Scene.CreateEntity("New Entity");
 			page.SelectEntity(entity);
 			page.MarkDirty();
 		});
-		toolbar.AddView(addBtn, new LinearLayout.LayoutParams() { Height = 24 });
+		toolbar.AddView(addBtn, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(24)) });
 
-		let deleteBtn = new Button();
-		deleteBtn.SetText("-");
+		let deleteBtn = new Button("-");
 		deleteBtn.OnClick.Add(new /*[page]*/ (btn) =>
 		{
 			let selected = page.PrimarySelection;
@@ -71,20 +69,20 @@ static class ScenePageBuilder
 				page.MarkDirty();
 			}
 		});
-		toolbar.AddView(deleteBtn, new LinearLayout.LayoutParams() { Height = 24 });
+		toolbar.AddView(deleteBtn, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(24)) });
 
 		// Separator
 		let sep = new Panel();
 		sep.Background = new ColorDrawable(.(60, 65, 80, 255));
-		container.AddView(sep, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 1
+		container.AddView(sep, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(1))
 		});
 
 		// Tree view with drag reorder/reparent
 		let hierarchyView = new SceneHierarchyView(page.Scene);
 		hierarchyView.ItemHeight = 20;
-		container.AddView(hierarchyView, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
+		container.AddView(hierarchyView, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		let adapter = new SceneHierarchyAdapter(page.Scene);
@@ -216,8 +214,8 @@ static class ScenePageBuilder
 		IDevice device, VGRenderer vgRenderer, ISceneRenderer sceneRenderer, IKeyboard keyboard)
 	{
 		// Container: toolbar on top, viewport below
-		let container = new LinearLayout();
-		container.Orientation = .Vertical;
+		let container = new FlexLayout();
+		container.Direction = .Vertical;
 
 		// === Viewport Toolbar ===
 		let toolbar = new Toolbar();
@@ -245,16 +243,16 @@ static class ScenePageBuilder
 			page.WorldSpace = val;
 		});
 
-		container.AddView(toolbar, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		container.AddView(toolbar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		// === Viewport ===
 		let viewportView = new ViewportView();
 		viewportView.Initialize(device, vgRenderer);
 
-		container.AddView(viewportView, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
+		container.AddView(viewportView, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		// Editor camera (independent of scene camera entities)
@@ -411,35 +409,34 @@ static class ScenePageBuilder
 
 	private static View BuildInspector(SceneEditorPage page, EditorContext editorContext)
 	{
-		let container = new LinearLayout();
-		container.Orientation = .Vertical;
+		let container = new FlexLayout();
+		container.Direction = .Vertical;
 		container.Padding = .(4);
 
 		let headerLabel = new Label();
 		headerLabel.SetText("Inspector");
 		headerLabel.FontSize = 13;
 		headerLabel.TextColor = .(128, 128, 140, 255);
-		container.AddView(headerLabel, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 24
+		container.AddView(headerLabel, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(24))
 		});
 
 		let sep = new Panel();
 		sep.Background = new ColorDrawable(.(60, 65, 80, 255));
-		container.AddView(sep, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 1
+		container.AddView(sep, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(1))
 		});
 
 		let propertyGrid = new PropertyGrid();
-		container.AddView(propertyGrid, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
+		container.AddView(propertyGrid, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		// "Add Component" button - below property grid, visible when entity is selected
-		let addCompBtn = new Button();
-		addCompBtn.SetText("Add Component");
+		let addCompBtn = new Button("Add Component");
 		addCompBtn.Visibility = .Gone;
-		container.AddView(addCompBtn, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 28
+		container.AddView(addCompBtn, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(28))
 		});
 
 		// Wire selection changes to inspector rebuild

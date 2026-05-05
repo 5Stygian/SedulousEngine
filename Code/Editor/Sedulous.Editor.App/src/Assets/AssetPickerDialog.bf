@@ -2,13 +2,13 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Editor.Core;
 using Sedulous.Resources;
 
-using internal Sedulous.LegacyUI;
+using internal Sedulous.UI;
 
 /// Modal dialog for selecting a resource from mounted registries.
 /// Shows registry tree (left) + content list/grid (right) with only
@@ -41,8 +41,10 @@ class AssetPickerDialog : Dialog
 		mEditorContext = editorContext;
 		mOnSelected = onSelected;
 
-		MaxWidth = 600;
-		MaxHeight = 500;
+		MinWidth = 500;
+		MinHeight = 400;
+		MaxWidth = 700;
+		MaxHeight = 550;
 
 		BuildContent(extensionFilter);
 
@@ -87,40 +89,38 @@ class AssetPickerDialog : Dialog
 		treeView.SetAdapter(mTreeAdapter);
 
 		// Right: nav bar + content
-		let rightPane = new LinearLayout();
-		rightPane.Orientation = .Vertical;
+		let rightPane = new FlexLayout();
+		rightPane.Direction = .Vertical;
 
 		// Nav bar: breadcrumb + view toggle
-		let navBar = new LinearLayout();
-		navBar.Orientation = .Horizontal;
+		let navBar = new FlexLayout();
+		navBar.Direction = .Horizontal;
 		navBar.Padding = .(0, 0, 4, 0);
 
-		let breadcrumb = new BreadcrumbBar();
-		navBar.AddView(breadcrumb, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
+		let breadcrumb = new EditorBreadcrumbBar();
+		navBar.AddView(breadcrumb, new FlexLayout.LayoutParams() { Height = .Match, Grow = 1 });
 
-		let listBtn = new ToggleButton();
-		listBtn.SetText("List");
+		let listBtn = new ToggleButton("List");
 		listBtn.IsChecked = true;
-		let gridBtn = new ToggleButton();
-		gridBtn.SetText("Grid");
-		navBar.AddView(listBtn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
-		navBar.AddView(gridBtn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
+		let gridBtn = new ToggleButton("Grid");
+		navBar.AddView(listBtn, new FlexLayout.LayoutParams() { Height = .Match });
+		navBar.AddView(gridBtn, new FlexLayout.LayoutParams() { Height = .Match });
 
-		rightPane.AddView(navBar, new LinearLayout.LayoutParams() {
-			Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.WrapContent
+		rightPane.AddView(navBar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		// Separator
 		let sep = new Panel();
 		sep.Background = new ColorDrawable(.(50, 55, 65, 255));
-		rightPane.AddView(sep, new LinearLayout.LayoutParams() {
-			Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 1
+		rightPane.AddView(sep, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(1))
 		});
 
 		// Content container
 		let contentContainer = new Panel();
-		rightPane.AddView(contentContainer, new LinearLayout.LayoutParams() {
-			Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = 0, Weight = 1
+		rightPane.AddView(contentContainer, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		// List view (default)
@@ -130,7 +130,7 @@ class AssetPickerDialog : Dialog
 		mContentList.Selection.Mode = .Single;
 		mListAdapter.OwnerListView = mContentList;
 		contentContainer.AddView(mContentList, new LayoutParams() {
-			Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent
+			Width = .Match, Height = .Match
 		});
 
 		// Grid view (hidden)
@@ -142,7 +142,7 @@ class AssetPickerDialog : Dialog
 		mContentGrid.Visibility = .Gone;
 		mGridAdapter.OwnerGridView = mContentGrid;
 		contentContainer.AddView(mContentGrid, new LayoutParams() {
-			Width = Sedulous.LegacyUI.LayoutParams.MatchParent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent
+			Width = .Match, Height = .Match
 		});
 
 		split.SetPanes(treeView, rightPane);

@@ -3,8 +3,8 @@ namespace Sedulous.Editor.App;
 using System;
 using System.IO;
 using System.Collections;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.Resources;
 using Sedulous.Core.Mathematics;
 
@@ -440,7 +440,7 @@ class AssetContentAdapter : ListAdapterBase
 
 /// View for a single item in the asset browser content list.
 /// Shows: [icon] [name (editable)] [registry badge]
-class AssetContentItemView : LinearLayout
+class AssetContentItemView : FlexLayout
 {
 	private Label mIconLabel;
 	private EditableLabel mNameLabel;
@@ -451,7 +451,7 @@ class AssetContentItemView : LinearLayout
 
 	public this()
 	{
-		Orientation = .Horizontal;
+		Direction = .Horizontal;
 		Spacing = 4;
 		Padding = .(4, 2, 4, 2);
 
@@ -459,20 +459,20 @@ class AssetContentItemView : LinearLayout
 		mIconLabel = new Label();
 		mIconLabel.FontSize = 11;
 		mIconLabel.TextColor = .(140, 145, 165, 255);
-		AddView(mIconLabel, new LayoutParams() { Width = 20, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
+		AddView(mIconLabel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(20)), Height = .Match });
 
 		// Name (editable label - acts as plain label, switches to edit on BeginEdit)
 		mNameLabel = new EditableLabel();
 		mNameLabel.FontSize = 12;
 		mNameLabel.TextColor = .(200, 205, 220, 255);
-		AddView(mNameLabel, new LinearLayout.LayoutParams() { Width = 0, Height = Sedulous.LegacyUI.LayoutParams.MatchParent, Weight = 1 });
+		AddView(mNameLabel, new FlexLayout.LayoutParams() { Height = .Match, Grow = 1 });
 
 		// Registry badge
 		mBadgeLabel = new Label();
 		mBadgeLabel.FontSize = 9;
 		mBadgeLabel.TextColor = .(80, 160, 80, 255);
 		mBadgeLabel.HAlign = .Right;
-		AddView(mBadgeLabel, new LayoutParams() { Width = Sedulous.LegacyUI.LayoutParams.WrapContent, Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
+		AddView(mBadgeLabel, new FlexLayout.LayoutParams() { Width = .Wrap, Height = .Match });
 	}
 
 	public void Bind(AssetContentItem item)
@@ -499,10 +499,11 @@ class AssetContentItemView : LinearLayout
 			mBadgeLabel.SetText("");
 
 		// Dim missing files
-		if (item.IsRegistered && !item.IsFolder && item.AbsolutePath != null && !System.IO.File.Exists(item.AbsolutePath))
+		let isMissing = item.IsRegistered && !item.IsFolder && item.AbsolutePath != null && !System.IO.File.Exists(item.AbsolutePath);
+		if (isMissing)
 			mNameLabel.TextColor = .(200, 80, 80, 255);
 		else
-			mNameLabel.TextColor = .(200, 205, 220, 255);
+			mNameLabel.TextColor = null; // Use default from style
 	}
 
 	private StringView GetIconForExtension(StringView ext)

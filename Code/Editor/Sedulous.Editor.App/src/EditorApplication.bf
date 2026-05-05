@@ -12,12 +12,12 @@ using Sedulous.Fonts;
 using Sedulous.Fonts.TTF;
 using Sedulous.VG;
 using Sedulous.VG.Renderer;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Shell;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Shell;
+using Sedulous.UI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Editor.Core;
-using Sedulous.LegacyUI.Viewport;
+using Sedulous.UI.Viewport;
 using Sedulous.Profiler;
 using Sedulous.Engine.Core;
 using Sedulous.Core;
@@ -126,11 +126,13 @@ class EditorApplication : Application, IDockableWindowHost
 		mClipboard = new ShellClipboardAdapter(Shell.Clipboard);
 
 		// UI context
-		Sedulous.LegacyUI.Theme.RegisterExtension(new ToolkitThemeExtension());
+		Sedulous.UI.ThemeRegistry.RegisterExtension(new ToolkitThemeExtension());
+		Sedulous.UI.ThemeRegistry.RegisterExtension(new EditorThemeExtension());
 		mUIContext = new UIContext();
 		mUIContext.FontService = mFontService;
 		mUIContext.Clipboard = mClipboard;
-		mUIContext.SetTheme(DarkTheme.Create(), true);
+		mUIContext.StyleSheet = DarkTheme.Create();
+		mUIContext.StyleSheet.ReleaseRef();
 
 		mMainRoot = new RootView();
 		mUIContext.AddRootView(mMainRoot);
@@ -156,7 +158,7 @@ class EditorApplication : Application, IDockableWindowHost
 		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Audio.AudioSubsystem(mResourceSystem));
 		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Navigation.NavigationSubsystem());
 
-		let uiSub = new Sedulous.Engine.LegacyUI.EngineLegacyUISubsystem();
+		let uiSub = new Sedulous.Engine.UI.EngineUISubsystem();
 		uiSub.Device = Device;
 		uiSub.Window = Window;
 		uiSub.Shell = Shell;
@@ -236,33 +238,32 @@ class EditorApplication : Application, IDockableWindowHost
 		picker.Background = new ColorDrawable(.(30, 32, 40, 255));
 		picker.Padding = .(40);
 
-		let center = new LinearLayout();
-		center.Orientation = .Vertical;
+		let center = new FlexLayout();
+		center.Direction = .Vertical;
 		center.Spacing = 16;
 
 		let title = new Label();
 		title.SetText("Sedulous Editor");
 		title.FontSize = 24;
 		title.HAlign = .Center;
-		center.AddView(title, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 32
+		center.AddView(title, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(32))
 		});
 
 		let subtitle = new Label();
 		subtitle.SetText("Select a project to get started");
 		subtitle.FontSize = 13;
 		subtitle.HAlign = .Center;
-		center.AddView(subtitle, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 20
+		center.AddView(subtitle, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(20))
 		});
 
 		// Button row
-		let btnRow = new LinearLayout();
-		btnRow.Orientation = .Horizontal;
+		let btnRow = new FlexLayout();
+		btnRow.Direction = .Horizontal;
 		btnRow.Spacing = 12;
 
-		let newBtn = new Button();
-		newBtn.SetText("New Project...");
+		let newBtn = new Button("New Project...");
 		newBtn.OnClick.Add(new (b) => {
 			Shell.Dialogs.ShowFolderDialog(new (paths) => {
 				if (paths.Length > 0 && paths[0].Length > 0)
@@ -274,20 +275,19 @@ class EditorApplication : Application, IDockableWindowHost
 				}
 			}, default, Window);
 		});
-		btnRow.AddView(newBtn, new LinearLayout.LayoutParams() { Height = 32 });
+		btnRow.AddView(newBtn, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(32)) });
 
-		let openBtn = new Button();
-		openBtn.SetText("Open Project...");
+		let openBtn = new Button("Open Project...");
 		openBtn.OnClick.Add(new (b) => {
 			Shell.Dialogs.ShowFolderDialog(new (paths) => {
 				if (paths.Length > 0 && paths[0].Length > 0)
 					OpenProject(paths[0]);
 			}, default, Window);
 		});
-		btnRow.AddView(openBtn, new LinearLayout.LayoutParams() { Height = 32 });
+		btnRow.AddView(openBtn, new FlexLayout.LayoutParams() { Height = .Fixed(.Px(32)) });
 
-		center.AddView(btnRow, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		center.AddView(btnRow, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		// Recent projects list
@@ -296,32 +296,31 @@ class EditorApplication : Application, IDockableWindowHost
 			let recentLabel = new Label();
 			recentLabel.SetText("Recent Projects:");
 			recentLabel.FontSize = 12;
-			center.AddView(recentLabel, new LinearLayout.LayoutParams() {
-				Width = LayoutParams.MatchParent, Height = 20
+			center.AddView(recentLabel, new FlexLayout.LayoutParams() {
+				Width = .Match, Height = .Fixed(.Px(20))
 			});
 
 			for (int i = 0; i < mRecentProjects.Count; i++)
 			{
 				let idx = i;
-				let btn = new Button();
-				btn.SetText(mRecentProjects.Get(i));
+				let btn = new Button(mRecentProjects.Get(i));
 				btn.OnClick.Add(new (b) => {
 					if (idx < mRecentProjects.Count)
 						OpenProject(mRecentProjects.Get(idx));
 				});
-				center.AddView(btn, new LinearLayout.LayoutParams() {
-					Width = LayoutParams.MatchParent, Height = 28
+				center.AddView(btn, new FlexLayout.LayoutParams() {
+					Width = .Match, Height = .Fixed(.Px(28))
 				});
 			}
 		}
 
 		picker.AddView(center, new LayoutParams() {
-			Width = LayoutParams.WrapContent, Height = LayoutParams.WrapContent
+			Width = .Wrap, Height = .Wrap
 		});
 
 		mProjectPickerView = picker;
 		mMainRoot.AddView(picker, new LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent
+			Width = .Match, Height = .Match
 		});
 	}
 
@@ -371,23 +370,23 @@ class EditorApplication : Application, IDockableWindowHost
 
 	private void BuildEditorShell()
 	{
-		let shell = new LinearLayout();
-		shell.Orientation = .Vertical;
+		let shell = new FlexLayout();
+		shell.Direction = .Vertical;
 
 		// Menu bar
 		let menuBar = new MenuBar();
 		BuildMenus(menuBar);
 		mEditorContext.MenuBar = menuBar;
-		shell.AddView(menuBar, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		shell.AddView(menuBar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		// Dock manager (center area)
 		let dockManager = new DockManager();
 		dockManager.DockableWindowHost = this;
 		mEditorContext.DockManager = dockManager;
-		shell.AddView(dockManager, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
+		shell.AddView(dockManager, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		// Placeholder panel (center) - shown until first page is opened.
@@ -423,13 +422,13 @@ class EditorApplication : Application, IDockableWindowHost
 		// Status bar
 		let statusBar = new StatusBar();
 		statusBar.AddSection("Ready");
-		shell.AddView(statusBar, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		shell.AddView(statusBar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		mEditorShellView = shell;
 		mMainRoot.AddView(shell, new LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent
+			Width = .Match, Height = .Match
 		});
 	}
 
@@ -582,7 +581,7 @@ class EditorApplication : Application, IDockableWindowHost
 			// Detach content before dock manager deletes the panel.
 			if (capturedPage.ContentView?.Parent != null)
 				if (let parent = capturedPage.ContentView.Parent as ViewGroup)
-					parent.DetachView(capturedPage.ContentView);
+					parent.RemoveView(capturedPage.ContentView, false);
 
 			// Close through PageManager (fires OnPageClosed, handles cleanup + placeholder).
 			mEditorContext.PageManager.Close(capturedPage);
@@ -627,7 +626,7 @@ class EditorApplication : Application, IDockableWindowHost
 		// During shutdown, PageManager.Close calls us directly - need to ensure detach.
 		if (page.ContentView?.Parent != null)
 			if (let parent = page.ContentView.Parent as ViewGroup)
-				parent.DetachView(page.ContentView);
+				parent.RemoveView(page.ContentView, false);
 
 		// Close the dock panel if it still exists.
 		if (mPageDockPanels.TryGetValue(key, let panel))
@@ -1174,7 +1173,7 @@ class EditorApplication : Application, IDockableWindowHost
 		if (let data = ctx.UserData as DockableWindowData)
 		{
 			if (detachView && dockableWindow.Parent == data.RootView)
-				data.RootView.DetachView(dockableWindow);
+				data.RootView.RemoveView(dockableWindow, false);
 
 			mUIContext.RemoveRootView(data.RootView);
 			Device.WaitIdle();
@@ -1233,7 +1232,7 @@ class EditorApplication : Application, IDockableWindowHost
 		{
 			if (page.ContentView?.Parent != null)
 				if (let parent = page.ContentView.Parent as ViewGroup)
-					parent.DetachView(page.ContentView);
+					parent.RemoveView(page.ContentView, false);
 		}
 		mPageDockPanels.Clear();
 

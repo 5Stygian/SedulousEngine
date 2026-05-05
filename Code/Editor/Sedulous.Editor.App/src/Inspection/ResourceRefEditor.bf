@@ -1,8 +1,8 @@
 namespace Sedulous.Editor.App;
 
 using System;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Resources;
 using Sedulous.Serialization;
@@ -51,8 +51,8 @@ class ResourceRefEditor : PropertyEditor
 
 	protected override View CreateEditorView()
 	{
-		let row = new LinearLayout();
-		row.Orientation = .Horizontal;
+		let row = new FlexLayout();
+		row.Direction = .Horizontal;
 		row.Spacing = 2;
 
 		// Path/ID display
@@ -60,24 +60,22 @@ class ResourceRefEditor : PropertyEditor
 		mPathLabel.FontSize = 11;
 		mPathLabel.TextColor = .(180, 185, 200, 255);
 		RefreshPathLabel();
-		row.AddView(mPathLabel, new LinearLayout.LayoutParams() {
-			Width = 0, Height = LayoutParams.MatchParent, Weight = 1
+		row.AddView(mPathLabel, new FlexLayout.LayoutParams() {
+			Height = .Match, Grow = 1
 		});
 
 		// Browse button
-		let browseBtn = new Button();
-		browseBtn.SetText("...");
+		let browseBtn = new Button("...");
 		browseBtn.OnClick.Add(new (btn) => { OnBrowse(); });
-		row.AddView(browseBtn, new LinearLayout.LayoutParams() {
-			Width = 28, Height = LayoutParams.MatchParent
+		row.AddView(browseBtn, new FlexLayout.LayoutParams() {
+			Width = .Fixed(.Px(28)), Height = .Match
 		});
 
 		// Clear button
-		let clearBtn = new Button();
-		clearBtn.SetText("X");
+		let clearBtn = new Button("X");
 		clearBtn.OnClick.Add(new (btn) => { OnClear(); });
-		row.AddView(clearBtn, new LinearLayout.LayoutParams() {
-			Width = 24, Height = LayoutParams.MatchParent
+		row.AddView(clearBtn, new FlexLayout.LayoutParams() {
+			Width = .Fixed(.Px(24)), Height = .Match
 		});
 
 		return row;

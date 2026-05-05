@@ -2,8 +2,8 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.Core.Mathematics;
 using Sedulous.Resources;
 using Sedulous.Shell;
@@ -18,7 +18,7 @@ class ResourceRefListEditor : PropertyEditor
 	private IDialogService mDialogs;
 	private Sedulous.Editor.Core.EditorContext mEditorContext;
 	private String mExtensionFilter ~ delete _;
-	private LinearLayout mContainer;
+	private FlexLayout mContainer;
 	private bool mOwnsCallbacks;
 
 	public this(StringView name, delegate int32() countGetter,
@@ -50,8 +50,8 @@ class ResourceRefListEditor : PropertyEditor
 
 	protected override View CreateEditorView()
 	{
-		mContainer = new LinearLayout();
-		mContainer.Orientation = .Vertical;
+		mContainer = new FlexLayout();
+		mContainer.Direction = .Vertical;
 		mContainer.Spacing = 2;
 		RebuildSlots();
 		return mContainer;
@@ -70,8 +70,8 @@ class ResourceRefListEditor : PropertyEditor
 		for (int32 i = 0; i < count; i++)
 		{
 			let slot = i;
-			let row = new LinearLayout();
-			row.Orientation = .Horizontal;
+			let row = new FlexLayout();
+			row.Direction = .Horizontal;
 			row.Spacing = 2;
 
 			// Slot label
@@ -79,8 +79,8 @@ class ResourceRefListEditor : PropertyEditor
 			label.SetText(scope $"[{i}]");
 			label.FontSize = 10;
 			label.TextColor = .(140, 145, 160, 255);
-			row.AddView(label, new LinearLayout.LayoutParams() {
-				Width = 24, Height = LayoutParams.MatchParent
+			row.AddView(label, new FlexLayout.LayoutParams() {
+				Width = .Fixed(.Px(24)), Height = .Match
 			});
 
 			// Path display
@@ -103,13 +103,12 @@ class ResourceRefListEditor : PropertyEditor
 			else
 				pathLabel.SetText("(none)");
 
-			row.AddView(pathLabel, new LinearLayout.LayoutParams() {
-				Width = 0, Height = LayoutParams.MatchParent, Weight = 1
+			row.AddView(pathLabel, new FlexLayout.LayoutParams() {
+				Height = .Match, Grow = 1
 			});
 
 			// Browse
-			let browseBtn = new Button();
-			browseBtn.SetText("...");
+			let browseBtn = new Button("...");
 			browseBtn.OnClick.Add(new (btn) =>
 			{
 				// Use asset picker when EditorContext is available
@@ -143,13 +142,12 @@ class ResourceRefListEditor : PropertyEditor
 						default, default, false, null);
 				}
 			});
-			row.AddView(browseBtn, new LinearLayout.LayoutParams() {
-				Width = 28, Height = LayoutParams.MatchParent
+			row.AddView(browseBtn, new FlexLayout.LayoutParams() {
+				Width = .Fixed(.Px(28)), Height = .Match
 			});
 
 			// Clear
-			let clearBtn = new Button();
-			clearBtn.SetText("X");
+			let clearBtn = new Button("X");
 			clearBtn.OnClick.Add(new (btn) =>
 			{
 				mContainer.Context?.MutationQueue.QueueAction(new () =>
@@ -158,18 +156,17 @@ class ResourceRefListEditor : PropertyEditor
 					RebuildSlots();
 				});
 			});
-			row.AddView(clearBtn, new LinearLayout.LayoutParams() {
-				Width = 24, Height = LayoutParams.MatchParent
+			row.AddView(clearBtn, new FlexLayout.LayoutParams() {
+				Width = .Fixed(.Px(24)), Height = .Match
 			});
 
-			mContainer.AddView(row, new LinearLayout.LayoutParams() {
-				Width = LayoutParams.MatchParent, Height = 20
+			mContainer.AddView(row, new FlexLayout.LayoutParams() {
+				Width = .Match, Height = .Fixed(.Px(20))
 			});
 		}
 
 		// Add [+] button to add a new slot
-		let addBtn = new Button();
-		addBtn.SetText("+");
+		let addBtn = new Button("+");
 		addBtn.OnClick.Add(new (btn) =>
 		{
 			// Defer mutation - this button will be deleted by RebuildSlots
@@ -179,8 +176,8 @@ class ResourceRefListEditor : PropertyEditor
 				RebuildSlots();
 			});
 		});
-		mContainer.AddView(addBtn, new LinearLayout.LayoutParams() {
-			Width = 24, Height = 20
+		mContainer.AddView(addBtn, new FlexLayout.LayoutParams() {
+			Width = .Fixed(.Px(24)), Height = .Fixed(.Px(20))
 		});
 	}
 

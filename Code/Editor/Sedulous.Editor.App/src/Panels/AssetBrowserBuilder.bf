@@ -2,8 +2,8 @@ namespace Sedulous.Editor.App;
 
 using System;
 using System.Collections;
-using Sedulous.LegacyUI;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.Resources;
 using Sedulous.Editor.Core;
 
@@ -23,7 +23,7 @@ static class AssetBrowserBuilder
 		public GridContentView ContentGrid;
 		public AssetContentAdapter ListAdapter;
 		public AssetContentAdapter GridAdapter;
-		public BreadcrumbBar Breadcrumb;
+		public EditorBreadcrumbBar Breadcrumb;
 		public Panel ContentContainer;  // Holds the active content view (list or grid)
 	}
 
@@ -42,8 +42,8 @@ static class AssetBrowserBuilder
 		treeAdapter.SetRegistries(registries);
 
 		// === Left pane: Registry toolbar + tree ===
-		let leftPane = new LinearLayout();
-		leftPane.Orientation = .Vertical;
+		let leftPane = new FlexLayout();
+		leftPane.Direction = .Vertical;
 
 		// Registry management toolbar
 		let regToolbar = new Toolbar();
@@ -55,15 +55,15 @@ static class AssetBrowserBuilder
 		createBtn.OnClick.Add(new [=panel] (btn) => { panel.CreateRegistry(); });
 		unmountBtn.OnClick.Add(new [=panel] (btn) => { panel.UnmountSelectedRegistry(); });
 
-		leftPane.AddView(regToolbar, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		leftPane.AddView(regToolbar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		// Separator below toolbar
 		let toolbarSep = new Panel();
 		toolbarSep.Background = new ColorDrawable(.(50, 55, 65, 255));
-		leftPane.AddView(toolbarSep, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 1
+		leftPane.AddView(toolbarSep, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(1))
 		});
 
 		let treeView = new TreeView();
@@ -71,13 +71,13 @@ static class AssetBrowserBuilder
 		treeView.IndentWidth = 16;
 		treeView.SetAdapter(treeAdapter);
 
-		leftPane.AddView(treeView, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
+		leftPane.AddView(treeView, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		// === Right pane: Toolbar + Breadcrumb + content (list or grid) ===
-		let rightPane = new LinearLayout();
-		rightPane.Orientation = .Vertical;
+		let rightPane = new FlexLayout();
+		rightPane.Direction = .Vertical;
 
 		// Two adapters sharing the same data - one for list, one for grid
 		let listAdapter = contentAdapter;
@@ -87,37 +87,35 @@ static class AssetBrowserBuilder
 		gridAdapter.ViewMode = .Grid;
 
 		// Navigation bar: breadcrumbs (left, fills) + view mode toggles (right)
-		let navBar = new LinearLayout();
-		navBar.Orientation = .Horizontal;
+		let navBar = new FlexLayout();
+		navBar.Direction = .Horizontal;
 		navBar.Padding = .(0, 0, 4, 0);
 
-		let breadcrumb = new BreadcrumbBar();
-		navBar.AddView(breadcrumb, new LinearLayout.LayoutParams() { Width = 0, Height = LayoutParams.MatchParent, Weight = 1 });
+		let breadcrumb = new EditorBreadcrumbBar();
+		navBar.AddView(breadcrumb, new FlexLayout.LayoutParams() { Height = .Match, Grow = 1 });
 
-		let listBtn = new ToggleButton();
-		listBtn.SetText("List");
+		let listBtn = new ToggleButton("List");
 		listBtn.IsChecked = true;
-		let gridBtn = new ToggleButton();
-		gridBtn.SetText("Grid");
+		let gridBtn = new ToggleButton("Grid");
 
-		navBar.AddView(listBtn, new LinearLayout.LayoutParams() { Height = LayoutParams.MatchParent });
-		navBar.AddView(gridBtn, new LinearLayout.LayoutParams() { Height = LayoutParams.MatchParent });
+		navBar.AddView(listBtn, new FlexLayout.LayoutParams() { Height = .Match });
+		navBar.AddView(gridBtn, new FlexLayout.LayoutParams() { Height = .Match });
 
-		rightPane.AddView(navBar, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.WrapContent
+		rightPane.AddView(navBar, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Wrap
 		});
 
 		// Separator
 		let sep = new Panel();
 		sep.Background = new ColorDrawable(.(50, 55, 65, 255));
-		rightPane.AddView(sep, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 1
+		rightPane.AddView(sep, new FlexLayout.LayoutParams() {
+			Width = .Match, Height = .Fixed(.Px(1))
 		});
 
 		// Content container - holds the active view (list or grid)
 		let contentContainer = new Panel();
-		rightPane.AddView(contentContainer, new LinearLayout.LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = 0, Weight = 1
+		rightPane.AddView(contentContainer, new FlexLayout.LayoutParams() {
+			Width = .Match, Grow = 1
 		});
 
 		// List view (default, visible)
@@ -127,7 +125,7 @@ static class AssetBrowserBuilder
 		contentList.Selection.Mode = .Single;
 		listAdapter.OwnerListView = contentList;
 		contentContainer.AddView(contentList, new LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent
+			Width = .Match, Height = .Match
 		});
 
 		// Grid view (hidden initially)
@@ -139,7 +137,7 @@ static class AssetBrowserBuilder
 		contentGrid.Visibility = .Gone;
 		gridAdapter.OwnerGridView = contentGrid;
 		contentContainer.AddView(contentGrid, new LayoutParams() {
-			Width = LayoutParams.MatchParent, Height = LayoutParams.MatchParent
+			Width = .Match, Height = .Match
 		});
 
 		// View mode toggle wiring
@@ -586,7 +584,7 @@ static class AssetBrowserBuilder
 	/// Context menu for a folder item in the content view.
 	private static void ShowFolderItemContextMenu(UIContext ctx, float x, float y,
 		AssetContentItem folderItem, int32 position, AssetContentAdapter adapter,
-		EditorContext editorContext, AssetBrowserPanel panel, BreadcrumbBar breadcrumb)
+		EditorContext editorContext, AssetBrowserPanel panel, EditorBreadcrumbBar breadcrumb)
 	{
 		let menu = new ContextMenu();
 		let registry = adapter.ActiveRegistry;
@@ -648,7 +646,7 @@ static class AssetBrowserBuilder
 	/// Context menu for right-clicking empty space in the content view.
 	private static void ShowBackgroundContextMenu(UIContext ctx, float x, float y,
 		StringView targetFolder, AssetContentAdapter adapter,
-		EditorContext editorContext, AssetBrowserPanel panel, BreadcrumbBar breadcrumb)
+		EditorContext editorContext, AssetBrowserPanel panel, EditorBreadcrumbBar breadcrumb)
 	{
 		let menu = new ContextMenu();
 		let registry = adapter.ActiveRegistry;
@@ -900,7 +898,7 @@ static class AssetBrowserBuilder
 		int32 nodeId, IResourceRegistry registry, bool isRoot, bool isLocked,
 		RegistryTreeAdapter treeAdapter, AssetContentAdapter contentAdapter,
 		AssetContentAdapter gridAdapter, EditorContext editorContext,
-		AssetBrowserPanel panel, BreadcrumbBar breadcrumb)
+		AssetBrowserPanel panel, EditorBreadcrumbBar breadcrumb)
 	{
 		let menu = new ContextMenu();
 
@@ -1003,14 +1001,14 @@ static class AssetBrowserBuilder
 /// Simple breadcrumb path bar for folder navigation.
 /// Displays: [Registry] > [Folder] > [SubFolder]
 /// Each segment is clickable to navigate to that level.
-class BreadcrumbBar : LinearLayout
+class EditorBreadcrumbBar : FlexLayout
 {
 	private List<String> mSegments = new .() ~ DeleteContainerAndItems!(_);
 	public Event<delegate void(int32 segmentIndex)> OnSegmentClicked ~ _.Dispose();
 
 	public this()
 	{
-		Orientation = .Horizontal;
+		Direction = .Horizontal;
 		Spacing = 0;
 		Padding = .(6, 3, 6, 3);
 	}
@@ -1043,21 +1041,20 @@ class BreadcrumbBar : LinearLayout
 				arrow.SetText("  >  ");
 				arrow.FontSize = 10;
 				arrow.TextColor = .(100, 105, 120, 255);
-				AddView(arrow, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
+				AddView(arrow, new FlexLayout.LayoutParams() { Height = .Match });
 			}
 
 			let segIndex = i;
-			let btn = new Button();
-			btn.SetText(mSegments[i]);
+			let btn = new Button(mSegments[i]);
 			btn.FontSize = 11;
 			btn.Background = null;
 			btn.OnClick.Add(new (b) => {
 				OnSegmentClicked(segIndex);
 			});
-			AddView(btn, new LinearLayout.LayoutParams() { Height = Sedulous.LegacyUI.LayoutParams.MatchParent });
+			AddView(btn, new FlexLayout.LayoutParams() { Height = .Match });
 		}
 
-		InvalidateLayout();
+		Invalidate();
 	}
 
 	/// Reconstructs a relative path from segments 1..segmentIndex (0 is registry name).
@@ -1076,6 +1073,6 @@ class BreadcrumbBar : LinearLayout
 		for (let seg in mSegments)
 			delete seg;
 		mSegments.Clear();
-		RemoveAllViews();
+		RemoveAllViews(true);
 	}
 }

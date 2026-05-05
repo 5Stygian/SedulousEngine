@@ -6,7 +6,7 @@ using Sedulous.Editor.Core;
 using Sedulous.Resources;
 using Sedulous.Serialization;
 using Sedulous.Shell;
-using Sedulous.LegacyUI.Toolkit;
+using Sedulous.UI.Toolkit;
 
 /// Extends PropertyGridDescriptor with editor-specific controls
 /// (ResourceRefEditor with file browse dialogs, etc.)

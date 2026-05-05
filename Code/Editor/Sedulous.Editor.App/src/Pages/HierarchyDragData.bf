@@ -1,6 +1,6 @@
 namespace Sedulous.Editor.App;
 
-using Sedulous.LegacyUI;
+using Sedulous.UI;
 using Sedulous.Engine.Core;
 
 /// Drag payload for hierarchy entity reorder/reparent.
