@@ -49,11 +49,9 @@ class GridContentView : ViewGroup, IListAdapterObserver
 	private float mScrollY;
 	private MomentumHelper mMomentum = .();
 
-	// Active views keyed by adapter position.
-	private Dictionary<int32, View> mActiveViews = new .() ~ {
-		for (let kv in _) delete kv.value;
-		delete _;
-	};
+	// Active views keyed by adapter position (lookup only — views are owned
+	// by ViewGroup as children, or by the recycler when recycled).
+	private Dictionary<int32, View> mActiveViews = new .() ~ delete _;
 
 	// Layout metrics (recomputed on layout)
 	private int32 mColumnsPerRow;
