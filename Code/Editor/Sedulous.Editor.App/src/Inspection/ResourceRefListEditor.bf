@@ -63,7 +63,7 @@ class ResourceRefListEditor : PropertyEditor
 
 		// Remove all children
 		while (mContainer.ChildCount > 0)
-			mContainer.RemoveView(mContainer.GetChildAt(0));
+			mContainer.RemoveView(mContainer.GetChildAt(0), true);
 
 		let count = mCountGetter();
 
