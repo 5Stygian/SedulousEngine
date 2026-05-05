@@ -135,15 +135,28 @@ class OverlayPass : PipelinePass
 			}
 			else // .Text
 			{
-				float x = cmd.Position.X;
+				let scale = (cmd.Scale > 0) ? cmd.Scale : 1.0f;
+				let scaledW = charW * scale;
+				let scaledH = charH * scale;
+
+				// Negative X signals right-aligned text
+				float x;
+				if (cmd.Position.X < 0)
+				{
+					let textWidth = (float)cmd.TextLength * scaledW;
+					x = (float)view.Width + cmd.Position.X + 1 - textWidth;
+				}
+				else
+					x = cmd.Position.X;
+
 				let y = cmd.Position.Y;
 				for (int32 i = 0; i < cmd.TextLength; i++)
 				{
 					let c = (char32)chars[cmd.TextStart + i];
 					float u0, v0, u1, v1;
 					if (DebugFont.GetCharUV(c, out u0, out v0, out u1, out v1))
-						EmitQuad(x, y, charW, charH, u0, v0, u1, v1, cmd.Color);
-					x += charW;
+						EmitQuad(x, y, scaledW, scaledH, u0, v0, u1, v1, cmd.Color);
+					x += scaledW;
 				}
 			}
 		}

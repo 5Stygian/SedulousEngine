@@ -252,6 +252,7 @@ class PipelineStateCache : IDisposable
 		key.RenderStateHash = key.RenderStateHash * 31 + (int)config.DepthCompare;
 		key.RenderStateHash = key.RenderStateHash * 31 + (int)config.DepthBias;
 		key.RenderStateHash = key.RenderStateHash * 31 + (int)(config.DepthBiasSlopeScale * 1000);
+		key.RenderStateHash = key.RenderStateHash * 31 + (int)config.Topology;
 
 		// Vertex layout hash
 		key.VertexLayoutHash = ComputeVertexLayoutHash(vertexBuffers);

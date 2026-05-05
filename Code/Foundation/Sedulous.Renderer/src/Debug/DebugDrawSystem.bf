@@ -13,8 +13,8 @@ public class DebugDrawSystem : IDisposable
 {
 	public const int32 MaxFramesInFlight = 2;
 
-	// Upper bounds for per-frame geometry. Increase if you hit these.
-	public const uint32 MaxLineVertices = 65536;        // 32 768 line segments
+	// Upper bounds for per-frame geometry (lines + triangles share the line buffer).
+	public const uint32 MaxLineVertices = 131072;       // Lines + filled triangles
 	public const uint32 MaxOverlayVertices = 131072;    // ~21 800 textured quads
 
 	private IDevice mDevice;
