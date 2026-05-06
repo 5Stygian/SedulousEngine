@@ -331,6 +331,7 @@ public class FbxLoader : IModelLoader
 */
 
 				Image loadedImage = null;
+				String resolvedPath = scope .();
 
 				if (relPath.Length > 0)
 				{
@@ -347,12 +348,13 @@ public class FbxLoader : IModelLoader
 						Path.InternalCombine(imagePath, mBasePath, fileName);
 					}
 
-
-
 					if (File.Exists(imagePath))
 					{
 						if (ImageLoaderFactory.LoadImage(imagePath) case .Ok(let image))
+						{
 							loadedImage = image;
+							resolvedPath.Set(imagePath);
+						}
 					}
 					else
 					{
@@ -370,7 +372,10 @@ public class FbxLoader : IModelLoader
 							if (File.Exists(candidatePath))
 							{
 								if (ImageLoaderFactory.LoadImage(candidatePath) case .Ok(let image))
+								{
 									loadedImage = image;
+									resolvedPath.Set(candidatePath);
+								}
 							}
 
 							searchDir.Set(parentDir);
@@ -383,13 +388,20 @@ public class FbxLoader : IModelLoader
 				{
 					let absPath = StringView(tex.filename.data, (int)tex.filename.length);
 					if (ImageLoaderFactory.LoadImage(absPath) case .Ok(let image))
+					{
 						loadedImage = image;
+						resolvedPath.Set(absPath);
+					}
 				}
 
 				if (loadedImage != null)
 				{
 					StoreImageData(loadedImage, modelTex);
 					delete loadedImage;
+
+					// Set the URI so TextureConverter can build the source path for dedup.
+					// Use the resolved absolute path directly.
+					modelTex.SetUri(resolvedPath);
 				}
 			}
 
