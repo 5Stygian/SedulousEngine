@@ -82,7 +82,7 @@ class DebugPass : PipelinePass
 		let maxVerts = DebugDrawSystem.MaxLineVertices;
 		let clampedTotal = Math.Min(totalVerts, maxVerts);
 
-		// Allocate budget: depth lines → overlay lines → depth tris → overlay tris
+		// Allocate budget: depth lines -> overlay lines -> depth tris -> overlay tris
 		uint32 budget = clampedTotal;
 		uint32 depthLinesClamped = Math.Min(totalDepthLines, budget);
 		budget -= depthLinesClamped;

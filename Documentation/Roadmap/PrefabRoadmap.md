@@ -13,7 +13,7 @@ linked instances.
 - **Open as scene** - .prefab files open in the scene editor tab, reusing all
   existing scene editing infrastructure
 - **Nesting supported** - prefabs can contain instances of other prefabs for
-  compositional design (room → furniture → handles)
+  compositional design (room -> furniture -> handles)
 
 ## Architecture Overview
 
@@ -90,7 +90,7 @@ Engine-level component on the instantiation entity:
 class PrefabReferenceComponent : Component, ISerializableComponent
 {
     ResourceRef mPrefabRef;
-    Dictionary<String, String> mOverrides;           // parameter name → serialized value
+    Dictionary<String, String> mOverrides;           // parameter name -> serialized value
     List<EntityHandle> mInstantiatedEntities;         // runtime: for cleanup
     PrefabResource mResolvedPrefab;                   // runtime: resolved resource
 }
@@ -113,15 +113,15 @@ class PrefabInstanceTag : Component
 ## Instantiation Flow
 
 ```
-1. PrefabReferenceComponent resolves mPrefabRef → PrefabResource
+1. PrefabReferenceComponent resolves mPrefabRef -> PrefabResource
 2. PrefabResource.Entities deserialized into temporary structure
 3. For each entity in prefab:
    a. Create entity in scene (new Guid, new handle)
-   b. Map: prefab entity Guid → live entity handle
-   c. Set parent (root → reference entity, others → mapped parent)
+   b. Map: prefab entity Guid -> live entity handle
+   c. Set parent (root -> reference entity, others -> mapped parent)
    d. Create components from serialized data
    e. Add PrefabInstanceTag with source IDs
-4. Resolve intra-prefab EntityRefs using the Guid→handle map
+4. Resolve intra-prefab EntityRefs using the Guid->handle map
 5. Apply per-instance overrides from mOverrides
 6. Store instantiated handles in mInstantiatedEntities for cleanup
 ```
@@ -151,7 +151,7 @@ Overrides: [
 
 After instantiation, for each override:
 1. Look up the ExposedParameterDescriptor by name
-2. Find the instantiated entity (via Guid→handle map + SourceEntityId)
+2. Find the instantiated entity (via Guid->handle map + SourceEntityId)
 3. Find the component (via ComponentTypeId on that entity)
 4. Deserialize the override value into the component's property
 
@@ -171,7 +171,7 @@ The prefab system builds heavily on existing engine infrastructure:
 - **ComponentTypeRegistry** - auto-instantiates managers for unknown component types
   during prefab deserialization (no pre-registration needed)
 - **EntityRef with persistent Guids** - intra-prefab entity references survive
-  instantiation via Guid→handle remapping
+  instantiation via Guid->handle remapping
 - **ResourceRef + ResourceSystem** - standard resource loading/caching for .prefab files
 - **ISerializableComponent** - components self-serialize, no special prefab handling
 - **SceneEditorPage** - prefabs open as scenes in the editor (PrefabEditorPageFactory
@@ -210,13 +210,13 @@ The prefab system builds heavily on existing engine infrastructure:
 
 **From selection:**
 1. Select entities in scene hierarchy
-2. Right-click → "Create Prefab from Selection"
-3. Save dialog → choose .prefab path in registry
+2. Right-click -> "Create Prefab from Selection"
+3. Save dialog -> choose .prefab path in registry
 4. Selected entities serialized to .prefab file
 5. Original entities replaced with single entity + PrefabReferenceComponent
 
 **From asset browser:**
-1. Right-click → Create → Prefab
+1. Right-click -> Create -> Prefab
 2. Empty .prefab created in current folder
 3. Double-click to open and add entities
 
@@ -232,8 +232,8 @@ The prefab system builds heavily on existing engine infrastructure:
 
 1. Open .prefab in editor
 2. Select entity + component property to expose
-3. Right-click property in inspector → "Expose as Parameter"
-4. Enter display name → added to ExposedParameters list
+3. Right-click property in inspector -> "Expose as Parameter"
+4. Enter display name -> added to ExposedParameters list
 5. (Or: dedicated "Exposed Parameters" panel in prefab editor)
 
 ### Overriding Parameters
@@ -241,7 +241,7 @@ The prefab system builds heavily on existing engine infrastructure:
 1. Select entity with PrefabReferenceComponent in scene
 2. Inspector shows prefab reference + exposed parameters section
 3. Each parameter: default value (dimmed) + override checkbox
-4. Enable override → value becomes editable
+4. Enable override -> value becomes editable
 5. Override stored in PrefabReferenceComponent.mOverrides
 
 ### Instantiating in Scene
@@ -249,7 +249,7 @@ The prefab system builds heavily on existing engine infrastructure:
 1. Drag .prefab from asset browser into viewport or hierarchy
 2. Creates entity at drop position with PrefabReferenceComponent
 3. Prefab resolves and instantiates child entities
-4. (Or: right-click hierarchy → Add → Prefab Instance → select .prefab)
+4. (Or: right-click hierarchy -> Add -> Prefab Instance -> select .prefab)
 
 ## Phased Implementation
 
@@ -288,11 +288,11 @@ The prefab system builds heavily on existing engine infrastructure:
 
 ## Verification
 
-1. Create .prefab from asset browser → opens as scene, edit, save
-2. Drag .prefab into scene → PrefabReferenceComponent created, entities appear
-3. Edit .prefab → save → instances in scene update automatically
-4. Override a parameter on an instance → value persists across prefab updates
-5. Nested prefab: prefab A contains instance of prefab B → both instantiate
-6. Delete prefab instance → instantiated child entities cleaned up
-7. Save/load scene with prefab instances → overrides and references preserved
-8. Cycle detection: prefab A references itself → warning, no crash
+1. Create .prefab from asset browser -> opens as scene, edit, save
+2. Drag .prefab into scene -> PrefabReferenceComponent created, entities appear
+3. Edit .prefab -> save -> instances in scene update automatically
+4. Override a parameter on an instance -> value persists across prefab updates
+5. Nested prefab: prefab A contains instance of prefab B -> both instantiate
+6. Delete prefab instance -> instantiated child entities cleaned up
+7. Save/load scene with prefab instances -> overrides and references preserved
+8. Cycle detection: prefab A references itself -> warning, no crash
