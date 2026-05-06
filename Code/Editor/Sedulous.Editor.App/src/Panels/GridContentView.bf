@@ -49,7 +49,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 	private float mScrollY;
 	private MomentumHelper mMomentum = .();
 
-	// Active views keyed by adapter position (lookup only — views are owned
+	// Active views keyed by adapter position (lookup only - views are owned
 	// by ViewGroup as children, or by the recycler when recycled).
 	private Dictionary<int32, View> mActiveViews = new .() ~ delete _;
 
@@ -268,7 +268,7 @@ class GridContentView : ViewGroup, IListAdapterObserver
 	{
 		if (mAdapter == null) return;
 
-		// Convert screen coords to local — the new UI bubbles mouse events
+		// Convert screen coords to local - the new UI bubbles mouse events
 		// with coordinates local to the original hit view, not this view.
 		let screenPos = Vector2(Context.InputManager.MouseX, Context.InputManager.MouseY);
 		let local = ScreenToLocal(screenPos);

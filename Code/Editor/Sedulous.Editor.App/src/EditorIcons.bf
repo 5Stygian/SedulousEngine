@@ -32,7 +32,7 @@ static class EditorIcons
 		delete LocalSpaceIcon; LocalSpaceIcon = null;
 	}
 
-	/// Translate gizmo — four arrows pointing outward from center.
+	/// Translate gizmo - four arrows pointing outward from center.
 	public static readonly String Translate = """
 		<svg viewBox="0 0 24 24">
 		  <path d="M12 2l3 3h-2v4h-2V5H9l3-3z" fill="#E0E0E0"/>
@@ -42,7 +42,7 @@ static class EditorIcons
 		</svg>
 		""";
 
-	/// Rotate gizmo — circular arrow.
+	/// Rotate gizmo - circular arrow.
 	public static readonly String Rotate = """
 		<svg viewBox="0 0 24 24">
 		  <path d="M12 4c4.42 0 8 3.58 8 8h-2.5c0-3.04-2.46-5.5-5.5-5.5S6.5 8.96 6.5 12s2.46 5.5 5.5 5.5c1.52 0 2.9-.62 3.89-1.61l1.77 1.77A7.96 7.96 0 0112 20c-4.42 0-8-3.58-8-8s3.58-8 8-8z" fill="#E0E0E0"/>
@@ -50,7 +50,7 @@ static class EditorIcons
 		</svg>
 		""";
 
-	/// Scale gizmo — diagonal arrow with corner square.
+	/// Scale gizmo - diagonal arrow with corner square.
 	public static readonly String Scale = """
 		<svg viewBox="0 0 24 24">
 		  <rect x="3" y="3" width="5" height="5" fill="#E0E0E0"/>
@@ -60,7 +60,7 @@ static class EditorIcons
 		</svg>
 		""";
 
-	/// World space — globe/grid icon.
+	/// World space - globe/grid icon.
 	public static readonly String WorldSpace = """
 		<svg viewBox="0 0 24 24">
 		  <circle cx="12" cy="12" r="9" fill="none" stroke="#E0E0E0" stroke-width="1.5"/>
@@ -70,7 +70,7 @@ static class EditorIcons
 		</svg>
 		""";
 
-	/// Local space — cube icon.
+	/// Local space - cube icon.
 	public static readonly String LocalSpace = """
 		<svg viewBox="0 0 24 24">
 		  <path d="M12 2L4 7v10l8 5 8-5V7l-8-5z" fill="none" stroke="#E0E0E0" stroke-width="1.5" stroke-linejoin="round"/>

@@ -297,18 +297,18 @@ Advanced controls for editor and application chrome. Separate project: Sedulous.
       OS multi-window support via IDockableWindowHost
 
 ### PropertyGrid & ColorPicker
-- [x] PropertyEditor — abstract base with edit transaction support (Begin/End/Cancel)
-- [x] PropertyGrid — scrollable inspector with category grouping via Expanders,
+- [x] PropertyEditor - abstract base with edit transaction support (Begin/End/Cancel)
+- [x] PropertyGrid - scrollable inspector with category grouping via Expanders,
       configurable LabelWidthRatio, RowSpacing, StyleId "propertygrid"
-- [x] BoolEditor — CheckBox, instant toggle
-- [x] FloatEditor — NumericField with focus-based edit transactions, Escape to cancel
-- [x] IntEditor — integer NumericField (0 decimal places)
-- [x] StringEditor — EditText with focus/Enter/Escape transactions
-- [x] EnumEditor — ComboBox for enum selection
-- [x] RangeEditor — Slider + NumericField side by side
-- [x] ColorEditor — color swatch that opens ColorPicker dialog
-- [x] Vector3Editor — three NumericFields with colored axis prefix labels (X/Y/Z)
-- [x] ColorPicker — HSV square + hue strip + alpha strip + hex input + RGB fields +
+- [x] BoolEditor - CheckBox, instant toggle
+- [x] FloatEditor - NumericField with focus-based edit transactions, Escape to cancel
+- [x] IntEditor - integer NumericField (0 decimal places)
+- [x] StringEditor - EditText with focus/Enter/Escape transactions
+- [x] EnumEditor - ComboBox for enum selection
+- [x] RangeEditor - Slider + NumericField side by side
+- [x] ColorEditor - color swatch that opens ColorPicker dialog
+- [x] Vector3Editor - three NumericFields with colored axis prefix labels (X/Y/Z)
+- [x] ColorPicker - HSV square + hue strip + alpha strip + hex input + RGB fields +
       current/original preview swatches, OnColorChanged event, themed
 - [x] **Tests:** PropertyGrid (add/get/remove/clear/StyleId), all editor value types,
       edit transactions, ColorPicker (HSV conversions, roundtrip, set/get color)
@@ -459,7 +459,7 @@ All applications migrated from Sedulous.LegacyUI to Sedulous.UI.
 
 ContentButton and ToggleButton have a `View Content` property. Set it to
 an ImageView for icon, or FlexLayout with icon+text. Button (text-only) uses
-a String Text property directly — no child view overhead for the common case.
+a String Text property directly - no child view overhead for the common case.
 
 Controls with fixed visual structure (CheckBox, RadioButton, ToggleSwitch,
 Slider, ProgressBar) use String properties, not Content.

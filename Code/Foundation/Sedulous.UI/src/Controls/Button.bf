@@ -4,7 +4,7 @@ using System;
 using Sedulous.Core.Mathematics;
 using Sedulous.Fonts;
 
-/// Text button — the most common button type.
+/// Text button - the most common button type.
 /// Has a Text property for direct text access. No child view overhead.
 public class Button : ButtonBase
 {

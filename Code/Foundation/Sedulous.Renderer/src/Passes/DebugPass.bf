@@ -9,7 +9,7 @@ using Sedulous.DebugFont;
 using Sedulous.Profiler;
 using Sedulous.Materials;
 
-/// Debug drawing pass — renders accumulated line and triangle vertices from
+/// Debug drawing pass - renders accumulated line and triangle vertices from
 /// RenderContext.DebugDraw. Supports depth-tested and overlay modes for both
 /// lines and filled triangles. Runs after main forward passes and before
 /// post-processing so the primitives compose into the HDR scene color.

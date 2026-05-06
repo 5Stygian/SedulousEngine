@@ -3,7 +3,7 @@ namespace Sedulous.UI;
 using System;
 using Sedulous.Core.Mathematics;
 
-/// Button with arbitrary View content — for icons, icon+text combos,
+/// Button with arbitrary View content - for icons, icon+text combos,
 /// or any custom content layout.
 public class ContentButton : ButtonBase
 {
