@@ -417,7 +417,7 @@ class TowerPlacement
 				let meshHandle = meshMgr.CreateComponent(mPreviewBase);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(baseLoaded.MeshResource.Id, baseLoaded.MeshResource.Name);
+					var meshRef = ResourceRef(baseLoaded.MeshResource.Id, baseLoaded.MeshRefPath);
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 					for (int32 slot = 0; slot < baseLoaded.MaterialRefs.Count; slot++)
@@ -443,7 +443,7 @@ class TowerPlacement
 				let meshHandle = meshMgr.CreateComponent(mPreviewWeapon);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(weaponLoaded.MeshResource.Id, weaponLoaded.MeshResource.Name);
+					var meshRef = ResourceRef(weaponLoaded.MeshResource.Id, weaponLoaded.MeshRefPath);
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 					for (int32 slot = 0; slot < weaponLoaded.MaterialRefs.Count; slot++)
@@ -489,7 +489,7 @@ class TowerPlacement
 				let meshHandle = meshMgr.CreateComponent(baseEntity);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(baseLoaded.MeshResource.Id, baseLoaded.MeshResource.Name);
+					var meshRef = ResourceRef(baseLoaded.MeshResource.Id, baseLoaded.MeshRefPath);
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 					for (int32 slot = 0; slot < baseLoaded.MaterialRefs.Count; slot++)
@@ -515,7 +515,7 @@ class TowerPlacement
 				let meshHandle = meshMgr.CreateComponent(weaponEntity);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(weaponLoaded.MeshResource.Id, weaponLoaded.MeshResource.Name);
+					var meshRef = ResourceRef(weaponLoaded.MeshResource.Id, weaponLoaded.MeshRefPath);
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 					for (int32 slot = 0; slot < weaponLoaded.MaterialRefs.Count; slot++)

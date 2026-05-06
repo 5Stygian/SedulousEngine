@@ -28,10 +28,15 @@ class ModelRegistry
 
 	private String mBasePath = new .() ~ delete _;
 
+	/// Registry name for constructing protocol-prefixed resource paths.
+	/// When set, ResourceRefs use "{RegistryName}://resources/{name}.ext" format.
+	public String RegistryName = new .() ~ delete _;
+
 	/// A cached model with its mesh resource and material refs.
 	public class LoadedModel
 	{
 		public String Name = new .() ~ delete _;
+		public String MeshRefPath = new .() ~ delete _; // Protocol-prefixed path for ResourceRef
 		public StaticMeshResource MeshResource;
 		public List<ResourceRef> MaterialRefs = new .() ~ { for (var r in _) r.Dispose(); delete _; };
 
@@ -95,7 +100,7 @@ class ModelRegistry
 		resResult.Textures.Clear();
 		resResult.Materials.Clear();
 
-		// Collect material ResourceRefs
+		// Collect material ResourceRefs with registry protocol paths
 		let loaded = new LoadedModel();
 		loaded.Name.Set(modelName);
 
@@ -103,7 +108,14 @@ class ModelRegistry
 		{
 			let matRes = mDedupContext.FindMaterial(importedMat.Name);
 			if (matRes != null)
-				loaded.MaterialRefs.Add(ResourceRef(matRes.Id, matRes.Name));
+			{
+				let refPath = scope String();
+				if (RegistryName.Length > 0)
+					refPath.AppendF("{}://resources/{}.material", RegistryName, matRes.Name);
+				else
+					refPath.Set(matRes.Name);
+				loaded.MaterialRefs.Add(ResourceRef(matRes.Id, refPath));
+			}
 		}
 
 		// Take ownership of the first static mesh
@@ -113,6 +125,10 @@ class ModelRegistry
 		meshRes.Name.Set(modelName);
 		resources.AddResource<StaticMeshResource>(meshRes);
 		loaded.MeshResource = meshRes;
+		if (RegistryName.Length > 0)
+			loaded.MeshRefPath.AppendF("{}://resources/{}.mesh", RegistryName, modelName);
+		else
+			loaded.MeshRefPath.Set(modelName);
 
 		mModelCache[new String(modelName)] = loaded;
 		mLoadedModels.Add(loaded);
@@ -127,7 +143,7 @@ class ModelRegistry
 	public ResourceRef GetMeshRef(StringView modelName)
 	{
 		if (mModelCache.TryGetValue(scope String(modelName), let loaded))
-			return ResourceRef(loaded.MeshResource.Id, loaded.MeshResource.Name);
+			return ResourceRef(loaded.MeshResource.Id, loaded.MeshRefPath);
 		return ResourceRef();
 	}
 

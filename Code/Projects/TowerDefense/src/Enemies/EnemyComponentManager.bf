@@ -62,7 +62,7 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 				let meshHandle = meshMgr.CreateComponent(entity);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshResource.Name);
+					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshRefPath);
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 

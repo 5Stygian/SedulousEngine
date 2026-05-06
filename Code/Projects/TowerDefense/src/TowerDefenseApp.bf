@@ -18,6 +18,10 @@ using Sedulous.Engine;
 using Sedulous.Engine.UI;
 using Sedulous.Engine.Audio;
 using Sedulous.UI;
+using Sedulous.Geometry.Tooling.Resources;
+using Sedulous.Serialization.OpenDDL;
+using Sedulous.Engine.Core.Resources;
+using System.IO;
 
 class TowerDefenseApp : EngineApplication
 {
@@ -80,6 +84,7 @@ class TowerDefenseApp : EngineApplication
 		let assetPath = scope String();
 		GetAssetPath("samples/models/kenney_tower-defense-kit/Models/FBX format", assetPath);
 		mModels.Initialize(assetPath);
+		mModels.RegistryName.Set("towerdefense");
 
 		// Pass references to game subsystem for enemy spawning
 		mGameSub.Models = mModels;
@@ -153,11 +158,121 @@ class TowerDefenseApp : EngineApplication
 			mGameAudio.Initialize(audioSub, messaging?.Bus);
 
 		// Set up particle effects
-		let assetDir2 = scope String();
-		GetAssetPath("", assetDir2);
-		mParticleEffects.Initialize(mScene, messaging?.Bus, ResourceSystem, assetDir2);
+		let assetDir = scope String();
+		GetAssetPath("", assetDir);
+		mParticleEffects.Initialize(mScene, messaging?.Bus, ResourceSystem, assetDir);
 
 		Console.WriteLine("=== Tower Defense Ready ===");
+
+		// Export resources and scene for the editor
+		ExportForEditor();
+	}
+
+	/// Saves all loaded resources (meshes, materials, textures) and the scene
+	/// to cache/towerdefense so they can be opened in the editor.
+	private void ExportForEditor()
+	{
+		let outputDir = scope String();
+		Path.InternalCombine(outputDir, AssetCacheDirectory, "towerdefense");
+
+		if (!Directory.Exists(outputDir))
+			Directory.CreateDirectory(outputDir);
+
+		let provider = scope OpenDDLSerializerProvider();
+
+		let resourceDir = scope String();
+		Path.InternalCombine(resourceDir, outputDir, "resources");
+		if (!Directory.Exists(resourceDir))
+			Directory.CreateDirectory(resourceDir);
+
+		let registry = scope ResourceRegistry("towerdefense", outputDir);
+
+		// Save meshes — names already have registry protocol from ModelRegistry
+		for (let loaded in mModels.[Friend]mLoadedModels)
+		{
+			if (loaded.MeshResource != null)
+			{
+				let filePath = scope String();
+				Path.InternalCombine(filePath, resourceDir, scope $"{loaded.Name}.mesh");
+				if (loaded.MeshResource.SaveToFile(filePath, provider) case .Ok)
+				{
+					registry.Register(loaded.MeshResource.Id, scope $"resources/{loaded.Name}.mesh");
+					Console.WriteLine("[Export] Saved mesh: {}", loaded.Name);
+				}
+			}
+		}
+
+		// Save deduped textures and materials
+		let dedupCtx = mModels.[Friend]mDedupContext;
+		for (let kv in dedupCtx.[Friend]mTextures)
+		{
+			let texRes = kv.value;
+			let baseName = scope String();
+			GetBaseResourceName(texRes.Name, baseName);
+			let filePath = scope String();
+			Path.InternalCombine(filePath, resourceDir, scope $"{baseName}.texture");
+			if (texRes.SaveToFile(filePath, provider) case .Ok)
+			{
+				registry.Register(texRes.Id, scope $"resources/{baseName}.texture");
+				Console.WriteLine("[Export] Saved texture: {}", baseName);
+			}
+		}
+
+		for (let kv in dedupCtx.[Friend]mMaterials)
+		{
+			let matRes = kv.value;
+			let baseName = scope String();
+			GetBaseResourceName(matRes.Name, baseName);
+			let filePath = scope String();
+			Path.InternalCombine(filePath, resourceDir, scope $"{baseName}.material");
+			if (matRes.SaveToFile(filePath, provider) case .Ok)
+			{
+				registry.Register(matRes.Id, scope $"resources/{baseName}.material");
+				Console.WriteLine("[Export] Saved material: {}", baseName);
+			}
+		}
+
+		// Save scene — component ResourceRefs already carry registry protocol paths
+		if (mScene != null)
+		{
+			let typeReg = scope ComponentTypeRegistry();
+			let sceneManager = scope SceneResourceManager(typeReg, provider);
+
+			let scenePath = scope String();
+			Path.InternalCombine(scenePath, outputDir, "towerdefense.scene");
+			if (sceneManager.SaveSceneToFile(mScene, scenePath) case .Ok(let guid))
+			{
+				registry.Register(guid, "towerdefense.scene");
+				Console.WriteLine("[Export] Saved scene");
+			}
+		}
+
+		// Save registry
+		let regFilePath = scope String();
+		Path.InternalCombine(regFilePath, outputDir, "towerdefense.registry");
+		registry.SaveToFile(regFilePath);
+		Console.WriteLine("[Export] Saved registry: {}", regFilePath);
+	}
+
+	/// Extracts the base resource name from a registry protocol path.
+	/// "towerdefense://resources/colormap.material" -> "colormap"
+	/// "colormap" -> "colormap"
+	private static void GetBaseResourceName(StringView name, String outName)
+	{
+		// Strip protocol prefix
+		let protoIdx = name.IndexOf("://");
+		StringView path = (protoIdx >= 0) ? name[(protoIdx + 3)...] : name;
+
+		// Strip directory prefix
+		let slashIdx = path.LastIndexOf('/');
+		StringView fileName = (slashIdx >= 0) ? path[(slashIdx + 1)...] : path;
+
+		// Strip extension
+		let dotIdx = fileName.LastIndexOf('.');
+		if (dotIdx >= 0)
+			outName.Set(fileName[...(dotIdx - 1)]);
+		else
+			outName.Set(fileName);
 	}
 
 	// ==================== Update ====================

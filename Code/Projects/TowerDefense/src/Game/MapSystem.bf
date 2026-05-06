@@ -64,7 +64,7 @@ class MapSystem
 				let compHandle = meshMgr.CreateComponent(entity);
 				if (let comp = meshMgr.Get(compHandle))
 				{
-					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshResource.Name);
+					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshRefPath);
 					defer meshRef.Dispose();
 					comp.SetMeshRef(meshRef);
 
@@ -101,7 +101,7 @@ class MapSystem
 		let markerComp = meshMgr.CreateComponent(markerEntity);
 		if (let comp = meshMgr.Get(markerComp))
 		{
-			var meshRef = ResourceRef(markerLoaded.MeshResource.Id, markerLoaded.MeshResource.Name);
+			var meshRef = ResourceRef(markerLoaded.MeshResource.Id, markerLoaded.MeshRefPath);
 			defer meshRef.Dispose();
 			comp.SetMeshRef(meshRef);
 
