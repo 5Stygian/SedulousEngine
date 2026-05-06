@@ -5,7 +5,6 @@ using System.Collections;
 using Sedulous.Engine.Core;
 using Sedulous.Engine.Render;
 using Sedulous.Core.Mathematics;
-using Sedulous.Geometry.Resources;
 using Sedulous.Resources;
 
 /// Builds tile entities from MapData and manages grid cell occupancy.
@@ -18,8 +17,19 @@ class MapSystem
 
 	public MapData CurrentMap => mCurrentMap;
 
+	/// Initializes map data without creating tile entities.
+	/// Used on the cached path where the scene already has tile entities.
+	public void InitMapData(MapData map)
+	{
+		if (mCurrentMap != null)
+			delete mCurrentMap;
+		mCurrentMap = map;
+		delete mOccupied;
+		mOccupied = new bool[map.Width * map.Height];
+	}
+
 	/// Builds the map: creates tile entities for each cell.
-	public void BuildMap(MapData map, Scene scene, ModelRegistry models, ResourceSystem resources)
+	public void BuildMap(MapData map, Scene scene, ModelManifest manifest)
 	{
 		// Clear previous map
 		ClearMap(scene);
@@ -30,7 +40,7 @@ class MapSystem
 		mOccupied = new bool[map.Width * map.Height];
 
 		let meshMgr = scene.GetModule<MeshComponentManager>();
-		if (meshMgr == null)
+		if (meshMgr == null || manifest == null)
 			return;
 
 		for (int32 z = 0; z < map.Height; z++)
@@ -44,8 +54,8 @@ class MapSystem
 				if (tileInfo.ModelName.IsEmpty)
 					continue;
 
-				let loaded = models.LoadModel(tileInfo.ModelName, resources);
-				if (loaded == null)
+				let entry = manifest.Get(tileInfo.ModelName);
+				if (entry == null)
 					continue;
 
 				let entityName = scope String();
@@ -60,23 +70,14 @@ class MapSystem
 				transform.Scale = .One;
 				scene.SetLocalTransform(entity, transform);
 
-				// Attach mesh component with imported materials (shared colormap via dedup)
-				let compHandle = meshMgr.CreateComponent(entity);
-				if (let comp = meshMgr.Get(compHandle))
-				{
-					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshRefPath);
-					defer meshRef.Dispose();
-					comp.SetMeshRef(meshRef);
-
-					for (int32 slot = 0; slot < loaded.MaterialRefs.Count; slot++)
-						comp.SetMaterialRef(slot, loaded.MaterialRefs[slot]);
-				}
+				// Attach mesh component
+				AttachMesh(meshMgr, entity, entry);
 
 				mTileEntities.Add(entity);
 
 				// Add tower slot marker on top of tower slot tiles
 				if (cellType == .TowerSlot)
-					PlaceMarker(scene, models, resources, meshMgr, worldPos, entity);
+					PlaceMarker(scene, manifest, meshMgr, worldPos);
 			}
 		}
 
@@ -84,11 +85,11 @@ class MapSystem
 	}
 
 	/// Places a selection marker on top of a tower slot tile.
-	private void PlaceMarker(Scene scene, ModelRegistry models, ResourceSystem resources,
-		MeshComponentManager meshMgr, Vector3 worldPos, EntityHandle parentEntity)
+	private void PlaceMarker(Scene scene, ModelManifest manifest,
+		MeshComponentManager meshMgr, Vector3 worldPos)
 	{
-		let markerLoaded = models.LoadModel("selection-a", resources);
-		if (markerLoaded == null)
+		let entry = manifest.Get("selection-a");
+		if (entry == null)
 			return;
 
 		let markerEntity = scene.CreateEntity("Marker");
@@ -98,18 +99,27 @@ class MapSystem
 		markerTransform.Scale = .One;
 		scene.SetLocalTransform(markerEntity, markerTransform);
 
-		let markerComp = meshMgr.CreateComponent(markerEntity);
-		if (let comp = meshMgr.Get(markerComp))
+		AttachMesh(meshMgr, markerEntity, entry);
+		mTileEntities.Add(markerEntity);
+	}
+
+	/// Attaches a mesh component to an entity using manifest data.
+	private static void AttachMesh(MeshComponentManager meshMgr, EntityHandle entity, ModelManifestEntry entry)
+	{
+		let compHandle = meshMgr.CreateComponent(entity);
+		if (let comp = meshMgr.Get(compHandle))
 		{
-			var meshRef = ResourceRef(markerLoaded.MeshResource.Id, markerLoaded.MeshRefPath);
+			var meshRef = entry.GetMeshRef();
 			defer meshRef.Dispose();
 			comp.SetMeshRef(meshRef);
 
-			for (int32 slot = 0; slot < markerLoaded.MaterialRefs.Count; slot++)
-				comp.SetMaterialRef(slot, markerLoaded.MaterialRefs[slot]);
+			for (int32 slot = 0; slot < entry.MaterialCount; slot++)
+			{
+				var matRef = entry.GetMaterialRef(slot);
+				defer matRef.Dispose();
+				comp.SetMaterialRef(slot, matRef);
+			}
 		}
-
-		mTileEntities.Add(markerEntity);
 	}
 
 	/// Clears all tile entities from the scene.

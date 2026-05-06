@@ -8,7 +8,7 @@ using Sedulous.Core.Mathematics;
 using Sedulous.Messaging;
 
 /// Procedural audio system for the tower defense game.
-/// All sounds are generated algorithmically — no external audio files needed.
+/// All sounds are generated algorithmically - no external audio files needed.
 class GameAudio
 {
 	private AudioSubsystem mAudio;

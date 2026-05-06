@@ -31,8 +31,14 @@ class TowerDefenseApp : EngineApplication
 	// Scene
 	private Scene mScene;
 
-	// Model loading
+	// Model loading (first run only)
 	private ModelRegistry mModels = new .() ~ delete _;
+
+	// Model manifest (both paths - built from ModelRegistry or loaded from cache)
+	private ModelManifest mManifest ~ delete _;
+
+	// Cached registry (owned by app, registered with ResourceSystem)
+	private ResourceRegistry mCachedRegistry ~ delete _;
 
 	// Camera
 	private TDCameraController mCamera = new .() ~ delete _;
@@ -72,79 +78,35 @@ class TowerDefenseApp : EngineApplication
 	{
 		Console.WriteLine("=== Tower Defense OnStartup ===");
 
-		// Initialize image and model loaders
 		SDLImageLoader.Initialize();
 		STBImageLoader.Initialize();
 
-		let sceneSub = Context.GetSubsystem<SceneSubsystem>();
-		let renderSub = Context.GetSubsystem<RenderSubsystem>();
-		let resources = ResourceSystem;
+		// Check if cached resources exist
+		let cacheDir = scope String();
+		Path.InternalCombine(cacheDir, AssetCacheDirectory, "towerdefense");
+		let registryPath = scope String();
+		Path.InternalCombine(registryPath, cacheDir, "towerdefense.registry");
+		let scenePath = scope String();
+		Path.InternalCombine(scenePath, cacheDir, "towerdefense.scene");
+		let manifestPath = scope String();
+		Path.InternalCombine(manifestPath, cacheDir, "models.manifest");
 
-		// Initialize model registry (FBX loader) with resolved asset path
-		let assetPath = scope String();
-		GetAssetPath("samples/models/kenney_tower-defense-kit/Models/FBX format", assetPath);
-		mModels.Initialize(assetPath);
-		mModels.RegistryName.Set("towerdefense");
+		if (File.Exists(registryPath) && File.Exists(scenePath) && File.Exists(manifestPath))
+			LoadFromCache(cacheDir, registryPath, scenePath, manifestPath);
+		else
+			BuildFromScratch(cacheDir);
 
-		// Pass references to game subsystem for enemy spawning
-		mGameSub.Models = mModels;
-		mGameSub.Resources = resources;
+		// Wire manifest to tower placement (component managers get it via GameSubsystem)
+		mTowerPlacement.Manifest = mManifest;
 
-		// Preload all models
-		mModels.PreloadModels(resources, StringView[](
-			// Tiles
-			"tile", "tile-straight", "tile-rock",
-			"tile-spawn-round", "tile-end-round",
-			"tile-corner-round", "selection-a",
-			// Enemies
-			"enemy-ufo-a", "enemy-ufo-b", "enemy-ufo-c", "enemy-ufo-d",
-			// Towers
-			"tower-round-base", "tower-square-bottom-a",
-			// Weapons
-			"weapon-ballista", "weapon-cannon", "weapon-catapult", "weapon-turret",
-			// Ammo
-			"weapon-ammo-arrow", "weapon-ammo-cannonball", "weapon-ammo-boulder", "weapon-ammo-bullet"
-		));
-
-		// Create scene (triggers GameSubsystem.OnSceneCreated which injects EnemyComponentManager)
-		mScene = sceneSub.CreateScene("GameScene");
-
-		// Create camera
-		mCamera.CameraEntity = mScene.CreateEntity("Camera");
-		let cameraMgr = mScene.GetModule<CameraComponentManager>();
-		if (cameraMgr != null)
-			cameraMgr.CreateComponent(mCamera.CameraEntity);
-
-		// Set initial camera position centered on map
+		// Camera setup (both paths)
 		mCamera.LookTarget = .(6, 0, 6);
 		mCamera.Zoom = 14.0f;
 		mCamera.ApplyToScene(mScene);
 
-		// Directional light
-		let lightEntity = mScene.CreateEntity("Sun");
-		mScene.SetLocalTransform(lightEntity, Transform.CreateLookAt(.(10, 15, 10), .Zero));
-
-		let lightMgr = mScene.GetModule<LightComponentManager>();
-		if (lightMgr != null)
-		{
-			let lightHandle = lightMgr.CreateComponent(lightEntity);
-			if (let light = lightMgr.Get(lightHandle))
-			{
-				light.Type = .Directional;
-				light.Color = .(1.0f, 0.95f, 0.85f);
-				light.Intensity = 1.2f;
-				light.CastsShadows = true;
-			}
-		}
-
-		// Build the map (MapSystem takes ownership of MapData)
-		mGameSub.Map.BuildMap(MapData.CreateMap1(), mScene, mModels, resources);
-
-		// Update enemy waypoints now that the map is built
-		mGameSub.UpdateWaypoints();
-
-		// Reduce ambient lighting for better contrast with shadows
-		let pipeline = renderSub.GetPipeline(mScene);
+		// Reduce ambient lighting
+		let renderSub = Context.GetSubsystem<RenderSubsystem>();
+		let pipeline = renderSub?.GetPipeline(mScene);
 		if (pipeline?.LightBuffer != null)
 			pipeline.LightBuffer.AmbientColor = .(0.05f, 0.05f, 0.08f);
 
@@ -163,9 +125,128 @@ class TowerDefenseApp : EngineApplication
 		mParticleEffects.Initialize(mScene, messaging?.Bus, ResourceSystem, assetDir);
 
 		Console.WriteLine("=== Tower Defense Ready ===");
+	}
 
-		// Export resources and scene for the editor
+	/// First run: import FBX models, build scene, save everything to cache.
+	private void BuildFromScratch(StringView cacheDir)
+	{
+		Console.WriteLine("[Startup] Building from scratch (first run)...");
+
+		let sceneSub = Context.GetSubsystem<SceneSubsystem>();
+		let resources = ResourceSystem;
+
+		// Import all FBX models
+		let assetPath = scope String();
+		GetAssetPath("samples/models/kenney_tower-defense-kit/Models/FBX format", assetPath);
+		mModels.Initialize(assetPath);
+		mModels.RegistryName.Set("towerdefense");
+
+		mModels.PreloadModels(resources, StringView[](
+			// Tiles
+			"tile", "tile-straight", "tile-rock",
+			"tile-spawn-round", "tile-end-round",
+			"tile-corner-round", "selection-a",
+			// Enemies
+			"enemy-ufo-a", "enemy-ufo-b", "enemy-ufo-c", "enemy-ufo-d",
+			// Towers
+			"tower-round-base", "tower-square-bottom-a",
+			// Weapons
+			"weapon-ballista", "weapon-cannon", "weapon-catapult", "weapon-turret",
+			// Ammo
+			"weapon-ammo-arrow", "weapon-ammo-cannonball", "weapon-ammo-boulder", "weapon-ammo-bullet"
+		));
+
+		// Build manifest from loaded models and wire to game subsystem
+		mManifest = ModelManifest.BuildFromRegistry(mModels);
+		mGameSub.Manifest = mManifest;
+
+		// Create scene (triggers OnSceneCreated - component managers get manifest)
+		mScene = sceneSub.CreateScene("GameScene");
+
+		// Camera
+		mCamera.CameraEntity = mScene.CreateEntity("Camera");
+		let cameraMgr = mScene.GetModule<CameraComponentManager>();
+		if (cameraMgr != null)
+			cameraMgr.CreateComponent(mCamera.CameraEntity);
+
+		// Directional light
+		let lightEntity = mScene.CreateEntity("Sun");
+		mScene.SetLocalTransform(lightEntity, Transform.CreateLookAt(.(10, 15, 10), .Zero));
+		let lightMgr = mScene.GetModule<LightComponentManager>();
+		if (lightMgr != null)
+		{
+			let lightHandle = lightMgr.CreateComponent(lightEntity);
+			if (let light = lightMgr.Get(lightHandle))
+			{
+				light.Type = .Directional;
+				light.Color = .(1.0f, 0.95f, 0.85f);
+				light.Intensity = 1.2f;
+				light.CastsShadows = true;
+			}
+		}
+
+		// Build the map
+		mGameSub.Map.BuildMap(MapData.CreateMap1(), mScene, mManifest);
+		mGameSub.UpdateWaypoints();
+
+		// Save everything to cache
 		ExportForEditor();
+
+		// Also save manifest
+		let manifestPath = scope String();
+		Path.InternalCombine(manifestPath, cacheDir, "models.manifest");
+		mManifest.SaveToFile(manifestPath);
+		Console.WriteLine("[Startup] Saved manifest: {}", manifestPath);
+	}
+
+	/// Subsequent runs: load from cached files, no FBX import.
+	private void LoadFromCache(StringView cacheDir, StringView registryPath, StringView scenePath, StringView manifestPath)
+	{
+		Console.WriteLine("[Startup] Loading from cache...");
+
+		let sceneSub = Context.GetSubsystem<SceneSubsystem>();
+
+		// Load and register the cached resource registry
+		mCachedRegistry = new ResourceRegistry("towerdefense", cacheDir);
+		mCachedRegistry.LoadFromFile(registryPath);
+		ResourceSystem.AddRegistry(mCachedRegistry);
+
+		// Load model manifest and wire to game subsystem
+		mManifest = new ModelManifest();
+		mManifest.LoadFromFile(manifestPath);
+		mGameSub.Manifest = mManifest;
+
+		// Create scene (triggers ISceneAware - component managers get manifest)
+		mScene = sceneSub.CreateScene("GameScene");
+
+		// Deserialize scene from file
+		let provider = ResourceSystem.SerializerProvider;
+		let fileText = scope String();
+		File.ReadAllText(scenePath, fileText);
+		let reader = provider.CreateReader(fileText);
+		defer delete reader;
+
+		let typeReg = scope ComponentTypeRegistry();
+		let sceneRes = scope SceneResource();
+		sceneRes.Scene = mScene;
+		sceneRes.TypeRegistry = typeReg;
+		sceneRes.Serialize(reader);
+
+		// Find camera entity by name
+		for (let entity in mScene.Entities)
+		{
+			if (mScene.GetEntityName(entity) == "Camera")
+			{
+				mCamera.CameraEntity = entity;
+				break;
+			}
+		}
+
+		// Init map data without building entities (scene already has them)
+		mGameSub.Map.InitMapData(MapData.CreateMap1());
+		mGameSub.UpdateWaypoints();
+
+		Console.WriteLine("[Startup] Loaded from cache");
 	}
 
 	/// Saves all loaded resources (meshes, materials, textures) and the scene
@@ -187,7 +268,7 @@ class TowerDefenseApp : EngineApplication
 
 		let registry = scope ResourceRegistry("towerdefense", outputDir);
 
-		// Save meshes — names already have registry protocol from ModelRegistry
+		// Save meshes - names already have registry protocol from ModelRegistry
 		for (let loaded in mModels.[Friend]mLoadedModels)
 		{
 			if (loaded.MeshResource != null)
@@ -232,7 +313,7 @@ class TowerDefenseApp : EngineApplication
 			}
 		}
 
-		// Save scene — component ResourceRefs already carry registry protocol paths
+		// Save scene - component ResourceRefs already carry registry protocol paths
 		if (mScene != null)
 		{
 			let typeReg = scope ComponentTypeRegistry();
@@ -329,7 +410,7 @@ class TowerDefenseApp : EngineApplication
 			if (keyboard.IsKeyPressed(.Num0)) { mTowerPlacement.SelectedType = null; }
 
 			// Tower placement (mouse click on grid)
-			mTowerPlacement.Update(mouse, mScene, mGameSub, mGameSub.TowerMgr, mModels, ResourceSystem, mCamera.CameraEntity);
+			mTowerPlacement.Update(mouse, mScene, mGameSub, mGameSub.TowerMgr, mCamera.CameraEntity);
 
 			// Draw debug markers on tower slots and hover
 			let renderSub = Context.GetSubsystem<RenderSubsystem>();
@@ -337,7 +418,7 @@ class TowerDefenseApp : EngineApplication
 			{
 				mTowerPlacement.DrawDebug(renderSub.DebugDraw, mGameSub);
 
-				// Health bars — billboard using camera vectors
+				// Health bars - billboard using camera vectors
 			let offsetY = mCamera.Zoom * Math.Cos(mCamera.ViewAngle);
 			let offsetZ = mCamera.Zoom * Math.Sin(mCamera.ViewAngle);
 			let camPos = mCamera.LookTarget + Vector3(0, offsetY, offsetZ);

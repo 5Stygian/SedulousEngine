@@ -19,6 +19,9 @@ class TowerPlacement
 	/// Currently selected placed tower (for info/upgrade/sell). Invalid = none.
 	public EntityHandle SelectedTower = .Invalid;
 
+	/// Model manifest for constructing ResourceRefs.
+	public ModelManifest Manifest;
+
 	/// Hover grid position (valid when mouse is over a valid cell).
 	public int32 HoverX;
 	public int32 HoverZ;
@@ -32,8 +35,7 @@ class TowerPlacement
 	/// Places a tower, selects a placed tower, or updates hover. Call each frame.
 	public void Update(
 		IMouse mouse, Scene scene, GameSubsystem gameSub,
-		TowerComponentManager towerMgr, ModelRegistry models,
-		ResourceSystem resources, EntityHandle cameraEntity)
+		TowerComponentManager towerMgr, EntityHandle cameraEntity)
 	{
 		HoverValid = false;
 
@@ -116,7 +118,7 @@ class TowerPlacement
 			HoverValid = gameSub.Map.CanPlaceTower(gx, gz);
 
 			let worldPos = gameSub.Map.CurrentMap.GridToWorld(gx, gz);
-			UpdatePreview(scene, models, resources, worldPos);
+			UpdatePreview(scene, worldPos);
 
 			// Place on left click
 			if (mouse.IsButtonPressed(.Left) && HoverValid)
@@ -127,7 +129,7 @@ class TowerPlacement
 
 				if (gameSub.SpendGold(cost))
 				{
-					let entity = BuildTower(scene, towerMgr, models, resources, gameSub, towerType, gx, gz);
+					let entity = BuildTower(scene, towerMgr, gameSub, towerType, gx, gz);
 
 					if (entity != .Invalid)
 					{
@@ -156,7 +158,7 @@ class TowerPlacement
 		}
 		else
 		{
-			// Selection mode — no tower type selected, click to select placed tower
+			// Selection mode - no tower type selected, click to select placed tower
 			HidePreview(scene);
 
 			if (mouse.IsButtonPressed(.Left))
@@ -367,9 +369,33 @@ class TowerPlacement
 		}
 	}
 
+	// ==================== Mesh Attachment Helper ====================
+
+	/// Attaches a mesh component to an entity using manifest data.
+	private static void AttachMesh(Scene scene, EntityHandle entity, ModelManifestEntry entry)
+	{
+		if (entry == null) return;
+		let meshMgr = scene.GetModule<MeshComponentManager>();
+		if (meshMgr == null) return;
+
+		let meshHandle = meshMgr.CreateComponent(entity);
+		if (let mesh = meshMgr.Get(meshHandle))
+		{
+			var meshRef = entry.GetMeshRef();
+			defer meshRef.Dispose();
+			mesh.SetMeshRef(meshRef);
+			for (int32 slot = 0; slot < entry.MaterialCount; slot++)
+			{
+				var matRef = entry.GetMaterialRef(slot);
+				defer matRef.Dispose();
+				mesh.SetMaterialRef(slot, matRef);
+			}
+		}
+	}
+
 	// ==================== Preview Entity ====================
 
-	private void UpdatePreview(Scene scene, ModelRegistry models, ResourceSystem resources, Vector3 worldPos)
+	private void UpdatePreview(Scene scene, Vector3 worldPos)
 	{
 		if (SelectedType == null)
 		{
@@ -380,7 +406,7 @@ class TowerPlacement
 		if (mPreviewType != SelectedType)
 		{
 			HidePreview(scene);
-			CreatePreview(scene, models, resources);
+			CreatePreview(scene);
 			mPreviewType = SelectedType;
 		}
 
@@ -394,9 +420,9 @@ class TowerPlacement
 		}
 	}
 
-	private void CreatePreview(Scene scene, ModelRegistry models, ResourceSystem resources)
+	private void CreatePreview(Scene scene)
 	{
-		if (SelectedType == null)
+		if (SelectedType == null || Manifest == null)
 			return;
 
 		let stats = TowerStats.Get(SelectedType.Value);
@@ -408,23 +434,7 @@ class TowerPlacement
 		transform.Scale = .One;
 		scene.SetLocalTransform(mPreviewBase, transform);
 
-		let meshMgr = scene.GetModule<MeshComponentManager>();
-		if (meshMgr != null)
-		{
-			let baseLoaded = models.LoadModel(stats.BaseModel, resources);
-			if (baseLoaded != null)
-			{
-				let meshHandle = meshMgr.CreateComponent(mPreviewBase);
-				if (let mesh = meshMgr.Get(meshHandle))
-				{
-					var meshRef = ResourceRef(baseLoaded.MeshResource.Id, baseLoaded.MeshRefPath);
-					defer meshRef.Dispose();
-					mesh.SetMeshRef(meshRef);
-					for (int32 slot = 0; slot < baseLoaded.MaterialRefs.Count; slot++)
-						mesh.SetMaterialRef(slot, baseLoaded.MaterialRefs[slot]);
-				}
-			}
-		}
+		AttachMesh(scene, mPreviewBase, Manifest.Get(stats.BaseModel));
 
 		mPreviewWeapon = scene.CreateEntity("WeaponPreview");
 		scene.SetParent(mPreviewWeapon, mPreviewBase);
@@ -435,22 +445,7 @@ class TowerPlacement
 		weaponTransform.Scale = .One;
 		scene.SetLocalTransform(mPreviewWeapon, weaponTransform);
 
-		if (meshMgr != null)
-		{
-			let weaponLoaded = models.LoadModel(stats.WeaponModel, resources);
-			if (weaponLoaded != null)
-			{
-				let meshHandle = meshMgr.CreateComponent(mPreviewWeapon);
-				if (let mesh = meshMgr.Get(meshHandle))
-				{
-					var meshRef = ResourceRef(weaponLoaded.MeshResource.Id, weaponLoaded.MeshRefPath);
-					defer meshRef.Dispose();
-					mesh.SetMeshRef(meshRef);
-					for (int32 slot = 0; slot < weaponLoaded.MaterialRefs.Count; slot++)
-						mesh.SetMaterialRef(slot, weaponLoaded.MaterialRefs[slot]);
-				}
-			}
-		}
+		AttachMesh(scene, mPreviewWeapon, Manifest.Get(stats.WeaponModel));
 	}
 
 	private void HidePreview(Scene scene)
@@ -466,8 +461,7 @@ class TowerPlacement
 	// ==================== Tower Building ====================
 
 	private EntityHandle BuildTower(Scene scene, TowerComponentManager towerMgr,
-		ModelRegistry models, ResourceSystem resources, GameSubsystem gameSub,
-		TowerType type, int32 gx, int32 gz)
+		GameSubsystem gameSub, TowerType type, int32 gx, int32 gz)
 	{
 		let stats = TowerStats.Get(type);
 		let levelStats = stats.Levels[0];
@@ -480,23 +474,8 @@ class TowerPlacement
 		transform.Scale = .One;
 		scene.SetLocalTransform(baseEntity, transform);
 
-		let meshMgr = scene.GetModule<MeshComponentManager>();
-		if (meshMgr != null)
-		{
-			let baseLoaded = models.LoadModel(stats.BaseModel, resources);
-			if (baseLoaded != null)
-			{
-				let meshHandle = meshMgr.CreateComponent(baseEntity);
-				if (let mesh = meshMgr.Get(meshHandle))
-				{
-					var meshRef = ResourceRef(baseLoaded.MeshResource.Id, baseLoaded.MeshRefPath);
-					defer meshRef.Dispose();
-					mesh.SetMeshRef(meshRef);
-					for (int32 slot = 0; slot < baseLoaded.MaterialRefs.Count; slot++)
-						mesh.SetMaterialRef(slot, baseLoaded.MaterialRefs[slot]);
-				}
-			}
-		}
+		if (Manifest != null)
+			AttachMesh(scene, baseEntity, Manifest.Get(stats.BaseModel));
 
 		let weaponEntity = scene.CreateEntity("Weapon");
 		scene.SetParent(weaponEntity, baseEntity);
@@ -507,22 +486,8 @@ class TowerPlacement
 		weaponTransform.Scale = .One;
 		scene.SetLocalTransform(weaponEntity, weaponTransform);
 
-		if (meshMgr != null)
-		{
-			let weaponLoaded = models.LoadModel(stats.WeaponModel, resources);
-			if (weaponLoaded != null)
-			{
-				let meshHandle = meshMgr.CreateComponent(weaponEntity);
-				if (let mesh = meshMgr.Get(meshHandle))
-				{
-					var meshRef = ResourceRef(weaponLoaded.MeshResource.Id, weaponLoaded.MeshRefPath);
-					defer meshRef.Dispose();
-					mesh.SetMeshRef(meshRef);
-					for (int32 slot = 0; slot < weaponLoaded.MaterialRefs.Count; slot++)
-						mesh.SetMaterialRef(slot, weaponLoaded.MaterialRefs[slot]);
-				}
-			}
-		}
+		if (Manifest != null)
+			AttachMesh(scene, weaponEntity, Manifest.Get(stats.WeaponModel));
 
 		let compHandle = towerMgr.CreateComponent(baseEntity);
 		if (let comp = towerMgr.Get(compHandle))

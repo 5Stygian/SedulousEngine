@@ -84,7 +84,7 @@ class GameOverUI
 
 		content.AddView(btnRow);
 
-		// Add to view tree immediately — view tree owns mRoot
+		// Add to view tree immediately - view tree owns mRoot
 		root.AddView(mRoot, new LayoutParams() { Width = .Match, Height = .Match });
 
 		// Subscribe to GameOverMsg

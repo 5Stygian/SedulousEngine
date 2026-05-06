@@ -13,8 +13,7 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 {
 	public MessageBus Bus;
 	public EnemyComponentManager EnemyMgr;
-	public ModelRegistry Models;
-	public ResourceSystem Resources;
+	public ModelManifest Manifest;
 	public float GameSpeed = 1.0f;
 
 	public override StringView SerializationTypeId => "TowerDefense.ProjectileComponent";
@@ -38,22 +37,26 @@ class ProjectileComponentManager : ComponentManager<ProjectileComponent>
 		transform.Scale = .(0.5f, 0.5f, 0.5f); // projectiles are small
 		scene.SetLocalTransform(entity, transform);
 
-		// Attach mesh
+		// Attach mesh from manifest
 		let meshMgr = scene.GetModule<MeshComponentManager>();
-		if (meshMgr != null && Models != null)
+		if (meshMgr != null && Manifest != null)
 		{
-			let loaded = Models.LoadModel(ammoModelName, Resources);
-			if (loaded != null)
+			let entry = Manifest.Get(ammoModelName);
+			if (entry != null)
 			{
 				let meshHandle = meshMgr.CreateComponent(entity);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshRefPath);
+					var meshRef = entry.GetMeshRef();
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 
-					for (int32 slot = 0; slot < loaded.MaterialRefs.Count; slot++)
-						mesh.SetMaterialRef(slot, loaded.MaterialRefs[slot]);
+					for (int32 slot = 0; slot < entry.MaterialCount; slot++)
+					{
+						var matRef = entry.GetMaterialRef(slot);
+						defer matRef.Dispose();
+						mesh.SetMaterialRef(slot, matRef);
+					}
 				}
 			}
 		}

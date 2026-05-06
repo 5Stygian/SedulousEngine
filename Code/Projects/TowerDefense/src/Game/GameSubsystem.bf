@@ -6,7 +6,6 @@ using Sedulous.Engine.Core;
 using Sedulous.Messaging;
 using Sedulous.Messaging.Runtime;
 using Sedulous.Engine;
-using Sedulous.Resources;
 
 /// Central game subsystem. Manages game state (gold, lives, phase, speed) and
 /// injects all gameplay ComponentManagers into scenes. Owns MapSystem
@@ -28,8 +27,7 @@ class GameSubsystem : Subsystem, ISceneAware
 	private WaveSystem mWaveSystem = new .() ~ delete _;
 
 	// Injected references (set by TowerDefenseApp before startup)
-	public ModelRegistry Models;
-	public ResourceSystem Resources;
+	public ModelManifest Manifest;
 
 	// Component managers (injected into scene, held for cross-system access)
 	private EnemyComponentManager mEnemyMgr;
@@ -186,7 +184,7 @@ class GameSubsystem : Subsystem, ISceneAware
 					}
 					else
 					{
-						// Between waves — wait for player to start next
+						// Between waves - wait for player to start next
 						SetPhase(.WavePaused);
 					}
 				});
@@ -234,16 +232,14 @@ class GameSubsystem : Subsystem, ISceneAware
 		// Inject enemy component manager
 		mEnemyMgr = new EnemyComponentManager();
 		mEnemyMgr.Bus = mBus;
-		mEnemyMgr.Models = Models;
-		mEnemyMgr.Resources = Resources;
+		mEnemyMgr.Manifest = Manifest;
 		scene.AddModule(mEnemyMgr);
 
 		// Inject projectile component manager
 		mProjectileMgr = new ProjectileComponentManager();
 		mProjectileMgr.Bus = mBus;
 		mProjectileMgr.EnemyMgr = mEnemyMgr;
-		mProjectileMgr.Models = Models;
-		mProjectileMgr.Resources = Resources;
+		mProjectileMgr.Manifest = Manifest;
 		scene.AddModule(mProjectileMgr);
 
 		// Inject tower component manager

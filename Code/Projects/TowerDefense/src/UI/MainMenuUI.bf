@@ -66,7 +66,7 @@ class MainMenuUI
 		controls.HAlign = .Center;
 		content.AddView(controls);
 
-		// Add to view tree immediately — view tree owns mRoot
+		// Add to view tree immediately - view tree owns mRoot
 		root.AddView(mRoot, new LayoutParams() { Width = .Match, Height = .Match });
 	}
 

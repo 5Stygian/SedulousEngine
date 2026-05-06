@@ -22,11 +22,8 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 	/// Waypoints that enemies follow (set by GameSubsystem from MapData).
 	public List<Vector3> Waypoints;
 
-	/// Model registry for spawning enemy meshes.
-	public ModelRegistry Models;
-
-	/// Resource system for mesh refs.
-	public ResourceSystem Resources;
+	/// Model manifest for constructing ResourceRefs when spawning enemies.
+	public ModelManifest Manifest;
 
 	public override StringView SerializationTypeId => "TowerDefense.EnemyComponent";
 
@@ -52,22 +49,26 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 		transform.Scale = .One;
 		Scene.SetLocalTransform(entity, transform);
 
-		// Attach mesh
+		// Attach mesh from manifest
 		let meshMgr = Scene.GetModule<MeshComponentManager>();
-		if (meshMgr != null && Models != null)
+		if (meshMgr != null && Manifest != null)
 		{
-			let loaded = Models.LoadModel(stats.ModelName, Resources);
-			if (loaded != null)
+			let entry = Manifest.Get(stats.ModelName);
+			if (entry != null)
 			{
 				let meshHandle = meshMgr.CreateComponent(entity);
 				if (let mesh = meshMgr.Get(meshHandle))
 				{
-					var meshRef = ResourceRef(loaded.MeshResource.Id, loaded.MeshRefPath);
+					var meshRef = entry.GetMeshRef();
 					defer meshRef.Dispose();
 					mesh.SetMeshRef(meshRef);
 
-					for (int32 slot = 0; slot < loaded.MaterialRefs.Count; slot++)
-						mesh.SetMaterialRef(slot, loaded.MaterialRefs[slot]);
+					for (int32 slot = 0; slot < entry.MaterialCount; slot++)
+					{
+						var matRef = entry.GetMaterialRef(slot);
+						defer matRef.Dispose();
+						mesh.SetMaterialRef(slot, matRef);
+					}
 				}
 			}
 		}
@@ -208,7 +209,7 @@ class EnemyComponentManager : ComponentManager<EnemyComponent>
 				center - right * halfW - up * halfH,
 				.(60, 20, 20, 200), overlay: true);
 
-			// Health fill — left-aligned, billboard
+			// Health fill - left-aligned, billboard
 			let fillW = barWidth * healthRatio;
 			let fillLeft = center - right * halfW;
 
