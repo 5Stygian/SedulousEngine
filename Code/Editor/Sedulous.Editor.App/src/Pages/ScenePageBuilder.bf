@@ -220,9 +220,15 @@ static class ScenePageBuilder
 		// === Viewport Toolbar ===
 		let toolbar = new Toolbar();
 
-		let translateBtn = toolbar.AddToggle("W Translate");
-		let rotateBtn = toolbar.AddToggle("E Rotate");
-		let scaleBtn = toolbar.AddToggle("R Scale");
+		let translateBtn = toolbar.AddToggle("W");
+		if (EditorIcons.TranslateIcon != null)
+			translateBtn.SetIcon(new (ctx, rect) => { EditorIcons.TranslateIcon.Draw(ctx, rect); });
+		let rotateBtn = toolbar.AddToggle("E");
+		if (EditorIcons.RotateIcon != null)
+			rotateBtn.SetIcon(new (ctx, rect) => { EditorIcons.RotateIcon.Draw(ctx, rect); });
+		let scaleBtn = toolbar.AddToggle("R");
+		if (EditorIcons.ScaleIcon != null)
+			scaleBtn.SetIcon(new (ctx, rect) => { EditorIcons.ScaleIcon.Draw(ctx, rect); });
 		translateBtn.IsChecked = true;
 
 		translateBtn.OnCheckedChanged.Add(new (btn, val) => {
@@ -238,9 +244,14 @@ static class ScenePageBuilder
 		toolbar.AddSeparator();
 
 		let worldSpaceBtn = toolbar.AddToggle("World");
+		worldSpaceBtn.SetIcon(new (ctx, rect) => {
+			let icon = page.WorldSpace ? EditorIcons.WorldSpaceIcon : EditorIcons.LocalSpaceIcon;
+			if (icon != null) icon.Draw(ctx, rect);
+		});
 		worldSpaceBtn.IsChecked = page.WorldSpace;
 		worldSpaceBtn.OnCheckedChanged.Add(new (btn, val) => {
 			page.WorldSpace = val;
+			btn.SetText(val ? "World" : "Local");
 		});
 
 		container.AddView(toolbar, new FlexLayout.LayoutParams() {

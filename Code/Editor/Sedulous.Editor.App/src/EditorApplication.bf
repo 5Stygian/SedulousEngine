@@ -125,6 +125,9 @@ class EditorApplication : Application, IDockableWindowHost
 		// Clipboard
 		mClipboard = new ShellClipboardAdapter(Shell.Clipboard);
 
+		// Editor icons (shared SVG drawables)
+		EditorIcons.Initialize();
+
 		// UI context
 		Sedulous.UI.ThemeRegistry.RegisterExtension(new ToolkitThemeExtension());
 		Sedulous.UI.ThemeRegistry.RegisterExtension(new EditorThemeExtension());
@@ -404,19 +407,19 @@ class EditorApplication : Application, IDockableWindowHost
 		mEditorContext.PageManager.OnPageOpened.Add(new (page) => OnPageOpened(page));
 		mEditorContext.PageManager.OnPageClosed.Add(new (page) => OnPageClosed(page));
 
-		// Console panel (bottom)
+		// Asset browser panel (bottom)
+		mAssetBrowserPanel = new AssetBrowserPanel(mEditorContext);
+		let assetsPanel = dockManager.AddPanel("Assets", mAssetBrowserPanel.ContentView);
+		dockManager.DockPanelRelativeTo(assetsPanel, .Bottom, mPlaceholderPanel.Parent);
+
+		// Console panel (bottom tab with assets)
 		mLogView = new LogView();
 		mLogBuffer.SetLogView(mLogView); // Flushes buffered startup logs
 		let consolePanel = dockManager.AddPanel("Console", mLogView);
-		dockManager.DockPanelRelativeTo(consolePanel, .Bottom, mPlaceholderPanel.Parent);
+		dockManager.DockPanelRelativeTo(consolePanel, .Center, assetsPanel.Parent);
 
-		// Asset browser panel (bottom tab with console)
-		mAssetBrowserPanel = new AssetBrowserPanel(mEditorContext);
-		let assetsPanel = dockManager.AddPanel("Assets", mAssetBrowserPanel.ContentView);
-		dockManager.DockPanelRelativeTo(assetsPanel, .Center, consolePanel.Parent);
-
-		// Set split ratio for page area vs console (70/30)
-		if (let split = consolePanel.Parent?.Parent as DockSplit)
+		// Set split ratio for page area vs bottom panels (70/30)
+		if (let split = assetsPanel.Parent?.Parent as DockSplit)
 			split.SplitRatio = 0.7f;
 
 		// Status bar
@@ -1266,6 +1269,8 @@ class EditorApplication : Application, IDockableWindowHost
 
 		delete mMainRoot;
 		mMainRoot = null;
+
+		EditorIcons.Shutdown();
 
 		if (mVGRenderer != null)
 		{
