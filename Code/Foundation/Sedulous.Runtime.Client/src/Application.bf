@@ -12,6 +12,8 @@ using Sedulous.Profiler;
 using Sedulous.Serialization.OpenDDL;
 using Sedulous.Resources;
 using Sedulous.Core.Logging.Abstractions;
+using System.Threading;
+using Sedulous.Jobs;
 
 namespace Sedulous.Runtime.Client;
 
@@ -234,7 +236,7 @@ abstract class Application
 			}
 
 			// Process completed async jobs and resource loads.
-			Sedulous.Jobs.JobSystem.ProcessCompletions();
+			JobSystem.ProcessCompletions();
 			mResourceSystem.Update();
 
 			// Update framework - BeginFrame, Update, PostUpdate
@@ -276,7 +278,7 @@ abstract class Application
 				float sleepTime = mTargetFrameTime - frameElapsed;
 				if (sleepTime > 0.001f)  // Only sleep if > 1ms remaining
 				{
-					System.Threading.Thread.Sleep((int32)(sleepTime * 1000));
+					Thread.Sleep((int32)(sleepTime * 1000));
 				}
 			}
 		}
@@ -285,7 +287,8 @@ abstract class Application
 		OnShutdown();
 		mContext.Shutdown();
 		mResourceSystem.Shutdown();
-		Sedulous.Jobs.JobSystem.Shutdown();
+		JobSystem.Shutdown();
+		OnCleanup();
 		Cleanup();
 
 		return 0;
@@ -323,6 +326,8 @@ abstract class Application
 
 	/// Called once at shutdown before cleanup.
 	protected virtual void OnShutdown() { }
+
+	protected virtual void OnCleanup() {}
 
 	/// Called when the window is resized.
 	protected virtual void OnResize(int32 width, int32 height) { }

@@ -4,19 +4,35 @@ using System;
 using System.Collections;
 using Sedulous.Runtime;
 using Sedulous.Engine.Core;
+using Sedulous.Engine.Core.Resources;
+using Sedulous.Resources;
+using Sedulous.Serialization;
 
 /// Manages scene lifecycle and updates.
 /// Runs early (UpdateOrder -500) so scenes are updated before rendering.
 ///
 /// When a scene is created, all ISceneAware subsystems are notified
-/// so they can inject their component managers.
-class SceneSubsystem : Subsystem
+/// so they can inject their component managers. Owns SceneResourceManager
+/// and PrefabResourceManager (registered with ResourceSystem).
+class SceneSubsystem : Subsystem, ISceneAware
 {
 	private List<Scene> mScenes = new .() ~ delete _;
 	private List<Scene> mActiveScenes = new .() ~ delete _;
 	private List<Scene> mPendingRemoves = new .() ~ delete _;
 
+	// Resource managers (owned, registered with ResourceSystem)
+	private SceneResourceManager mSceneResourceManager ~ delete _;
+	private PrefabResourceManager mPrefabResourceManager ~ delete _;
+	private ResourceSystem mResourceSystem;
+	private ComponentTypeRegistry mTypeRegistry;
+
 	public override int32 UpdateOrder => -500;
+
+	public this(ResourceSystem resourceSystem, ComponentTypeRegistry typeRegistry = null)
+	{
+		mResourceSystem = resourceSystem;
+		mTypeRegistry = typeRegistry;
+	}
 
 	/// Gets all scenes.
 	public Span<Scene> Scenes => mScenes;
@@ -61,8 +77,27 @@ class SceneSubsystem : Subsystem
 
 	// ==================== Subsystem Lifecycle ====================
 
+	/// The scene resource manager (for loading/saving .scene files).
+	public SceneResourceManager SceneResourceManager => mSceneResourceManager;
+
+	/// The prefab resource manager (for loading/saving .prefab files).
+	public PrefabResourceManager PrefabResourceManager => mPrefabResourceManager;
+
+	/// The component type registry.
+	public ComponentTypeRegistry TypeRegistry => mTypeRegistry;
+
 	protected override void OnInit()
 	{
+		let serializerProvider = mResourceSystem?.SerializerProvider;
+
+		if (serializerProvider != null)
+		{
+			mSceneResourceManager = new SceneResourceManager(mTypeRegistry, serializerProvider);
+			mResourceSystem.AddResourceManager(mSceneResourceManager);
+
+			mPrefabResourceManager = new PrefabResourceManager(mTypeRegistry, serializerProvider);
+			mResourceSystem.AddResourceManager(mPrefabResourceManager);
+		}
 	}
 
 	protected override void OnShutdown()
@@ -74,6 +109,15 @@ class SceneSubsystem : Subsystem
 		mScenes.Clear();
 		mActiveScenes.Clear();
 		mPendingRemoves.Clear();
+
+		// Unregister resource managers from ResourceSystem before deleting them
+		if (mResourceSystem != null)
+		{
+			if (mSceneResourceManager != null)
+				mResourceSystem.RemoveResourceManager(mSceneResourceManager);
+			if (mPrefabResourceManager != null)
+				mResourceSystem.RemoveResourceManager(mPrefabResourceManager);
+		}
 	}
 
 	// ==================== Update Loop ====================
@@ -138,6 +182,23 @@ class SceneSubsystem : Subsystem
 				aware.OnSceneDestroyed(scene);
 		}
 	}
+
+	// ==================== ISceneAware ====================
+
+	public void OnSceneCreated(Scene scene)
+	{
+		// Inject prefab component managers into every scene
+		let prefabMgr = new PrefabComponentManager();
+		prefabMgr.ResourceSystem = mResourceSystem;
+		prefabMgr.SerializerProvider = mResourceSystem?.SerializerProvider;
+		prefabMgr.TypeRegistry = mTypeRegistry;
+		scene.AddModule(prefabMgr);
+
+		scene.AddModule(new PrefabInstanceTagManager());
+	}
+
+	public void OnSceneReady(Scene scene) { }
+	public void OnSceneDestroyed(Scene scene) { }
 
 	private void DestroySceneImmediate(Scene scene)
 	{

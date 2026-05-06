@@ -135,7 +135,7 @@ class ModelViewerApp : Application
 
 		// Runtime context (embedded engine)
 		mRuntimeContext = new Context();
-		mRuntimeContext.RegisterSubsystem(new SceneSubsystem());
+		mRuntimeContext.RegisterSubsystem(new SceneSubsystem(ResourceSystem));
 
 		let renderSub = new RenderSubsystem(ResourceSystem);
 		renderSub.Device = Device;

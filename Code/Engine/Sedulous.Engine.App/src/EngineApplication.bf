@@ -294,7 +294,7 @@ abstract class EngineApplication : IDisposable
 		let inputSub = new InputSubsystem();
 		inputSub.SetInputManager(mShell.InputManager);
 		mContext.RegisterSubsystem(inputSub);                    // -900
-		mContext.RegisterSubsystem(new SceneSubsystem());        // -500
+		mContext.RegisterSubsystem(new SceneSubsystem(mResourceSystem));        // -500
 		mContext.RegisterSubsystem(new PhysicsSubsystem());                  // -100
 		mContext.RegisterSubsystem(new AnimationSubsystem(mResourceSystem));  //  100
 		mContext.RegisterSubsystem(new AudioSubsystem(mResourceSystem));      //  200

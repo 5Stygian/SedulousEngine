@@ -8,9 +8,10 @@ using Sedulous.Resources;
 using static Sedulous.Resources.ResourceSerializerExtensions;
 using Sedulous.Core.Mathematics;
 
-/// Serializes and deserializes scenes using the Sedulous.Serialization framework.
-/// Handles entities, transforms, parent-child hierarchy, and components.
-class SceneSerializer
+/// Serializes and deserializes prefabs. Reuses the same entity/component
+/// format as SceneSerializer with an additional ExposedParameters section.
+/// No module-level data (prefabs are entity subgraphs, not full scenes).
+class PrefabSerializer
 {
 	private ComponentTypeRegistry mTypeRegistry;
 
@@ -19,22 +20,31 @@ class SceneSerializer
 		mTypeRegistry = typeRegistry;
 	}
 
-	/// Serializes a scene to a serializer (write mode).
-	public SerializationResult Save(Scene scene, Serializer serializer)
+	/// Serializes a prefab (scene entities + exposed parameters) to a serializer.
+	public SerializationResult Save(Scene scene, List<ExposedParameterDescriptor> parameters, Serializer serializer)
 	{
-		// Collect alive entities, skipping prefab-instantiated entities.
-		// Those are recreated at runtime by PrefabComponentManager and should
-		// not be persisted — only the PrefabReferenceComponent is saved.
-		let tagMgr = scene.GetModule<PrefabInstanceTagManager>();
-		let entities = scope List<EntityHandle>();
-		for (let entity in scene.Entities)
+		// Exposed parameters
+		var paramCount = (int32)parameters.Count;
+		serializer.BeginArray("ExposedParameters", ref paramCount);
+
+		for (let param in parameters)
 		{
-			if (tagMgr != null && tagMgr.GetForEntity(entity) != null)
-				continue; // Skip prefab instance entities
-			entities.Add(entity);
+			serializer.BeginObject("");
+			serializer.String("Name", param.Name);
+			var entityId = param.EntityId;
+			serializer.Guid("EntityId", ref entityId);
+			serializer.String("ComponentType", param.ComponentTypeId);
+			serializer.String("Property", param.PropertyName);
+			serializer.EndObject();
 		}
 
-		// Collect serializable modules
+		serializer.EndArray();
+
+		// Entities - same format as SceneSerializer
+		let entities = scope List<EntityHandle>();
+		for (let entity in scene.Entities)
+			entities.Add(entity);
+
 		let serializableModules = scope List<SceneModule>();
 		for (let module in scene.Modules)
 		{
@@ -42,7 +52,6 @@ class SceneSerializer
 				serializableModules.Add(module);
 		}
 
-		// Write entity array
 		var entityCount = (int32)entities.Count;
 		serializer.BeginArray("Entities", ref entityCount);
 
@@ -50,7 +59,6 @@ class SceneSerializer
 		{
 			serializer.BeginObject("");
 
-			// Entity header
 			var id = scene.GetEntityId(entity);
 			serializer.Guid("Id", ref id);
 
@@ -65,11 +73,10 @@ class SceneSerializer
 			var parentId = parentHandle.IsAssigned ? scene.GetEntityId(parentHandle) : Guid.Empty;
 			serializer.Guid("Parent", ref parentId);
 
-			// Transform
 			var transform = scene.GetLocalTransform(entity);
 			SerializeTransform(serializer, ref transform);
 
-			// Components - count how many serializable modules have a component for this entity
+			// Components
 			var componentCount = (int32)0;
 			for (let module in serializableModules)
 			{
@@ -90,15 +97,11 @@ class SceneSerializer
 						continue;
 
 					serializer.BeginObject("");
-
-					// Write type ID and version
 					let typeId = scope String(module.SerializationTypeId);
 					serializer.String("TypeId", typeId);
-
 					var version = cms.GetSerializationVersion();
 					serializer.Int32("Version", ref version);
 
-					// Serialize component data inside a nested object
 					serializer.BeginObject("Data");
 					let adapter = scope ComponentSerializerAdapter(serializer, version);
 					cms.SerializeEntityComponent(entity, adapter);
@@ -109,31 +112,29 @@ class SceneSerializer
 			}
 
 			serializer.EndArray();
-
 			serializer.EndObject();
 		}
 
 		serializer.EndArray();
-
-		// Module-level data (non-entity state)
-		SaveModuleData(scene, serializer);
-
 		return .Ok;
 	}
 
-	/// Deserializes a scene from a serializer (read mode).
-	public SerializationResult Load(Scene scene, Serializer serializer)
+	/// Deserializes a prefab into a scene (entities + parameters).
+	public SerializationResult Load(Scene scene, List<ExposedParameterDescriptor> parameters, Serializer serializer)
 	{
+		// Load exposed parameters
+		LoadParameters(parameters, serializer);
+
+		// Load entities - same pattern as SceneSerializer.Load
 		var entityCount = (int32)0;
 		serializer.BeginArray("Entities", ref entityCount);
 
-		let parentMap = scope Dictionary<Guid, Guid>(); // child -> parent
+		let parentMap = scope Dictionary<Guid, Guid>();
 
 		for (int32 i = 0; i < entityCount; i++)
 		{
 			serializer.BeginObject("");
 
-			// Entity header
 			var id = Guid.Empty;
 			serializer.Guid("Id", ref id);
 
@@ -149,7 +150,6 @@ class SceneSerializer
 			var transform = Transform.Identity;
 			SerializeTransform(serializer, ref transform);
 
-			// Create entity
 			let entity = scene.CreateEntity(id, name);
 			scene.SetActive(entity, active);
 			scene.SetLocalTransform(entity, transform);
@@ -171,7 +171,6 @@ class SceneSerializer
 				var version = (int32)1;
 				serializer.Int32("Version", ref version);
 
-				// Find or create manager for this type
 				SceneModule module = FindModuleByTypeId(scene, typeId);
 				if (module == null && mTypeRegistry != null)
 				{
@@ -180,7 +179,6 @@ class SceneSerializer
 						scene.AddModule(module);
 				}
 
-				// Deserialize component data
 				if (serializer.BeginObject("Data") == .Ok)
 				{
 					if (module != null)
@@ -198,7 +196,6 @@ class SceneSerializer
 			}
 
 			serializer.EndArray();
-
 			serializer.EndObject();
 		}
 
@@ -213,102 +210,160 @@ class SceneSerializer
 				scene.SetParent(childHandle, parentHandle);
 		}
 
-		// Module-level data
-		LoadModuleData(scene, serializer);
-
 		return .Ok;
 	}
 
-	/// Saves module-level data for modules that implement IModuleSerializer.
-	private void SaveModuleData(Scene scene, Serializer serializer)
+	/// Loads only the ExposedParameters section (for resource metadata without
+	/// instantiating entities). Used when loading PrefabResource without a Scene.
+	public SerializationResult LoadParametersOnly(List<ExposedParameterDescriptor> parameters, Serializer serializer)
 	{
-		// Count modules with module-level data
-		var moduleDataCount = (int32)0;
-		for (let module in scene.Modules)
-		{
-			if (module.IsSerializable && module is IModuleSerializer)
-				moduleDataCount++;
-		}
-
-		serializer.BeginArray("Modules", ref moduleDataCount);
-
-		for (let module in scene.Modules)
-		{
-			if (!module.IsSerializable)
-				continue;
-			if (let ms = module as IModuleSerializer)
-			{
-				serializer.BeginObject("");
-
-				let typeId = scope String(module.SerializationTypeId);
-				serializer.String("TypeId", typeId);
-
-				var version = ms.GetModuleSerializationVersion();
-				serializer.Int32("Version", ref version);
-
-				serializer.BeginObject("Data");
-				let adapter = scope ComponentSerializerAdapter(serializer, version);
-				ms.SerializeModule(adapter);
-				serializer.EndObject();
-
-				serializer.EndObject();
-			}
-		}
-
-		serializer.EndArray();
+		LoadParameters(parameters, serializer);
+		// Skip entity data - not needed for metadata-only load
+		return .Ok;
 	}
 
-	/// Loads module-level data for modules that implement IModuleSerializer.
-	private void LoadModuleData(Scene scene, Serializer serializer)
+	/// Instantiates a prefab's entities into an existing scene under a parent entity.
+	/// Returns a map from prefab entity GUIDs to live entity handles.
+	/// Used by PrefabReferenceComponent during runtime instantiation.
+	public Result<Dictionary<Guid, EntityHandle>> Instantiate(
+		Scene scene, EntityHandle parentEntity,
+		Serializer serializer, List<ExposedParameterDescriptor> parameters)
 	{
-		var moduleDataCount = (int32)0;
-		if (serializer.BeginArray("Modules", ref moduleDataCount) not case .Ok)
-			return; // No module data section - older scene file
+		// Skip parameters section (already loaded on PrefabResource)
+		let skipParams = new List<ExposedParameterDescriptor>();
+		LoadParameters(skipParams, serializer);
+		DeleteContainerAndItems!(skipParams);
 
-		for (int32 i = 0; i < moduleDataCount; i++)
+		let guidMap = new Dictionary<Guid, EntityHandle>();
+		let parentMap = scope Dictionary<Guid, Guid>();
+
+		var entityCount = (int32)0;
+		serializer.BeginArray("Entities", ref entityCount);
+
+		for (int32 i = 0; i < entityCount; i++)
 		{
 			serializer.BeginObject("");
 
-			let typeId = scope String();
-			serializer.String("TypeId", typeId);
+			var sourceId = Guid.Empty;
+			serializer.Guid("Id", ref sourceId);
 
-			var version = (int32)1;
-			serializer.Int32("Version", ref version);
+			let name = scope String();
+			serializer.String("Name", name);
 
-			// Find existing module
-			SceneModule module = FindModuleByTypeId(scene, typeId);
-			if (module == null && mTypeRegistry != null)
+			var active = true;
+			serializer.Bool("Active", ref active);
+
+			var sourceParentId = Guid.Empty;
+			serializer.Guid("Parent", ref sourceParentId);
+
+			var transform = Transform.Identity;
+			SerializeTransform(serializer, ref transform);
+
+			// Create with a NEW guid (not the prefab's guid)
+			let entity = scene.CreateEntity(name);
+			scene.SetActive(entity, active);
+			scene.SetLocalTransform(entity, transform);
+			guidMap[sourceId] = entity;
+
+			if (sourceParentId != .Empty)
+				parentMap[sourceId] = sourceParentId;
+
+			// Components
+			var componentCount = (int32)0;
+			serializer.BeginArray("Components", ref componentCount);
+
+			for (int32 c = 0; c < componentCount; c++)
 			{
-				module = mTypeRegistry.CreateManager(typeId);
-				if (module != null)
-					scene.AddModule(module);
-			}
+				serializer.BeginObject("");
 
-			if (serializer.BeginObject("Data") == .Ok)
-			{
-				if (module != null)
+				let typeId = scope String();
+				serializer.String("TypeId", typeId);
+
+				var version = (int32)1;
+				serializer.Int32("Version", ref version);
+
+				SceneModule module = FindModuleByTypeId(scene, typeId);
+				if (module == null && mTypeRegistry != null)
 				{
-					if (let ms = module as IModuleSerializer)
-					{
-						let adapter = scope ComponentSerializerAdapter(serializer, version);
-						ms.DeserializeModule(adapter);
-					}
+					module = mTypeRegistry.CreateManager(typeId);
+					if (module != null)
+						scene.AddModule(module);
 				}
+
+				if (serializer.BeginObject("Data") == .Ok)
+				{
+					if (module != null)
+					{
+						if (let cms = module as IComponentManagerSerializer)
+						{
+							let adapter = scope ComponentSerializerAdapter(serializer, version);
+							cms.DeserializeEntityComponent(entity, adapter);
+						}
+					}
+					serializer.EndObject();
+				}
+
 				serializer.EndObject();
 			}
 
+			serializer.EndArray();
+			serializer.EndObject();
+		}
+
+		serializer.EndArray();
+
+		// Resolve parent-child: root entities -> parentEntity, others -> mapped parent
+		for (let kv in guidMap)
+		{
+			let sourceId = kv.key;
+			let liveHandle = kv.value;
+
+			if (parentMap.TryGetValue(sourceId, let sourceParentId))
+			{
+				// Has a parent within the prefab
+				if (guidMap.TryGetValue(sourceParentId, let liveParent))
+					scene.SetParent(liveHandle, liveParent);
+			}
+			else
+			{
+				// Root entity - parent to the reference entity
+				scene.SetParent(liveHandle, parentEntity);
+			}
+		}
+
+		return .Ok(guidMap);
+	}
+
+	// === Helpers ===
+
+	private void LoadParameters(List<ExposedParameterDescriptor> parameters, Serializer serializer)
+	{
+		var paramCount = (int32)0;
+		serializer.BeginArray("ExposedParameters", ref paramCount);
+
+		for (int32 i = 0; i < paramCount; i++)
+		{
+			serializer.BeginObject("");
+
+			let param = new ExposedParameterDescriptor();
+
+			serializer.String("Name", param.Name);
+			serializer.Guid("EntityId", ref param.EntityId);
+			serializer.String("ComponentType", param.ComponentTypeId);
+			serializer.String("Property", param.PropertyName);
+
+			parameters.Add(param);
 			serializer.EndObject();
 		}
 
 		serializer.EndArray();
 	}
 
-	/// Finds a module in the scene by its serialization type ID.
 	private SceneModule FindModuleByTypeId(Scene scene, StringView typeId)
 	{
 		for (let module in scene.Modules)
 		{
-			if (module.IsSerializable && module.SerializationTypeId == typeId)
+			if (module.SerializationTypeId == typeId)
 				return module;
 		}
 		return null;
