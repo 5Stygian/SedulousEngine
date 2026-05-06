@@ -40,6 +40,7 @@ class EditorApplication : Application, IDockableWindowHost
 	// Scene serialization (owned)
 	private ComponentTypeRegistry mTypeRegistry ~ delete _;
 	private SceneResourceManager mSceneManager ~ delete _;
+	private PrefabResourceManager mPrefabManager ~ delete _;
 
 	// Default primitive registry
 	private ResourceRegistry mPrimitiveRegistry ~ delete _;
@@ -142,10 +143,11 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Runtime context (embedded engine for scene preview)
 		mRuntimeContext = new Context();
+		mTypeRegistry = new ComponentTypeRegistry();
 
 		// Register engine subsystems for scene rendering.
 		// SceneSubsystem manages scene lifecycle.
-		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.SceneSubsystem());
+		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.SceneSubsystem(mResourceSystem, mTypeRegistry));
 
 		// RenderSubsystem provides ISceneRenderer for viewport rendering.
 		let renderSub = new Sedulous.Engine.Render.RenderSubsystem(mResourceSystem);
@@ -177,13 +179,14 @@ class EditorApplication : Application, IDockableWindowHost
 		EnsureDefaultAssets();
 
 		// Scene serialization
-		mTypeRegistry = new ComponentTypeRegistry();
 		mSceneManager = new SceneResourceManager(mTypeRegistry, ResourceSystem.SerializerProvider);
+		mPrefabManager = new PrefabResourceManager(mTypeRegistry, ResourceSystem.SerializerProvider);
 
 		// Editor context
 		mEditorContext = new EditorContext();
 		mEditorContext.RuntimeContext = mRuntimeContext;
 		mEditorContext.SceneManager = mSceneManager;
+		mEditorContext.PrefabManager = mPrefabManager;
 		mEditorContext.PageManager = new EditorPageManager();
 		mEditorContext.SceneEditor = new EditorSceneManager();
 		mEditorContext.AssetSelection = new AssetSelection();
@@ -217,6 +220,7 @@ class EditorApplication : Application, IDockableWindowHost
 		// Register built-in asset creators
 		mEditorContext.RegisterAssetCreator(new MaterialAssetCreator());
 		mEditorContext.RegisterAssetCreator(new SceneAssetCreator());
+		mEditorContext.RegisterAssetCreator(new PrefabAssetCreator());
 
 		// Register built-in asset importers
 		mEditorContext.RegisterAssetImporter(new ModelAssetImporter());
@@ -224,6 +228,8 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Register built-in page factories
 		mEditorContext.RegisterPageFactory(new SceneEditorPageFactory(
+			Device, mVGRenderer, Shell.InputManager.Keyboard, mTypeRegistry));
+		mEditorContext.RegisterPageFactory(new PrefabEditorPageFactory(
 			Device, mVGRenderer, Shell.InputManager.Keyboard, mTypeRegistry));
 
 		// Register built-in gizmo renderers
@@ -1282,6 +1288,11 @@ class EditorApplication : Application, IDockableWindowHost
 		mShaderSystem?.Dispose();
 		delete mShaderSystem;
 		mShaderSystem = null;
+	}
+
+	protected override void OnCleanup()
+	{
+
 	}
 
 	protected override void OnResize(int32 width, int32 height)

@@ -73,6 +73,20 @@ namespace Sedulous.Engine.Render
 		}
 	}
 }
+// ==================== Core Components ====================
+
+namespace Sedulous.Engine.Core
+{
+	extension PrefabReferenceComponent
+	{
+		[OnCompile(.TypeInit), Comptime]
+		static void GenerateInspector()
+		{
+			Sedulous.Editor.App.InspectorCodegen.GenerateDescribeProperties(typeof(Self));
+		}
+	}
+}
+
 // ==================== Animation Components ====================
 
 namespace Sedulous.Engine.Animation

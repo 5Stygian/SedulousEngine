@@ -87,18 +87,35 @@ class SceneEditorPage : IEditorPage
 	public void Save()
 	{
 		if (mFilePath.Length == 0) return;
-		if (mEditorContext?.SceneManager == null) return;
 
-		if (mEditorContext.SceneManager.SaveSceneToFile(mScene, mFilePath) case .Ok(let guid))
+		Result<Guid> result;
+
+		if (mFilePath.EndsWith(".prefab", .OrdinalIgnoreCase))
+		{
+			let prefabMgr = mEditorContext?.PrefabManager;
+			if (prefabMgr == null) { Console.WriteLine("ERROR: No PrefabResourceManager"); return; }
+
+			// TODO: store ExposedParameters on the page so they survive save.
+			// Currently saves with empty params — exposed parameters not yet editable.
+			let parameters = scope List<ExposedParameterDescriptor>();
+			result = prefabMgr.SavePrefabToFile(mScene, parameters, mFilePath);
+		}
+		else
+		{
+			if (mEditorContext?.SceneManager == null) return;
+			result = mEditorContext.SceneManager.SaveSceneToFile(mScene, mFilePath);
+		}
+
+		if (result case .Ok(let guid))
 		{
 			mLastSavedGuid = guid;
 			mDirty = false;
 			UpdateTitle();
-			Console.WriteLine("Scene saved: {}", mFilePath);
+			Console.WriteLine("{} saved: {}", mFilePath.EndsWith(".prefab", .OrdinalIgnoreCase) ? "Prefab" : "Scene", mFilePath);
 		}
 		else
 		{
-			Console.WriteLine("ERROR: Failed to save scene: {}", mFilePath);
+			Console.WriteLine("ERROR: Failed to save: {}", mFilePath);
 		}
 	}
 

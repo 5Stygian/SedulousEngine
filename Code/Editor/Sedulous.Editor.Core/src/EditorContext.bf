@@ -25,6 +25,7 @@ class EditorContext : IDisposable
 
 	// Scene serialization
 	public SceneResourceManager SceneManager;
+	public PrefabResourceManager PrefabManager;
 
 	// UI (editor shell)
 	public DockManager DockManager;
