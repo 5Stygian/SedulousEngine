@@ -31,7 +31,7 @@ public class ToolbarSeparator : ToolbarItem
 public class ToolbarButton : ToolbarItem
 {
 	private String mText ~ delete _;
-	private delegate void(VGContext, RectangleF) mIconDraw ~ delete _;
+	private delegate void(UIDrawContext, RectangleF) mIconDraw ~ delete _;
 
 	public Event<delegate void(ToolbarButton)> OnClick ~ _.Dispose();
 
@@ -49,7 +49,7 @@ public class ToolbarButton : ToolbarItem
 	}
 
 	/// Set a custom icon draw delegate. Drawn in the icon area before text.
-	public void SetIcon(delegate void(VGContext, RectangleF) iconDraw)
+	public void SetIcon(delegate void(UIDrawContext, RectangleF) iconDraw)
 	{
 		delete mIconDraw;
 		mIconDraw = iconDraw;
@@ -114,7 +114,7 @@ public class ToolbarButton : ToolbarItem
 		if (mIconDraw != null)
 		{
 			let iconRect = RectangleF(x, (Height - 16) * 0.5f, 16, 16);
-			mIconDraw(ctx.VG, iconRect);
+			mIconDraw(ctx, iconRect);
 			x += 16;
 		}
 
