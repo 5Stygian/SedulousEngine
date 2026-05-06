@@ -127,7 +127,10 @@ class TextureResourceManager : ResourceManager<TextureResource>
 		}
 
 		let binStream = scope FileStream();
-		if (binStream.Open(resource.BinaryPath, .Read) case .Err)
+		String relativeDir = Path.GetDirectoryPath(path, .. scope .());
+		String readPath = scope .();
+		Path.InternalCombine(readPath, relativeDir, resource.BinaryPath);
+		if (binStream.Open(readPath, .Read) case .Err)
 		{
 			delete resource;
 			return .Err;

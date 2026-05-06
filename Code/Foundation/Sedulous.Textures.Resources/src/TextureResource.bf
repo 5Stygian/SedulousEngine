@@ -181,7 +181,9 @@ class TextureResource : Resource
 			return .Err;
 
 		// Set sidecar path (relative - just the filename with .bin appended)
-		BinaryPath.Set(scope $"{path}.bin");
+		String writePath = scope $"{path}.bin";
+		BinaryPath.Clear();
+		Path.GetFileName(writePath, BinaryPath);
 
 		// Write text metadata via base class
 		if (base.SaveToFile(path, provider) case .Err)
@@ -189,7 +191,7 @@ class TextureResource : Resource
 
 		// Write binary sidecar (raw pixel data)
 		let binStream = scope FileStream();
-		if (binStream.Create(BinaryPath, .Write) case .Err)
+		if (binStream.Create(writePath, .Write) case .Err)
 			return .Err;
 
 		let pixelData = mImage.Data;

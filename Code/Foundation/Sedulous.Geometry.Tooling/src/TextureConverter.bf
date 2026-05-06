@@ -80,14 +80,24 @@ static class TextureConverter
 		SetName(result, modelTexture);
 
 		// Set source path for external textures (file-loaded via URI)
-		if (!modelTexture.Uri.IsEmpty && !basePath.IsEmpty)
+		if (!modelTexture.Uri.IsEmpty)
 		{
-			let sourcePath = scope String();
-			sourcePath.Append(basePath);
-			if (!sourcePath.EndsWith('/') && !sourcePath.EndsWith('\\'))
-				sourcePath.Append('/');
-			sourcePath.Append(modelTexture.Uri);
-			result.SourcePath.Set(sourcePath);
+			let uri = modelTexture.Uri;
+			// If the URI is already an absolute path, use it directly.
+			// Otherwise, combine with basePath.
+			if (uri.Length >= 2 && uri[1] == ':' || uri.StartsWith('/'))
+			{
+				result.SourcePath.Set(uri);
+			}
+			else if (!basePath.IsEmpty)
+			{
+				let sourcePath = scope String();
+				sourcePath.Append(basePath);
+				if (!sourcePath.EndsWith('/') && !sourcePath.EndsWith('\\'))
+					sourcePath.Append('/');
+				sourcePath.Append(uri);
+				result.SourcePath.Set(sourcePath);
+			}
 		}
 
 		return result;
