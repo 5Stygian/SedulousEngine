@@ -1,6 +1,6 @@
 uint64 %_type {126269861530532084}
 int32 %_version {1}
-string %_id {"a688f207-e634-4497-9004-d39aa6cf030b"}
+string %_id {"ce78f4ab-6285-4eac-a783-2fae9a91a1c1"}
 string %_name {"DiffuseColor_Texture"}
 string %_sourcePath {"d:\\Dev\\Beef\\BeefGFX\\SedulousEngine\\Assets\\samples/models/kenney_tower-defense-kit/Models/FBX format\\Textures\\colormap.png"}
 int32 %minFilter {3}

@@ -1,6 +1,6 @@
 uint64 %_type {8462204072068577150}
 int32 %_version {1}
-string %_id {"f9aac030-7886-4164-9d2a-356fd1e0709a"}
+string %_id {"08238964-e586-4627-b2af-d65d7e0fd3a1"}
 string %_name {"weapon-ammo-arrow"}
 string %_sourcePath {""}
 int32 %vertexCount {140}

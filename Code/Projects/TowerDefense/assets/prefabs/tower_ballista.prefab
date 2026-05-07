@@ -1,0 +1,124 @@
+uint64 %_type {2260132839145735983}
+int32 %_version {1}
+string %_id {"02cd6b9a-a761-4cd4-b8bb-c4b3ab584e3a"}
+string %_name {"tower_ballista"}
+string %_sourcePath {"D:\\Dev\\Beef\\BeefGFX\\SedulousEngine\\Code\\Projects\\TowerDefense\\assets\\prefabs\\tower_ballista.prefab"}
+Arr_ %ExposedParameters {
+	int32 %_count {0}
+}
+Arr_ %Entities {
+	int32 %_count {3}
+	Obj_ {
+		string %Id {"d5a5588d-b830-4738-9311-79ed6325ec97"}
+		string %Name {"TowerBase"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"1ecabc6e-5b44-4ba9-8dfd-97f54b5d3e5d"}
+						string %path {"project://resources/tower-round-base.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"68cac547-f4ac-4698-a52f-021a8e4e5cf2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9f2ca680-d2d4-4e1c-8e6a-376b29f22a78"}
+		string %Name {"Weapon"}
+		bool %Active {true}
+		string %Parent {"d5a5588d-b830-4738-9311-79ed6325ec97"}
+		float %PosX {0}
+		float %PosY {0.5}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"dfdfdf07-b6dc-43c3-a679-fd11b49f5628"}
+						string %path {"project://resources/weapon-ballista.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"68cac547-f4ac-4698-a52f-021a8e4e5cf2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"39432df8-4a76-4dab-af70-69230fec36e8"}
+		string %Name {"ProjectileSpawnPoint"}
+		bool %Active {true}
+		string %Parent {"9f2ca680-d2d4-4e1c-8e6a-376b29f22a78"}
+		float %PosX {0}
+		float %PosY {0.4074516}
+		float %PosZ {0.471509218}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {0.100000001}
+		float %ScaleY {0.100000001}
+		float %ScaleZ {0.100000001}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"afba7128-eec2-4249-90d8-235466fa38de"}
+						string %path {"builtin://primitives/sphere.mesh"}
+					}
+					bool %CastsShadows {false}
+					bool %IsVisible {false}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {0}
+					}
+				}
+			}
+		}
+	}
+}

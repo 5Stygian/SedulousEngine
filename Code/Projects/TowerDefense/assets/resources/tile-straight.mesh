@@ -1,6 +1,6 @@
 uint64 %_type {8462204072068577150}
 int32 %_version {1}
-string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+string %_id {"2348e5eb-0cea-4287-8cb7-aa140c458988"}
 string %_name {"tile-straight"}
 string %_sourcePath {""}
 int32 %vertexCount {276}
