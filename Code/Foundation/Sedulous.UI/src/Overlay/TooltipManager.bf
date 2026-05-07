@@ -87,6 +87,8 @@ public class TooltipManager
 				let target = mContext.GetViewById(mHoverTarget);
 				if (target != null)
 					Show(target);
+				else
+					mHoverTarget = .Invalid; // View was deleted
 			}
 		}
 		else
@@ -95,6 +97,11 @@ public class TooltipManager
 			if (mShowTime >= AutoHideDelay)
 				Hide();
 		}
+	}
+
+	public void OnViewDeleted(View view)
+	{
+		if (mHoverTarget == view.Id) mHoverTarget = .Invalid;
 	}
 
 	private void Show(View target)

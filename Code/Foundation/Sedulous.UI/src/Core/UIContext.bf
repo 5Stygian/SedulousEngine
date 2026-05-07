@@ -199,6 +199,7 @@ public class UIContext
 			mInputManager?.OnViewDeleted(view);
 			mFocusManager?.OnViewDeleted(view);
 			mDragDropManager?.OnViewDeleted(view);
+			mTooltipManager?.OnViewDeleted(view);
 			mAnimationManager?.CancelForView(view);
 			mShortcutManager?.RemoveScopedTo(view);
 			mRegistry.Remove(view.Id.RawValue);

@@ -82,8 +82,9 @@ public class ViewGroup : View
 	{
 		for (let child in mChildren)
 		{
+			if (child.Context != null)
+				child.Context.DetachView(child);
 			child.Parent = null;
-			child.Context = null;
 			if (deleteChildren)
 				delete child;
 		}
@@ -346,13 +347,15 @@ public class ViewGroup : View
 	public ~this()
 	{
 		// Delete all children, then the list itself.
-		// View.~this() runs after this, cleaning up Name/StyleId/LayoutParams/UserData.
+		// DetachView must run before delete so OnViewDeleted fires
+		// (clears tooltip targets, focus, shortcuts, etc.) while memory is valid.
 		if (mChildren != null)
 		{
 			for (let child in mChildren)
 			{
+				if (child.Context != null)
+					child.Context.DetachView(child);
 				child.Parent = null;
-				child.Context = null;
 				delete child;
 			}
 			delete mChildren;
