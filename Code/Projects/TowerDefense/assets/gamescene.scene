@@ -1,0 +1,6786 @@
+uint64 %_type {13717371974708956927}
+int32 %_version {1}
+string %_id {"c0e8dc5b-052c-46bc-852b-ee2c69a565d6"}
+string %_name {"gamescene"}
+string %_sourcePath {"d:\\Dev\\Beef\\BeefGFX\\SedulousEngine\\Code\\Projects\\TowerDefense\\assets\\gamescene.scene"}
+Arr_ %Entities {
+	int32 %_count {174}
+	Obj_ {
+		string %Id {"929a3646-2cec-4e20-93ec-d0824e0cc52b"}
+		string %Name {"Camera"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.CameraComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					float %FieldOfView {60}
+					float %NearPlane {0.100000001}
+					float %FarPlane {1000}
+					float %AspectRatio {0}
+					bool %IsActiveCamera {true}
+					int32 %LayerMask {-1}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"6fbf4ea8-7e7b-4ede-8d15-9379d2ecddc6"}
+		string %Name {"Sun"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {15}
+		float %PosZ {10}
+		float %RotX {-0.366074175}
+		float %RotY {0.351360321}
+		float %RotZ {0.15163289}
+		float %RotW {0.848258853}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.LightComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					uint8 %Type {0}
+					float %ColorR {1}
+					float %ColorG {0.949999988}
+					float %ColorB {0.850000024}
+					float %Intensity {1.20000005}
+					float %Range {10}
+					float %InnerConeAngle {30}
+					float %OuterConeAngle {45}
+					bool %CastsShadows {true}
+					float %ShadowBias {0.00100000005}
+					float %ShadowNormalBias {0.0199999996}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"3ea06279-a724-4ce6-972f-393a30ac60bb"}
+		string %Name {"Tile_0_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"be4d6290-514c-4150-ba5b-069397b5fa16"}
+						string %path {"project://resources/tile-spawn-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4f69f23c-5099-4a61-8dcb-4acd95ff297d"}
+		string %Name {"Tile_1_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9d76d9b0-0f4e-422f-a3d1-aa176b213096"}
+		string %Name {"Tile_2_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"7b53ed86-04d1-4b12-842f-a738564a2c3a"}
+		string %Name {"Tile_3_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"04c50a7c-f1ae-4862-bd3b-362dea65bd07"}
+		string %Name {"Tile_4_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"2fbae2ee-c451-46ec-bfdc-5b5c4501f63c"}
+		string %Name {"Tile_5_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5eaf014f-b703-487b-9efb-7ee5f8491a9a"}
+		string %Name {"Tile_6_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"03aa3aed-6e9f-45ad-9400-3d115ae924dc"}
+		string %Name {"Tile_7_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ab5450a1-4e50-4e56-8e7e-342868d05da8"}
+		string %Name {"Tile_8_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"329a144c-b947-4af1-957f-09c535caae59"}
+		string %Name {"Tile_9_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f3cf47fb-c00a-4f6e-9b62-9279327b5d91"}
+		string %Name {"Tile_10_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {-0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e4807424-d9cb-4ad3-954d-b47fbf29d7af"}
+		string %Name {"Tile_11_0"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c4119f3d-e965-471b-8311-5fcbfb4eb397"}
+		string %Name {"Tile_0_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5e79e16e-d173-4454-bc5a-2e2580f49dd4"}
+		string %Name {"Tile_1_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"04d108ad-c484-4383-b07f-6a60fc9b1461"}
+		string %Name {"Tile_2_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"814a1ef7-c0aa-452c-8c04-a2bef28ecba7"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0.00999999978}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"a1336284-f3e7-43b2-adc8-c29040ec71a6"}
+		string %Name {"Tile_3_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e04f95fd-0dd7-4442-998a-048e626814c4"}
+		string %Name {"Tile_4_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"265d19a9-66a6-432e-9313-743a1a9e8afa"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0.00999999978}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"667facb4-6c63-477e-83a7-ad393ec72b11"}
+		string %Name {"Tile_5_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4f183531-f5e5-4e1c-9b36-d771c97cf9fe"}
+		string %Name {"Tile_6_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"de7143f4-6f07-480a-baa0-20b6ae3f6b34"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0.00999999978}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"db7c170a-22b3-474b-be2c-0de878229bb7"}
+		string %Name {"Tile_7_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"de798905-0d06-414a-a696-cbfb2ad220e3"}
+		string %Name {"Tile_8_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"76f3cb61-365a-4ddd-ab7b-f4583404be77"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0.00999999978}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"2b8ceffe-af30-4014-a3ac-298194985f48"}
+		string %Name {"Tile_9_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"51d4deef-91ab-4155-af3d-82a4889faf01"}
+		string %Name {"Tile_10_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"842b91e6-4c4a-419e-b436-dcdb522a9c52"}
+		string %Name {"Tile_11_1"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {1}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f2f12ca7-9237-4621-8865-1dae292162be"}
+		string %Name {"Tile_0_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"0d3d2353-b74f-4133-85c8-aa663bffca1a"}
+		string %Name {"Tile_1_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"b116ae73-79c5-4e62-b195-daae055becda"}
+		string %Name {"Tile_2_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e9979b44-3f24-4b6f-87e0-5b506c210abb"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0.00999999978}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e0be8a3d-d815-48d2-a8a8-eb22f581165a"}
+		string %Name {"Tile_3_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e3de979b-a8c7-4125-8a76-0647805da286"}
+		string %Name {"Tile_4_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e7dae3ab-85a4-4686-bca4-aa3b9bdb2296"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0.00999999978}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"26142856-4ff9-41c2-a68a-2db89d58614b"}
+		string %Name {"Tile_5_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"cb29455f-b4e2-4800-a488-c9dd4ec0a381"}
+		string %Name {"Tile_6_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"de7af0a8-ebfd-43e2-9c91-c61ffa68531b"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0.00999999978}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"a366a7be-acb5-47f5-aed6-fc07545f95cf"}
+		string %Name {"Tile_7_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"32682981-9586-451b-ba04-65798b1b2782"}
+		string %Name {"Tile_8_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"0bfd2512-cbb6-419d-86b3-23e8e5dc0672"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0.00999999978}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"7a11ab7b-6fd3-481e-96b2-ee938147f78a"}
+		string %Name {"Tile_9_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c99c507e-f7c9-45a1-b7ca-42fe03ff4577"}
+		string %Name {"Tile_10_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"0e94d6ba-1267-4445-ab3e-9c8cfb62a945"}
+		string %Name {"Tile_11_2"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {2}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"7535ba16-bb9f-40ef-af88-b7fbca30381f"}
+		string %Name {"Tile_0_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"317c42be-08f6-4882-adc1-1db1ba43c064"}
+		string %Name {"Tile_1_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"d747b1d4-4ae6-4393-9fef-225e99df7558"}
+		string %Name {"Tile_2_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"1068b20f-b3f6-4c87-a051-0d8106bb32db"}
+		string %Name {"Tile_3_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5a82a007-42da-46f1-9616-b84872240a4c"}
+		string %Name {"Tile_4_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"fa08533a-84bd-4f6a-92ad-a130b641b992"}
+		string %Name {"Tile_5_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5b66bad8-67d6-4219-a74b-cb07c8de1e45"}
+		string %Name {"Tile_6_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"cea8a23e-1bd1-449a-98ed-7d66b3efb775"}
+		string %Name {"Tile_7_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"50931e66-8a97-4898-a452-b063fc7daf0d"}
+		string %Name {"Tile_8_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4232c245-1752-458e-9ff2-6734ed651c5a"}
+		string %Name {"Tile_9_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"7d0f1d33-2cef-42a7-822a-fe12c78fd208"}
+		string %Name {"Tile_10_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {1}
+		float %RotZ {0}
+		float %RotW {-4.37113883E-08}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f8638bc0-d0fa-4743-b6f2-a26e8e869b2e"}
+		string %Name {"Tile_11_3"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {3}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f02d46ea-f9ab-401e-b52b-6798ff27ab42"}
+		string %Name {"Tile_0_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5f72b35e-dbe1-4118-83a8-27145ddc8fb2"}
+		string %Name {"Tile_1_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4563ea10-fca0-4d6f-8c90-777054cabd31"}
+		string %Name {"Tile_2_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ca4752e8-a907-49cc-92ec-a8dcd36d4c7f"}
+		string %Name {"Tile_3_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c5adbac7-cdc9-4d8d-9ff3-4f361b91e9e9"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0.00999999978}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"433a66f8-6d73-4c66-87c7-f1ee1cb4a9a3"}
+		string %Name {"Tile_4_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"afd32f08-c4d8-4137-8352-db1c8a2fa513"}
+		string %Name {"Tile_5_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8c19bcd8-254a-44da-ae65-368f21b9f9a3"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0.00999999978}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"63ab9c93-0bc6-44dc-9a9a-76674d84066d"}
+		string %Name {"Tile_6_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ec1c3b5e-b97a-4109-a9df-df8c3e29e472"}
+		string %Name {"Tile_7_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"7c289b21-ab85-438c-8127-ae4101a9129a"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0.00999999978}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8a5b7f83-355b-4b68-b4a6-a37022be4b6f"}
+		string %Name {"Tile_8_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c0e3eb7d-a365-4fb6-b93a-34837dfbe966"}
+		string %Name {"Tile_9_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5928312c-d52f-45d3-9170-5c48c4cc4c54"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0.00999999978}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"51c50ef6-b41c-42ef-b510-c743caa87e62"}
+		string %Name {"Tile_10_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"855f5e17-d96d-48ef-b4b4-b1cbb642d8f2"}
+		string %Name {"Tile_11_4"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {4}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"6ed63053-b366-4d23-a183-79b5ea1abeb2"}
+		string %Name {"Tile_0_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"263e61fe-4101-40d2-a7bc-24f48a2fdcde"}
+		string %Name {"Tile_1_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"92ce13f5-3240-4b05-ba4c-a58aa67146ea"}
+		string %Name {"Tile_2_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"92014927-3cc3-4fc6-bd44-7f3fd91e2da3"}
+		string %Name {"Tile_3_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"17e49b3a-72be-471a-ab3f-875d96365782"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0.00999999978}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4c84add4-a954-488a-a674-1c7806d1afcf"}
+		string %Name {"Tile_4_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"dd0b9efd-ecdb-4b73-ab20-782be742691f"}
+		string %Name {"Tile_5_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"dffa6820-f703-4517-a0ff-aabbc95bdf07"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0.00999999978}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ed5a34ea-4f37-49b1-804c-9d1d0c87f151"}
+		string %Name {"Tile_6_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"efd4e274-f6a2-4c36-999c-70f08e9851b4"}
+		string %Name {"Tile_7_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"2ca6e24e-876c-40cf-8d4c-e8b4f5242a88"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0.00999999978}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9a0d826d-e1e0-4f9f-a73e-a3fb7bb2a22a"}
+		string %Name {"Tile_8_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"7fe45c0c-1745-405d-958f-58e30ff52af9"}
+		string %Name {"Tile_9_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e409c48d-fc7d-44f8-8a3f-b3cbba16ff2c"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0.00999999978}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"048d3d78-d044-480a-bb87-8351a82e0d71"}
+		string %Name {"Tile_10_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ca2ed191-c1df-465f-9d11-e784a77fbe82"}
+		string %Name {"Tile_11_5"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {5}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"66df478e-9bf4-4fa8-9e3b-ec38c85b777c"}
+		string %Name {"Tile_0_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"27f3e9c5-faff-4596-9d45-15b1d6658432"}
+		string %Name {"Tile_1_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"fe3d97d3-d15c-4d6a-97b8-f26b4e93e70b"}
+		string %Name {"Tile_2_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"bfdada52-61db-422d-9036-2855f1770043"}
+		string %Name {"Tile_3_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8f10cd3e-fadb-41b4-8ba4-22c5074d51ec"}
+		string %Name {"Tile_4_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"bd5a0324-3300-4fde-98ec-9b3287d377ce"}
+		string %Name {"Tile_5_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"190664cd-2904-4a5c-a3a7-698041ad9ec3"}
+		string %Name {"Tile_6_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"bd79d37b-3ee3-4d61-a684-1095de58624d"}
+		string %Name {"Tile_7_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8884cf13-e2b8-4456-b09c-76c1d308e78d"}
+		string %Name {"Tile_8_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9cfb3e23-f0a2-4b6d-88ed-078595f2b498"}
+		string %Name {"Tile_9_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"79aabda4-bb1f-471e-aa5f-dac1d0120d8e"}
+		string %Name {"Tile_10_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {-0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ed6dc0b9-846e-460e-99af-aabfe7a859ad"}
+		string %Name {"Tile_11_6"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {6}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"3a1f3e0f-2a9e-4a92-b3c3-f8b5e7af56c0"}
+		string %Name {"Tile_0_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"b7efecf3-34af-44ff-938a-938e65dfa78d"}
+		string %Name {"Tile_1_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"a6802275-ad8d-4cd2-a5e4-28a9e2f9edfa"}
+		string %Name {"Tile_2_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"be6734d6-1297-413b-b654-2c1318671dcb"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0.00999999978}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"21d6cc92-e76a-44ac-bd8f-ce3d209b8c86"}
+		string %Name {"Tile_3_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"a6a659ea-01dc-4277-bbf8-66cc43f8ec61"}
+		string %Name {"Tile_4_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"29d0a163-8a2a-4edb-bf91-8b7dc32cf32d"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0.00999999978}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"6f613145-2ba2-433a-aa13-f9a59b66a6d8"}
+		string %Name {"Tile_5_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"aa9cd4e8-0e05-4d15-af4d-e69e2b54fee5"}
+		string %Name {"Tile_6_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c4f52291-9f3f-495e-b289-7245cfacec02"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0.00999999978}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f08562e0-55e4-4b25-88c5-0e315c5c590a"}
+		string %Name {"Tile_7_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"552b752e-830c-43b7-8bcc-09073c856a2a"}
+		string %Name {"Tile_8_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"37928a3a-4282-4eae-9ef1-965980429f93"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0.00999999978}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"0e308b0d-6f33-46bf-a8dd-2ef7ca618d03"}
+		string %Name {"Tile_9_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"397fa815-2d84-43f3-8a2c-cdffdfcadc9f"}
+		string %Name {"Tile_10_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"38979029-efa2-49f5-b3aa-050784e4b0b9"}
+		string %Name {"Tile_11_7"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {7}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"6d1fe6dc-3c41-4a66-943b-6febfbd1d34c"}
+		string %Name {"Tile_0_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9352f9e7-bc3f-4535-bf68-d3cad04ddf97"}
+		string %Name {"Tile_1_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"71cf43a7-0fa5-4f67-9304-72f172bbf0c2"}
+		string %Name {"Tile_2_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9b9aacd1-74bc-419d-bb7b-9280c69be18a"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0.00999999978}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4ead53f3-6514-4018-a9c8-d7f963dc3d39"}
+		string %Name {"Tile_3_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f9e891d7-3839-46b0-b10e-926915285f95"}
+		string %Name {"Tile_4_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c0463c3c-cff3-41ce-b11f-f2c296bec995"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0.00999999978}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"164484f4-1c04-4f2e-a80d-ce6564b5b860"}
+		string %Name {"Tile_5_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"b1258366-9b55-4b00-95fd-327e7b0e3789"}
+		string %Name {"Tile_6_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4cc16d4a-33cf-4ce5-a26d-f108703c2be1"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0.00999999978}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"71263ed5-5cbb-4971-9805-e4f3b4d98ee8"}
+		string %Name {"Tile_7_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"0fbab115-cc37-4d14-a215-56e9f9d06ff0"}
+		string %Name {"Tile_8_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f469a209-f9ec-4624-ae28-d4ec24b14edd"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0.00999999978}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5768b85b-ec72-47df-944e-b7f99c68ef61"}
+		string %Name {"Tile_9_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"dae59b24-f8d7-4583-8bf6-9a129bc474ca"}
+		string %Name {"Tile_10_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"055da39b-a4b4-4e65-b584-7a3b1f7d2633"}
+		string %Name {"Tile_11_8"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {8}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"b339c758-4ff2-4b9a-b7ff-bb8d6ccb7a7a"}
+		string %Name {"Tile_0_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"106d73fa-adf1-45a6-b728-a168a2d598e7"}
+		string %Name {"Tile_1_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"eb07e66f-bcbb-401c-afa7-eaa88d74677e"}
+		string %Name {"Tile_2_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"063870c4-b875-4141-ace3-771d4c15def8"}
+		string %Name {"Tile_3_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"63866115-7161-4a67-b725-51acfced3579"}
+		string %Name {"Tile_4_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8283d146-8fad-4c78-9fcc-29f829b6921a"}
+		string %Name {"Tile_5_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c812f168-16c4-4d95-bf71-99dae9290eab"}
+		string %Name {"Tile_6_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"46cdf71c-802b-4f4a-a527-5475111c37b9"}
+		string %Name {"Tile_7_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"83c42612-ba58-4a9e-9e64-660d262dc5b5"}
+		string %Name {"Tile_8_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"0307fab1-df19-402e-a1e1-d6bf1377c78e"}
+		string %Name {"Tile_9_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0.707106769}
+		float %RotZ {0}
+		float %RotW {0.707106769}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"ad5ea33d-34f0-4bd2-8a48-969c0065d20e"}
+		string %Name {"Tile_10_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {1}
+		float %RotZ {0}
+		float %RotW {-4.37113883E-08}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"4d921d5a-f4d6-4961-95f0-09801065fbdd"}
+						string %path {"project://resources/tile-corner-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"15cab669-f3b3-479e-8fbb-01f88edaad4f"}
+		string %Name {"Tile_11_9"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {9}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"4ead94f7-94f4-417c-ace8-d0deb87935af"}
+		string %Name {"Tile_0_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"afaa508d-41da-4631-8f5a-0812be07ce1d"}
+		string %Name {"Tile_1_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"57b1eeb7-66c6-4ac5-8ab2-4c9f85455bbe"}
+						string %path {"project://resources/tile-straight.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"67ecd816-96b1-4702-9fc5-871c34476d06"}
+		string %Name {"Tile_2_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"2a4ca8a1-5202-404b-a04b-9b2c06b0f757"}
+		string %Name {"Tile_3_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"3825e1e8-7570-4f3a-bdeb-bd45cb594975"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0.00999999978}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9e839ee3-94ae-474c-8dbb-fb57d8ba201d"}
+		string %Name {"Tile_4_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"b3577b05-32cb-4a80-8af4-45a7e58561d5"}
+		string %Name {"Tile_5_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"fa93ada8-0eab-445f-940b-5543ce28acfa"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0.00999999978}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e5c27dfb-2461-4fc4-8b5b-2628125175ee"}
+		string %Name {"Tile_6_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"5c6b4b7c-8aed-4ead-96d4-b4ba63068918"}
+		string %Name {"Tile_7_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"cbd7a6e5-dbe5-4718-87bb-6aa95de6c63a"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0.00999999978}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"00a3869a-ccfa-4f14-8a38-78bec63f841d"}
+		string %Name {"Tile_8_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f93a09dd-4721-40e9-9a72-43d2ec44b0aa"}
+		string %Name {"Tile_9_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"b637a0f2-19b7-4069-8a50-fafc5681b1ec"}
+		string %Name {"Marker"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0.00999999978}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"9db82f39-38cd-4952-85de-e0516105ad69"}
+						string %path {"project://resources/selection-a.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"120f3aa7-1f92-4449-a1b0-27c29487a0dc"}
+		string %Name {"Tile_10_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"210111be-c30e-4e13-92bd-8e91b581c466"}
+		string %Name {"Tile_11_10"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {10}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"9246f998-7ac9-4fad-ae19-02b90316bc1d"}
+		string %Name {"Tile_0_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"72b514ad-c6a4-4730-8513-cdd773ce03fd"}
+						string %path {"project://resources/tile-rock.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8021bf14-cfa4-41e5-9c86-65b019269242"}
+		string %Name {"Tile_1_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {1}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {1}
+		float %RotZ {0}
+		float %RotW {-4.37113883E-08}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"023b1cff-1b75-48fc-82b3-fbec906f6400"}
+						string %path {"project://resources/tile-end-round.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"8dee3508-f843-4b74-80f2-dfb871a3a549"}
+		string %Name {"Tile_2_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {2}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"f98af8e2-3526-425b-ad2b-ec68e25f0bd3"}
+		string %Name {"Tile_3_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {3}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"90bc48ad-3d47-4e84-b0c2-34d5100ca7ad"}
+		string %Name {"Tile_4_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {4}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"582cda4d-b574-4b89-b6bb-1bdfb03e9d85"}
+		string %Name {"Tile_5_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {5}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"10b875c7-4e29-4a9c-ad64-0dbb0de6a459"}
+		string %Name {"Tile_6_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {6}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"c369b060-fb24-4349-9791-b2dfef9fbf3c"}
+		string %Name {"Tile_7_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {7}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"557fc9ef-80bf-4151-9d0d-72be9c3fe1ed"}
+		string %Name {"Tile_8_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {8}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"300375a8-12ad-4fb0-993d-90c5846c7a67"}
+		string %Name {"Tile_9_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {9}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"e42cad17-7aeb-40a0-be6f-83cd177ea573"}
+		string %Name {"Tile_10_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {10}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+	Obj_ {
+		string %Id {"2b138810-9e47-4152-b2c8-24a8a905c273"}
+		string %Name {"Tile_11_11"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {11}
+		float %PosY {0}
+		float %PosZ {11}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {1}
+			Obj_ {
+				string %TypeId {"Sedulous.MeshComponent"}
+				int32 %Version {1}
+				Obj_ %Data {
+					Obj_ %MeshRef {
+						string %_id {"cf809887-9f06-4aea-910b-b2873eb1f766"}
+						string %path {"project://resources/tile.mesh"}
+					}
+					bool %CastsShadows {true}
+					bool %IsVisible {true}
+					int32 %LayerMask {-1}
+					Arr_ %Materials {
+						int32 %_count {1}
+						Obj_ {
+							string %_id {"d47f0f2e-b162-4ef9-b1ce-81a0dfa371c2"}
+							string %path {"project://resources/colormap.material"}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+Arr_ %Modules {
+	int32 %_count {0}
+}

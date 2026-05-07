@@ -81,20 +81,20 @@ class TowerDefenseApp : EngineApplication
 		SDLImageLoader.Initialize();
 		STBImageLoader.Initialize();
 
-		// Check if cached resources exist
-		let cacheDir = scope String();
-		Path.InternalCombine(cacheDir, AssetCacheDirectory, "towerdefense");
+		// Project assets directory (RuntimeDirectory/assets)
+		let assetsDir = scope String();
+		Path.InternalCombine(assetsDir, RuntimeDirectory, "assets");
 		let registryPath = scope String();
-		Path.InternalCombine(registryPath, cacheDir, "towerdefense.registry");
+		Path.InternalCombine(registryPath, assetsDir, "project.registry");
 		let scenePath = scope String();
-		Path.InternalCombine(scenePath, cacheDir, "towerdefense.scene");
+		Path.InternalCombine(scenePath, assetsDir, "gamescene.scene");
 		let manifestPath = scope String();
-		Path.InternalCombine(manifestPath, cacheDir, "models.manifest");
+		Path.InternalCombine(manifestPath, assetsDir, "models.manifest");
 
 		if (File.Exists(registryPath) && File.Exists(scenePath) && File.Exists(manifestPath))
-			LoadFromCache(cacheDir, registryPath, scenePath, manifestPath);
+			LoadFromCache(assetsDir, registryPath, scenePath, manifestPath);
 		else
-			BuildFromScratch(cacheDir);
+			BuildFromScratch(assetsDir);
 
 		// Wire manifest to tower placement (component managers get it via GameSubsystem)
 		mTowerPlacement.Manifest = mManifest;
@@ -139,7 +139,7 @@ class TowerDefenseApp : EngineApplication
 		let assetPath = scope String();
 		GetAssetPath("samples/models/kenney_tower-defense-kit/Models/FBX format", assetPath);
 		mModels.Initialize(assetPath);
-		mModels.RegistryName.Set("towerdefense");
+		mModels.RegistryName.Set("project");
 
 		mModels.PreloadModels(resources, StringView[](
 			// Tiles
@@ -207,7 +207,7 @@ class TowerDefenseApp : EngineApplication
 		let sceneSub = Context.GetSubsystem<SceneSubsystem>();
 
 		// Load and register the cached resource registry
-		mCachedRegistry = new ResourceRegistry("towerdefense", cacheDir);
+		mCachedRegistry = new ResourceRegistry("project", cacheDir);
 		mCachedRegistry.LoadFromFile(registryPath);
 		ResourceSystem.AddRegistry(mCachedRegistry);
 
@@ -250,11 +250,11 @@ class TowerDefenseApp : EngineApplication
 	}
 
 	/// Saves all loaded resources (meshes, materials, textures) and the scene
-	/// to cache/towerdefense so they can be opened in the editor.
+	/// to the project assets directory so they can be opened in the editor.
 	private void ExportForEditor()
 	{
 		let outputDir = scope String();
-		Path.InternalCombine(outputDir, AssetCacheDirectory, "towerdefense");
+		Path.InternalCombine(outputDir, RuntimeDirectory, "assets");
 
 		if (!Directory.Exists(outputDir))
 			Directory.CreateDirectory(outputDir);
@@ -266,7 +266,12 @@ class TowerDefenseApp : EngineApplication
 		if (!Directory.Exists(resourceDir))
 			Directory.CreateDirectory(resourceDir);
 
-		let registry = scope ResourceRegistry("towerdefense", outputDir);
+		// Load existing registry and merge new entries (don't overwrite editor-created entries)
+		let registry = scope ResourceRegistry("project", outputDir);
+		let existingRegPath = scope String();
+		Path.InternalCombine(existingRegPath, outputDir, "project.registry");
+		if (File.Exists(existingRegPath))
+			registry.LoadFromFile(existingRegPath);
 
 		// Save meshes - names already have registry protocol from ModelRegistry
 		for (let loaded in mModels.[Friend]mLoadedModels)
@@ -320,23 +325,23 @@ class TowerDefenseApp : EngineApplication
 			let sceneManager = scope SceneResourceManager(typeReg, provider);
 
 			let scenePath = scope String();
-			Path.InternalCombine(scenePath, outputDir, "towerdefense.scene");
+			Path.InternalCombine(scenePath, outputDir, "gamescene.scene");
 			if (sceneManager.SaveSceneToFile(mScene, scenePath) case .Ok(let guid))
 			{
-				registry.Register(guid, "towerdefense.scene");
+				registry.Register(guid, "gamescene.scene");
 				Console.WriteLine("[Export] Saved scene");
 			}
 		}
 
 		// Save registry
 		let regFilePath = scope String();
-		Path.InternalCombine(regFilePath, outputDir, "towerdefense.registry");
+		Path.InternalCombine(regFilePath, outputDir, "project.registry");
 		registry.SaveToFile(regFilePath);
 		Console.WriteLine("[Export] Saved registry: {}", regFilePath);
 	}
 
 	/// Extracts the base resource name from a registry protocol path.
-	/// "towerdefense://resources/colormap.material" -> "colormap"
+	/// "project://resources/colormap.material" -> "colormap"
 	/// "colormap" -> "colormap"
 	private static void GetBaseResourceName(StringView name, String outName)
 	{

@@ -1,0 +1,30 @@
+uint64 %_type {13717371974708956927}
+int32 %_version {1}
+string %_id {"4fe9e0b5-dd23-40f2-b258-5bcfd1244ced"}
+string %_name {"demo"}
+string %_sourcePath {"D:\\Dev\\Beef\\BeefGFX\\SedulousEngine\\Code\\Projects\\TowerDefense\\assets\\demo.scene"}
+Arr_ %Entities {
+	int32 %_count {1}
+	Obj_ {
+		string %Id {"34231336-a31f-48d7-a1f3-35695c223fe3"}
+		string %Name {"New Entity"}
+		bool %Active {true}
+		string %Parent {"00000000-0000-0000-0000-000000000000"}
+		float %PosX {0}
+		float %PosY {0}
+		float %PosZ {0}
+		float %RotX {0}
+		float %RotY {0}
+		float %RotZ {0}
+		float %RotW {1}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
+		Arr_ %Components {
+			int32 %_count {0}
+		}
+	}
+}
+Arr_ %Modules {
+	int32 %_count {0}
+}

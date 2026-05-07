@@ -73,6 +73,9 @@ abstract class EngineApplication : IDisposable
 	private String mAssetDirectory = new .() ~ delete _;
 	private String mAssetCacheDirectory = new .() ~ delete _;
 
+	// Runtime directory (working directory at startup — where the application project lives)
+	private String mRuntimeDirectory = new .() ~ delete _;
+
 	// Shader system (shared by all subsystems that need it)
 	private ShaderSystem mShaderSystem;
 
@@ -114,6 +117,10 @@ abstract class EngineApplication : IDisposable
 
 	/// The discovered asset cache directory path.
 	public StringView AssetCacheDirectory => mAssetCacheDirectory;
+
+	/// The runtime directory (working directory at startup).
+	/// When running from IDE, this is the project directory (e.g., Code/Projects/TowerDefense).
+	public StringView RuntimeDirectory => mRuntimeDirectory;
 
 	/// The shared shader system.
 	public ShaderSystem ShaderSystem => mShaderSystem;
@@ -843,6 +850,7 @@ abstract class EngineApplication : IDisposable
 	private void DiscoverAssetDirectories()
 	{
 		let currentDir = Directory.GetCurrentDirectory(.. scope .());
+		mRuntimeDirectory.Set(currentDir);
 		String searchDir = scope .(currentDir);
 
 		while (true)
