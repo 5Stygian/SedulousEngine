@@ -522,11 +522,17 @@ static class AssetBrowserBuilder
 				if (item.AbsolutePath != null && System.IO.File.Exists(item.AbsolutePath))
 					System.IO.File.Delete(item.AbsolutePath);
 
-				// Unregister from registry
+				// Unregister from registry and save
 				if (item.IsRegistered)
 				{
 					if (let concreteReg = registry as ResourceRegistry)
+					{
 						concreteReg.Unregister(item.RegistryId);
+
+						let regFile = scope String();
+						System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
+						concreteReg.SaveToFile(regFile);
+					}
 				}
 
 				// Delete .meta sidecar if exists
