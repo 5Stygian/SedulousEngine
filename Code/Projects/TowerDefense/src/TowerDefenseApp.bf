@@ -22,6 +22,7 @@ using Sedulous.Geometry.Tooling.Resources;
 using Sedulous.Serialization.OpenDDL;
 using Sedulous.Engine.Core.Resources;
 using System.IO;
+using System.Collections;
 
 class TowerDefenseApp : EngineApplication
 {
@@ -96,7 +97,7 @@ class TowerDefenseApp : EngineApplication
 		else
 			BuildFromScratch(assetsDir);
 
-		// Wire manifest to tower placement (component managers get it via GameSubsystem)
+		// Wire manifest to tower placement
 		mTowerPlacement.Manifest = mManifest;
 
 		// Camera setup (both paths)
@@ -189,8 +190,9 @@ class TowerDefenseApp : EngineApplication
 		mGameSub.Map.BuildMap(MapData.CreateMap1(), mScene, mManifest);
 		mGameSub.UpdateWaypoints();
 
-		// Save everything to cache
+		// Save everything to project assets
 		ExportForEditor();
+		ExportTowerPrefabs();
 
 		// Also save manifest
 		let manifestPath = scope String();
@@ -338,6 +340,115 @@ class TowerDefenseApp : EngineApplication
 		Path.InternalCombine(regFilePath, outputDir, "project.registry");
 		registry.SaveToFile(regFilePath);
 		Console.WriteLine("[Export] Saved registry: {}", regFilePath);
+	}
+
+	/// Exports tower prefabs to the project assets directory.
+	/// Each prefab has: base mesh, weapon child, projectile spawn point placeholder.
+	private void ExportTowerPrefabs()
+	{
+		let outputDir = scope String();
+		Path.InternalCombine(outputDir, RuntimeDirectory, "assets");
+		let prefabDir = scope String();
+		Path.InternalCombine(prefabDir, outputDir, "prefabs");
+		if (!Directory.Exists(prefabDir))
+			Directory.CreateDirectory(prefabDir);
+
+		let provider = scope OpenDDLSerializerProvider();
+		let typeReg = scope ComponentTypeRegistry();
+		let prefabMgr = scope PrefabResourceManager(typeReg, provider);
+
+		// Load existing registry to merge
+		let registryPath = scope String();
+		Path.InternalCombine(registryPath, outputDir, "project.registry");
+		let registry = scope ResourceRegistry("project", outputDir);
+		if (File.Exists(registryPath))
+			registry.LoadFromFile(registryPath);
+
+		StringView[4] towerNames = .("ballista", "cannon", "catapult", "turret");
+		TowerType[4] types = .(.Ballista, .Cannon, .Catapult, .Turret);
+		for (int ti = 0; ti < 4; ti++)
+		{
+			let towerType = types[ti];
+			let towerName = towerNames[ti];
+			let stats = TowerStats.Get(towerType);
+
+			let prefabPath = scope String();
+			Path.InternalCombine(prefabPath, prefabDir, scope $"tower_{towerName}.prefab");
+
+			// Skip if already exported
+			if (File.Exists(prefabPath))
+				continue;
+
+			// Create a temporary scene for the prefab
+			let prefabScene = scope Scene();
+			let meshMgr = new MeshComponentManager();
+			prefabScene.AddModule(meshMgr);
+
+			// Root: tower base
+			let baseEntity = prefabScene.CreateEntity("TowerBase");
+			prefabScene.SetLocalTransform(baseEntity, .() { Position = .Zero, Rotation = .Identity, Scale = .One });
+
+			let baseEntry = mManifest.Get(stats.BaseModel);
+			if (baseEntry != null)
+			{
+				let meshHandle = meshMgr.CreateComponent(baseEntity);
+				if (let mesh = meshMgr.Get(meshHandle))
+				{
+					var meshRef = baseEntry.GetMeshRef();
+					defer meshRef.Dispose();
+					mesh.SetMeshRef(meshRef);
+					for (int32 slot = 0; slot < baseEntry.MaterialCount; slot++)
+					{
+						var matRef = baseEntry.GetMaterialRef(slot);
+						defer matRef.Dispose();
+						mesh.SetMaterialRef(slot, matRef);
+					}
+				}
+			}
+
+			// Child: weapon
+			let weaponEntity = prefabScene.CreateEntity("Weapon");
+			prefabScene.SetParent(weaponEntity, baseEntity);
+			prefabScene.SetLocalTransform(weaponEntity, .() {
+				Position = .(0, 0.5f, 0), Rotation = .Identity, Scale = .One
+			});
+
+			let weaponEntry = mManifest.Get(stats.WeaponModel);
+			if (weaponEntry != null)
+			{
+				let meshHandle = meshMgr.CreateComponent(weaponEntity);
+				if (let mesh = meshMgr.Get(meshHandle))
+				{
+					var meshRef = weaponEntry.GetMeshRef();
+					defer meshRef.Dispose();
+					mesh.SetMeshRef(meshRef);
+					for (int32 slot = 0; slot < weaponEntry.MaterialCount; slot++)
+					{
+						var matRef = weaponEntry.GetMaterialRef(slot);
+						defer matRef.Dispose();
+						mesh.SetMaterialRef(slot, matRef);
+					}
+				}
+			}
+
+			// Child of weapon: projectile spawn point (empty entity — position adjusted in editor)
+			let spawnPoint = prefabScene.CreateEntity("ProjectileSpawnPoint");
+			prefabScene.SetParent(spawnPoint, weaponEntity);
+			prefabScene.SetLocalTransform(spawnPoint, .() {
+				Position = .(0, 0.1f, 0.3f), Rotation = .Identity, Scale = .One
+			});
+
+			// Save prefab
+			let emptyParams = scope List<ExposedParameterDescriptor>();
+			if (prefabMgr.SavePrefabToFile(prefabScene, emptyParams, prefabPath) case .Ok(let guid))
+			{
+				registry.Register(guid, scope $"prefabs/tower_{towerName}.prefab");
+				Console.WriteLine("[Export] Saved tower prefab: tower_{}", towerName);
+			}
+		}
+
+		// Save updated registry
+		registry.SaveToFile(registryPath);
 	}
 
 	/// Extracts the base resource name from a registry protocol path.

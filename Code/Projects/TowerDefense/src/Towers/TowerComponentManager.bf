@@ -1,6 +1,7 @@
 namespace TowerDefense;
 
 using System;
+using System.Collections;
 using Sedulous.Engine.Core;
 using Sedulous.Core.Mathematics;
 using Sedulous.Messaging;
@@ -31,6 +32,15 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 			if (!comp.IsActive || !comp.Initialized)
 				continue;
 
+			// Resolve weapon and spawn point entities from prefab children (deferred instantiation)
+			if (!scene.IsValid(comp.WeaponEntity))
+			{
+				let children = scope List<EntityHandle>();
+				scene.GetChildren(comp.Owner, children);
+				for (let child in children)
+					FindNamedChildren(scene, child, comp);
+			}
+
 			// Decrement fire cooldown (scaled by game speed)
 			comp.FireCooldown -= deltaTime * GameSpeed;
 
@@ -57,6 +67,13 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 			{
 				comp.FireCooldown = 1.0f / comp.FireRate;
 
+				// Get fire origin from spawn point entity, or fallback to offset above tower
+				Vector3 fireOrigin;
+				if (scene.IsValid(comp.SpawnPointEntity))
+					fireOrigin = scene.GetWorldMatrix(comp.SpawnPointEntity).Translation;
+				else
+					fireOrigin = towerPos + .(0, 0.6f, 0);
+
 				// Publish shot message
 				if (Bus != null)
 				{
@@ -64,7 +81,7 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 					{
 						TowerEntity = comp.Owner,
 						TargetEntity = comp.TargetEntity,
-						Origin = towerPos + .(0, 0.6f, 0), // fire from above base
+						Origin = fireOrigin,
 						TowerType = comp.Type
 					};
 					Bus.Queue<TowerShotMsg>(msg);
@@ -75,7 +92,7 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 				{
 					let stats = TowerStats.Get(comp.Type);
 					ProjectileMgr.SpawnProjectile(
-						towerPos + .(0, 0.6f, 0),
+						fireOrigin,
 						comp.TargetEntity,
 						(int32)comp.Damage,
 						stats.AmmoModel
@@ -122,5 +139,20 @@ class TowerComponentManager : ComponentManager<TowerComponent>
 				tower.TargetEntity = enemy.Owner;
 			}
 		}
+	}
+
+	/// Recursively searches an entity and its children for "Weapon" and "ProjectileSpawnPoint".
+	private static void FindNamedChildren(Scene scene, EntityHandle entity, TowerComponent comp)
+	{
+		let name = scene.GetEntityName(entity);
+		if (name == "Weapon")
+			comp.WeaponEntity = entity;
+		else if (name == "ProjectileSpawnPoint")
+			comp.SpawnPointEntity = entity;
+
+		let children = scope List<EntityHandle>();
+		scene.GetChildren(entity, children);
+		for (let child in children)
+			FindNamedChildren(scene, child, comp);
 	}
 }

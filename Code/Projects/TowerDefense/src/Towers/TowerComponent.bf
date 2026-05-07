@@ -22,6 +22,9 @@ class TowerComponent : Component
 	/// Child entity holding the weapon model (for rotation).
 	public EntityHandle WeaponEntity = .Invalid;
 
+	/// Projectile spawn point entity (child of weapon). Positioned in prefab via editor.
+	public EntityHandle SpawnPointEntity = .Invalid;
+
 	/// Total gold invested in this tower (initial cost + all upgrades). Used for sell refund.
 	public int32 TotalInvested;
 }

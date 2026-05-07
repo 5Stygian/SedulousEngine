@@ -22,6 +22,7 @@ class TowerPlacement
 	/// Model manifest for constructing ResourceRefs.
 	public ModelManifest Manifest;
 
+
 	/// Hover grid position (valid when mouse is over a valid cell).
 	public int32 HoverX;
 	public int32 HoverZ;
@@ -467,29 +468,31 @@ class TowerPlacement
 		let levelStats = stats.Levels[0];
 		let worldPos = gameSub.Map.CurrentMap.GridToWorld(gx, gz);
 
-		let baseEntity = scene.CreateEntity("Tower");
+		// Create root entity at grid position
+		let rootEntity = scene.CreateEntity("Tower");
 		var transform = Transform();
 		transform.Position = worldPos;
 		transform.Rotation = .Identity;
 		transform.Scale = .One;
-		scene.SetLocalTransform(baseEntity, transform);
+		scene.SetLocalTransform(rootEntity, transform);
 
-		if (Manifest != null)
-			AttachMesh(scene, baseEntity, Manifest.Get(stats.BaseModel));
+		// Add PrefabReferenceComponent — PrefabComponentManager will instantiate
+		// the tower prefab hierarchy as children on the next update.
+		let towerName = GetTowerName(type);
+		let prefabMgr = scene.GetModule<PrefabComponentManager>();
+		if (prefabMgr != null)
+		{
+			let prefabHandle = prefabMgr.CreateComponent(rootEntity);
+			if (let prefabComp = prefabMgr.Get(prefabHandle))
+			{
+				let prefabPath = scope String()..AppendF("project://prefabs/tower_{}.prefab", towerName);
+				var prefabRef = ResourceRef(.Empty, prefabPath);
+				defer prefabRef.Dispose();
+				prefabComp.SetPrefabRef(prefabRef);
+			}
+		}
 
-		let weaponEntity = scene.CreateEntity("Weapon");
-		scene.SetParent(weaponEntity, baseEntity);
-
-		var weaponTransform = Transform();
-		weaponTransform.Position = .(0, 0.5f, 0);
-		weaponTransform.Rotation = .Identity;
-		weaponTransform.Scale = .One;
-		scene.SetLocalTransform(weaponEntity, weaponTransform);
-
-		if (Manifest != null)
-			AttachMesh(scene, weaponEntity, Manifest.Get(stats.WeaponModel));
-
-		let compHandle = towerMgr.CreateComponent(baseEntity);
+		let compHandle = towerMgr.CreateComponent(rootEntity);
 		if (let comp = towerMgr.Get(compHandle))
 		{
 			comp.Type = type;
@@ -500,10 +503,21 @@ class TowerPlacement
 			comp.FireCooldown = 0;
 			comp.GridX = gx;
 			comp.GridZ = gz;
-			comp.WeaponEntity = weaponEntity;
+			// WeaponEntity and SpawnPointEntity are resolved after prefab instantiation
 			comp.TotalInvested = levelStats.Cost;
 		}
 
-		return baseEntity;
+		return rootEntity;
+	}
+
+	private static StringView GetTowerName(TowerType type)
+	{
+		switch (type)
+		{
+		case .Ballista: return "ballista";
+		case .Cannon:   return "cannon";
+		case .Catapult:  return "catapult";
+		case .Turret:   return "turret";
+		}
 	}
 }
