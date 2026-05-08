@@ -67,8 +67,9 @@ public class ContextMenu : View, IPopupOwner
 		let root = ctx.ActiveInputRoot;
 		if (root == null) return;
 
-		Measure(BoxConstraints.Loose(root.ViewportSize.X, root.ViewportSize.Y));
-		let screen = RectangleF(0, 0, root.ViewportSize.X, root.ViewportSize.Y);
+		let logical = root.LogicalSize;
+		Measure(BoxConstraints.Loose(logical.X, logical.Y));
+		let screen = RectangleF(0, 0, logical.X, logical.Y);
 
 		var px = x;
 		var py = y;
@@ -393,10 +394,11 @@ public class ContextMenu : View, IPopupOwner
 		let root = Context.ActiveInputRoot;
 		if (root == null) return;
 
+		let logical = root.LogicalSize;
 		let (sx, sy) = PopupPositioner.Submenu(
 			.(Bounds.X, Bounds.Y + GetItemY(index), Width, mItemHeight),
 			.(item.Submenu.mMinWidth, 200),
-			.(0, 0, root.ViewportSize.X, root.ViewportSize.Y));
+			.(0, 0, logical.X, logical.Y));
 
 		mOpenSubmenu = item.Submenu;
 		mSubmenuLayer = root.PopupLayer;

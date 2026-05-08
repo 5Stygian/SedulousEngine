@@ -15,6 +15,19 @@ public class RootView : ViewGroup
 	/// DPI scale factor (1.0 = 96dpi, 2.0 = 192dpi).
 	public float DpiScale = 1.0f;
 
+	/// Viewport size in logical (layout) coordinates - the space that LocalToScreen,
+	/// Bounds, and MeasuredSize live in. Always use this when comparing positions
+	/// produced by the layout system against the viewport extent; comparing those
+	/// against ViewportSize directly breaks at non-1.0 DPI scales.
+	public Vector2 LogicalSize
+	{
+		get
+		{
+			let dpi = Math.Max(DpiScale, 0.01f);
+			return .(ViewportSize.X / dpi, ViewportSize.Y / dpi);
+		}
+	}
+
 	// Owned as child - ViewGroup destructor handles deletion.
 	private PopupLayer mPopupLayer;
 

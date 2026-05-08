@@ -1150,6 +1150,7 @@ class ModelViewerApp : Application
 	protected override void OnUpdate(FrameContext frame)
 	{
 		// UI frame first -- slider/button events update transforms before scene extraction
+		mMainRoot.DpiScale = Window.ContentScale;
 		mMainRoot.ViewportSize = .((float)Window.Width, (float)Window.Height);
 		mUIContext.BeginFrame(frame.DeltaTime);
 		mUIContext.UpdateRootView(mMainRoot);

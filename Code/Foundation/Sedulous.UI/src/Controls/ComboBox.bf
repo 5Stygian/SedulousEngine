@@ -220,7 +220,8 @@ public class ComboBox : View, IPopupOwner
 
 		let dropdown = new ComboBoxDropdown(this);
 		let screenPos = LocalToScreen(.(0, Height));
-		let screen = RectangleF(0, 0, root.ViewportSize.X, root.ViewportSize.Y);
+		let logical = root.LogicalSize;
+		let screen = RectangleF(0, 0, logical.X, logical.Y);
 
 		dropdown.Measure(BoxConstraints.Loose(screen.Width, screen.Height));
 

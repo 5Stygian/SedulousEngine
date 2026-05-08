@@ -140,10 +140,11 @@ public class TooltipManager
 		mShowTime = 0;
 
 		// Measure then reposition.
-		let layerConstraints = BoxConstraints.Loose(root.ViewportSize.X, root.ViewportSize.Y);
+		let logical = root.LogicalSize;
+		let layerConstraints = BoxConstraints.Loose(logical.X, logical.Y);
 		mTooltipView.Measure(layerConstraints);
 
-		let screen = RectangleF(0, 0, root.ViewportSize.X, root.ViewportSize.Y);
+		let screen = RectangleF(0, 0, logical.X, logical.Y);
 		let popupSize = mTooltipView.MeasuredSize;
 
 		// Compute screen-space position of the target.
