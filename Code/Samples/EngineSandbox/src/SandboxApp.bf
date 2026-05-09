@@ -1866,9 +1866,6 @@ class SandboxApp : EngineApplication
 
 	protected override void OnShutdown()
 	{
-		let renderSub = Context.GetSubsystem<RenderSubsystem>();
-		let device = renderSub.RenderContext.Device;
-
 		// Release fox resources
 		for (let foxMatRes in mFoxMaterialResources)
 			foxMatRes?.ReleaseRef();

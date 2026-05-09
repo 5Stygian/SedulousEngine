@@ -27,7 +27,7 @@ class PropertyAnimationComponent : Component, ISerializableComponent
 
 	/// Property animation clip resource reference.
 	[Property]
-	[ResourceRefType(".animation")]
+	[ResourceRefType(".propanim")]
 	private ResourceRef mClipRef ~ _.Dispose();
 
 	// --- Configuration ---

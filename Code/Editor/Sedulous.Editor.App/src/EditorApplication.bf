@@ -244,6 +244,16 @@ class EditorApplication : Application, IDockableWindowHost
 			Device, mVGRenderer, Shell.InputManager.Keyboard, mTypeRegistry));
 		mEditorContext.RegisterPageFactory(new PrefabEditorPageFactory(
 			Device, mVGRenderer, Shell.InputManager.Keyboard, mTypeRegistry));
+		mEditorContext.RegisterPageFactory(new TextureEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new MaterialEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new MeshEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new AnimationEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new SkeletonEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new AnimGraphEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new AudioClipEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new SoundCueEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new PropAnimEditorPageFactory());
+		mEditorContext.RegisterPageFactory(new ParticleEditorPageFactory());
 
 		// Register built-in gizmo renderers
 		mEditorContext.RegisterGizmoRenderer(typeof(LightComponent), new LightGizmoRenderer());
