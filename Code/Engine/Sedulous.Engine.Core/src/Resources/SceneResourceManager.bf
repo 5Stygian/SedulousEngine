@@ -93,12 +93,32 @@ class SceneResourceManager : ResourceManager<SceneResource>
 
 	/// Saves a scene to a file through the standard Resource serialization path.
 	/// Writes resource header followed by scene data.
+	/// If the file already exists, reuses the existing resource GUID to avoid
+	/// creating duplicate registry entries.
 	/// Returns the resource GUID written to the file (for registry tracking).
 	public Result<Guid> SaveSceneToFile(Scene scene, StringView path)
 	{
 		let resource = scope SceneResource();
 		resource.Scene = scene;
 		resource.TypeRegistry = mTypeRegistry;
+
+		// If the file already exists, read its resource header to preserve the GUID.
+		if (File.Exists(path))
+		{
+			let existingText = scope String();
+			if (File.ReadAllText(path, existingText) case .Ok)
+			{
+				let reader = mSerializerProvider.CreateReader(existingText);
+				if (reader != null)
+				{
+					let existingRes = scope SceneResource();
+					existingRes.Serialize(reader);
+					if (existingRes.Id != .Empty)
+						resource.Id = existingRes.Id;
+					delete reader;
+				}
+			}
+		}
 
 		// Use filename without extension as the resource name
 		let name = scope String();

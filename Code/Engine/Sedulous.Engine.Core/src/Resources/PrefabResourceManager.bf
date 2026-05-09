@@ -92,12 +92,31 @@ class PrefabResourceManager : ResourceManager<PrefabResource>
 	}
 
 	/// Saves a prefab from a scene to a file.
+	/// If the file already exists, reuses the existing resource GUID.
 	/// Returns the resource GUID written.
 	public Result<Guid> SavePrefabToFile(Scene scene, List<ExposedParameterDescriptor> parameters, StringView path)
 	{
 		let resource = scope PrefabResource();
 		resource.Scene = scene;
 		resource.TypeRegistry = mTypeRegistry;
+
+		// If the file already exists, read its resource header to preserve the GUID.
+		if (File.Exists(path))
+		{
+			let existingText = scope String();
+			if (File.ReadAllText(path, existingText) case .Ok)
+			{
+				let reader = mSerializerProvider.CreateReader(existingText);
+				if (reader != null)
+				{
+					let existingRes = scope PrefabResource();
+					existingRes.Serialize(reader);
+					if (existingRes.Id != .Empty)
+						resource.Id = existingRes.Id;
+					delete reader;
+				}
+			}
+		}
 
 		// Copy parameters
 		for (let param in parameters)
