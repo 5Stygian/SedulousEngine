@@ -14,7 +14,6 @@ using Sedulous.Core.Mathematics;
 using Sedulous.Materials;
 using Sedulous.Resources;
 using Sedulous.Images.STB;
-using Sedulous.Renderer.Passes;
 using Sedulous.Renderer.Debug;
 using Sedulous.Shell.Input;
 using Sedulous.Models;
@@ -60,8 +59,7 @@ class SandboxApp : EngineApplication
 	private bool mMouseCaptured = false;
 
 	Material mPbrMaterial ~ delete _;
-	ITexture mSkyTexture;
-	ITextureView mSkyTextureView;
+	ResourceRef mSkyRef = .(.Empty, "builtin://skies/realistic_sky.texture") ~ _.Dispose();
 
 	// Mesh resources (we hold one ref, resource system holds another)
 	StaticMeshResource mPlaneRes;
@@ -1006,66 +1004,16 @@ class SandboxApp : EngineApplication
 			}
 		}
 
-		// ==================== Sky ====================
+		// ==================== Sky & Render Settings ====================
 
-		let skyPath = scope String();
-		GetAssetPath("textures/environment/BlueSky.hdr", skyPath);
-
-		if (ImageLoaderFactory.LoadImage(skyPath) case .Ok(var image))
+		// Set scene-level render settings via RenderSceneModule.
+		// Sky texture is resolved from the builtin registry by ApplyRenderSettings.
+		if (let renderSettings = scene.GetModule<RenderSceneModule>())
 		{
-			let device = renderer.Device;
-			let queue = renderer.Queue;
-
-			TextureDesc skyTexDesc = .()
-			{
-				Label = "Sky HDR",
-				Width = image.Width,
-				Height = image.Height,
-				Depth = 1,
-				Format = .RGBA32Float,
-				Usage = .Sampled | .CopyDst,
-				Dimension = .Texture2D,
-				MipLevelCount = 1,
-				ArrayLayerCount = 1,
-				SampleCount = 1
-			};
-
-			if (device.CreateTexture(skyTexDesc) case .Ok(let tex))
-			{
-				mSkyTexture = tex;
-
-				// Upload pixel data
-				var layout = TextureDataLayout() { BytesPerRow = image.Width * 16, RowsPerImage = image.Height };
-				var writeSize = Extent3D(image.Width, image.Height, 1);
-
-				if (queue.CreateTransferBatch() case .Ok(let tb))
-				{
-					tb.WriteTexture(mSkyTexture, Span<uint8>(image.Data.Ptr, image.Data.Length), layout, writeSize);
-					tb.Submit();
-					device.WaitIdle();
-					var tbRef = tb;
-					queue.DestroyTransferBatch(ref tbRef);
-				}
-
-				TextureViewDesc viewDesc = .() { Label = "Sky HDR View", Format = .RGBA32Float, Dimension = .Texture2D };
-				if (device.CreateTextureView(mSkyTexture, viewDesc) case .Ok(let view))
-					mSkyTextureView = view;
-
-				// Set on sky pass
-				if (let skyPass = renderSub.GetPipeline(mScene).GetPass<SkyPass>())
-				{
-					skyPass.SkyTexture = mSkyTextureView;
-					skyPass.Intensity = 1.0f;
-				}
-
-				Console.WriteLine("Sky texture loaded: {0}x{1}", image.Width, image.Height);
-			}
-
-			delete image;
-		}
-		else
-		{
-			Console.WriteLine("WARNING: Could not load sky texture");
+			renderSettings.SetSkyTextureRef(mSkyRef);
+			renderSettings.SkyIntensity = 1.0f;
+			renderSettings.AmbientColor = .(0.1f, 0.1f, 0.15f);
+			renderSettings.Exposure = 1.0f;
 		}
 
 		Console.WriteLine("Entities: {0}", scene.EntityCount);
@@ -1920,15 +1868,6 @@ class SandboxApp : EngineApplication
 	{
 		let renderSub = Context.GetSubsystem<RenderSubsystem>();
 		let device = renderSub.RenderContext.Device;
-
-		// Clear sky texture reference before destroying
-		if (let skyPass = renderSub.GetPipeline(mScene).GetPass<SkyPass>())
-			skyPass.SkyTexture = null;
-
-		if (mSkyTextureView != null)
-			device.DestroyTextureView(ref mSkyTextureView);
-		if (mSkyTexture != null)
-			device.DestroyTexture(ref mSkyTexture);
 
 		// Release fox resources
 		for (let foxMatRes in mFoxMaterialResources)

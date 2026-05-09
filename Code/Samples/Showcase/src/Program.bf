@@ -9,7 +9,6 @@ using Sedulous.Engine;
 using Sedulous.Engine.App;
 using Sedulous.Engine.Render;
 using Sedulous.Renderer;
-using Sedulous.Renderer.Passes;
 using Sedulous.Geometry;
 using Sedulous.Geometry.Resources;
 using Sedulous.Geometry.Tooling;
@@ -18,7 +17,6 @@ using Sedulous.Materials;
 using Sedulous.Materials.Resources;
 using Sedulous.Textures.Resources;
 using Sedulous.Resources;
-using Sedulous.Images;
 using Sedulous.Images.STB;
 using Sedulous.Images.SDL;
 using Sedulous.Models;
@@ -70,12 +68,10 @@ class ShowcaseApp : EngineApplication
 	private StaticMeshResource mPlaneRes ~ _.ReleaseRef();
 	private MaterialInstance mGroundMaterial ~ _.ReleaseRef();
 
-	// Sky - both modes loaded, toggle with F5
-	private ITexture mSkyCubemapTexture;
-	private ITextureView mSkyCubemapView;
-	private ITexture mSkyHdrTexture;
-	private ITextureView mSkyHdrView;
-	private SkyMode mCurrentSkyMode = .Cubemap;
+	// Sky - toggle between realistic and stylized with F5
+	private bool mUseRealisticSky = true;
+	private ResourceRef mRealisticSkyRef = .(.Empty, "builtin://skies/realistic_sky.texture") ~ _.Dispose();
+	private ResourceRef mStylizedSkyRef = .(.Empty, "builtin://skies/stylized_sky.texture") ~ _.Dispose();
 
 	protected override void OnStartup()
 	{
@@ -267,7 +263,7 @@ class ShowcaseApp : EngineApplication
 		SetupCamera(scene);
 
 		// Sky
-		SetupSky(renderSub);
+		SetupSky();
 
 		Console.WriteLine("Showcase scene loaded: {0} models", mLoadedModels.Count);
 	}
@@ -478,150 +474,29 @@ class ShowcaseApp : EngineApplication
 
 	// ==================== Sky ====================
 
-	private void SetupSky(RenderSubsystem renderSub)
+	private void SetupSky()
 	{
-		let device = renderSub.Device;
-		let queue = device.GetQueue(.Graphics);
-
-		// Load equirectangular HDR sky
-		LoadHdrSky(device, queue);
-
-		// Load cubemap sky
-		LoadCubemapSky(device, queue);
-
-		// Start with cubemap
-		ApplySkyMode(renderSub);
+		if (let renderSettings = mScene.GetModule<RenderSceneModule>())
+		{
+			renderSettings.AmbientColor = .(0.1f, 0.1f, 0.15f);
+			renderSettings.Exposure = 1.0f;
+		}
+		ApplySkyMode();
 	}
 
-	private void LoadHdrSky(IDevice device, IQueue queue)
+	private void ApplySkyMode()
 	{
-		let skyPath = scope String();
-		GetAssetPath("textures/environment/BlueSky.hdr", skyPath);
-
-		if (ImageLoaderFactory.LoadImage(skyPath) case .Ok(var image))
+		if (let renderSettings = mScene.GetModule<RenderSceneModule>())
 		{
-			TextureDesc texDesc = .()
+			if (mUseRealisticSky)
 			{
-				Label = "Sky HDR",
-				Width = image.Width, Height = image.Height, Depth = 1,
-				Format = .RGBA32Float, Usage = .Sampled | .CopyDst,
-				Dimension = .Texture2D, MipLevelCount = 1, ArrayLayerCount = 1, SampleCount = 1
-			};
-
-			if (device.CreateTexture(texDesc) case .Ok(let tex))
-			{
-				mSkyHdrTexture = tex;
-
-				var layout = TextureDataLayout() { BytesPerRow = image.Width * 16, RowsPerImage = image.Height };
-				var writeSize = Extent3D(image.Width, image.Height, 1);
-
-				if (queue.CreateTransferBatch() case .Ok(let tb))
-				{
-					tb.WriteTexture(mSkyHdrTexture, Span<uint8>(image.Data.Ptr, image.Data.Length), layout, writeSize);
-					tb.Submit();
-					device.WaitIdle();
-					var tbRef = tb;
-					queue.DestroyTransferBatch(ref tbRef);
-				}
-
-				TextureViewDesc viewDesc = .() { Label = "Sky HDR View", Format = .RGBA32Float, Dimension = .Texture2D };
-				if (device.CreateTextureView(mSkyHdrTexture, viewDesc) case .Ok(let view))
-					mSkyHdrView = view;
-			}
-
-			delete image;
-		}
-		else
-		{
-			Console.WriteLine("WARNING: Could not load HDR sky texture");
-		}
-	}
-
-	private void LoadCubemapSky(IDevice device, IQueue queue)
-	{
-		StringView[6] faceNames = .("px", "nx", "py", "ny", "pz", "nz");
-		let basePath = scope String();
-		GetAssetPath("textures/environment/sky_75_2k/sky_75_cubemap_2k", basePath);
-
-		let firstPath = scope String();
-		firstPath.AppendF("{}/{}.png", basePath, faceNames[0]);
-		var firstImage = ImageLoaderFactory.LoadImage(firstPath);
-		if (firstImage case .Err)
-		{
-			Console.WriteLine("WARNING: Could not load cubemap face: {}", faceNames[0]);
-			return;
-		}
-
-		let faceSize = firstImage.Value.Width;
-		let texDesc = TextureDesc.Cube(.RGBA8Unorm, faceSize, .Sampled | .CopyDst, 1, "Sky Cubemap");
-
-		if (device.CreateTexture(texDesc) case .Ok(let tex))
-			mSkyCubemapTexture = tex;
-		else
-		{
-			delete firstImage.Value;
-			Console.WriteLine("WARNING: Could not create cubemap texture");
-			return;
-		}
-
-		if (queue.CreateTransferBatch() case .Ok(let tb))
-		{
-			for (int face = 0; face < 6; face++)
-			{
-				Image faceImage;
-				if (face == 0)
-					faceImage = firstImage.Value;
-				else
-				{
-					let facePath = scope String();
-					facePath.AppendF("{}/{}.png", basePath, faceNames[face]);
-					if (ImageLoaderFactory.LoadImage(facePath) case .Ok(var img))
-						faceImage = img;
-					else
-					{
-						Console.WriteLine("WARNING: Could not load cubemap face: {}", faceNames[face]);
-						continue;
-					}
-				}
-
-				let bpp = Image.GetBytesPerPixel(faceImage.Format);
-				var layout = TextureDataLayout() {
-					BytesPerRow = faceImage.Width * (uint32)bpp,
-					RowsPerImage = faceImage.Height
-				};
-				var writeSize = Extent3D(faceImage.Width, faceImage.Height, 1);
-
-				tb.WriteTexture(mSkyCubemapTexture, Span<uint8>(faceImage.Data.Ptr, faceImage.Data.Length),
-					layout, writeSize, 0, (uint32)face);
-
-				delete faceImage;
-			}
-
-			tb.Submit();
-			device.WaitIdle();
-			var tbRef = tb;
-			queue.DestroyTransferBatch(ref tbRef);
-		}
-
-		TextureViewDesc viewDesc = .() { Label = "Sky Cubemap View", Format = .RGBA8Unorm, Dimension = .TextureCube, ArrayLayerCount = 6 };
-		if (device.CreateTextureView(mSkyCubemapTexture, viewDesc) case .Ok(let view))
-			mSkyCubemapView = view;
-	}
-
-	private void ApplySkyMode(RenderSubsystem renderSub)
-	{
-		if (let skyPass = renderSub.GetPipeline(mScene)?.GetPass<SkyPass>())
-		{
-			skyPass.Mode = mCurrentSkyMode;
-			if (mCurrentSkyMode == .Cubemap)
-			{
-				skyPass.SkyTexture = mSkyCubemapView;
-				skyPass.Intensity = 1.0f;
+				renderSettings.SetSkyTextureRef(mRealisticSkyRef);
+				renderSettings.SkyIntensity = 1.2f;
 			}
 			else
 			{
-				skyPass.SkyTexture = mSkyHdrView;
-				skyPass.Intensity = 1.2f;
+				renderSettings.SetSkyTextureRef(mStylizedSkyRef);
+				renderSettings.SkyIntensity = 1.0f;
 			}
 		}
 	}
@@ -642,7 +517,7 @@ class ShowcaseApp : EngineApplication
 			line1.AppendF("FPS {0:F0}  ({1:F2} ms)", mFpsSmoothed, mFrameTimeMs);
 			let line2 = scope String();
 			line2.AppendF("WASD=Move QE=Up/Down RMB=Look Tab=Capture Shift=Fast F5=Sky({})",
-				(mCurrentSkyMode == .Cubemap) ? "Cube" : "HDR");
+				mUseRealisticSky ? "Realistic" : "Stylized");
 			let maxLen = Math.Max(line1.Length, line2.Length);
 			dbg.DrawScreenRect(5, 5, maxLen * 8 + 14, 34, .(0, 0, 0, 180));
 			dbg.DrawScreenText(10, 10, line1, .(255, 255, 255));
@@ -662,10 +537,9 @@ class ShowcaseApp : EngineApplication
 		// F5 to toggle sky mode (cubemap / equirectangular HDR)
 		if (keyboard.IsKeyPressed(.F5))
 		{
-			mCurrentSkyMode = (mCurrentSkyMode == .Cubemap) ? .Equirectangular : .Cubemap;
-			if (renderSub != null)
-				ApplySkyMode(renderSub);
-			Console.WriteLine("Sky mode: {}", (mCurrentSkyMode == .Cubemap) ? "Cubemap" : "Equirectangular HDR");
+			mUseRealisticSky = !mUseRealisticSky;
+			ApplySkyMode();
+			Console.WriteLine("Sky: {}", mUseRealisticSky ? "Realistic" : "Stylized");
 		}
 
 		// Tab to toggle mouse capture
@@ -718,27 +592,8 @@ class ShowcaseApp : EngineApplication
 
 	protected override void OnShutdown()
 	{
-		let renderSub = Context.GetSubsystem<RenderSubsystem>();
-
-		// Clear sky pass reference before destroying texture
-		if (renderSub != null && mScene != null)
-		{
-			if (let skyPass = renderSub.GetPipeline(mScene)?.GetPass<SkyPass>())
-				skyPass.SkyTexture = null;
-		}
-
-		let device = mDevice;
-		if (device != null)
-		{
-			if (mSkyCubemapView != null)
-				device.DestroyTextureView(ref mSkyCubemapView);
-			if (mSkyCubemapTexture != null)
-				device.DestroyTexture(ref mSkyCubemapTexture);
-			if (mSkyHdrView != null)
-				device.DestroyTextureView(ref mSkyHdrView);
-			if (mSkyHdrTexture != null)
-				device.DestroyTexture(ref mSkyHdrTexture);
-		}
+		// Sky textures are managed by RenderSceneModule + ApplyRenderSettings,
+		// cleaned up automatically by the resolve state in RenderSubsystem.
 
 		// Release resource refs
 		for (let loaded in mLoadedModels)

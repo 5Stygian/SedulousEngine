@@ -3,3 +3,5 @@ fbd61c78-82a2-470f-8bac-8315a2e27eee=primitives/cube.mesh
 afba7128-eec2-4249-90d8-235466fa38de=primitives/sphere.mesh
 868704da-d9fe-4ea4-8cd1-55fa37a2e435=materials/default.material
 02f2de9e-19fc-4aa8-ac50-6ac665751d32=materials/default_unlit.material
+65fc10c1-4f1f-4148-9f29-a960bae5b0e6=skies/realistic_sky.texture
+670e5092-c971-4316-9f4a-06f050f18ef5=skies/stylized_sky.texture

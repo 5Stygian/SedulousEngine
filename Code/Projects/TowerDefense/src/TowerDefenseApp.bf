@@ -105,11 +105,9 @@ class TowerDefenseApp : EngineApplication
 		mCamera.Zoom = 14.0f;
 		mCamera.ApplyToScene(mScene);
 
-		// Reduce ambient lighting
-		let renderSub = Context.GetSubsystem<RenderSubsystem>();
-		let pipeline = renderSub?.GetPipeline(mScene);
-		if (pipeline?.LightBuffer != null)
-			pipeline.LightBuffer.AmbientColor = .(0.05f, 0.05f, 0.08f);
+		// Reduce ambient lighting via scene render settings
+		if (let renderSettings = mScene.GetModule<RenderSceneModule>())
+			renderSettings.AmbientColor = .(0.05f, 0.05f, 0.08f);
 
 		// Set up UI
 		SetupUI();
