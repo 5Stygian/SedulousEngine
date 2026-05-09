@@ -526,6 +526,43 @@ diagnose.
 (extended to include materialLayout) so `Equals` handles collisions.
 Or add a secondary equality check on cache hit.
 
+## Debug View Mode
+
+Visualize intermediate render data in the viewport for debugging materials, lighting, and post-processing. Two complementary mechanisms:
+
+### Shader Debug Output (per-pixel material properties)
+
+A `DebugViewMode` enum field in the scene uniforms buffer. The forward shader checks it early and outputs a direct visualization instead of the full PBR calculation:
+
+- **None** — normal rendering (default)
+- **Albedo** — base color after texture × tint
+- **WorldNormals** — world-space normals mapped to [0,1] RGB
+- **Roughness** — grayscale roughness
+- **Metallic** — grayscale metallic
+- **Emissive** — emissive channel only
+- **AO** — ambient occlusion (from material, not SSAO)
+
+One `switch` in `forward.frag.hlsl` after material sampling, before PBR evaluation. No extra passes, no extra textures. Skips lighting entirely when a debug mode is active — outputs the raw value as the final color. MRT targets (normals, motion vectors) are still written normally so debug view doesn't break dependent passes.
+
+### Pipeline Intermediate Blit (render graph textures)
+
+For textures that exist as render graph intermediates — SceneDepth, SceneNormals, MotionVectors, AOTexture (SSAO), BloomTexture — a debug blit pass at the end of the pipeline replaces the final output with the selected texture. Reuses the existing fullscreen triangle infrastructure.
+
+- **Depth** — linearized depth, near=white far=black
+- **SceneNormals** — view-space normal XY from mini G-buffer
+- **MotionVectors** — screen-space velocity, visualized as RG color
+- **SSAO** — raw AO texture before composite
+- **Bloom** — bloom texture before tonemap composite
+
+### Integration
+
+- `DebugViewMode` enum in `Sedulous.Renderer` covering both shader and blit modes
+- Scene uniforms struct gets a `DebugMode` uint32 field (already uploaded per-frame per-view)
+- `RenderSceneModule` gets a `[Property]` field for the mode — shows as dropdown in inspector when no entity is selected
+- Editor viewport toolbar gets a debug view dropdown (separate from the inspector, for quick access)
+- `ApplyRenderSettings` pushes the mode to the pipeline; Pipeline writes it to scene uniforms
+- For blit modes, Pipeline checks the mode after post-processing and substitutes the output
+
 ### Principles
 - Each feature targets what we actually need for the game
 - Build features properly - follow established engine architecture patterns, not shortcuts that need rework later
