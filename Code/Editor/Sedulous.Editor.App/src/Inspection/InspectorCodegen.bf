@@ -13,11 +13,15 @@ static class InspectorCodegen
 		String body = scope .();
 		body.Append("public void DescribeProperties(Sedulous.Engine.Core.IPropertyDescriptor desc)\n{\n");
 
-		// Category header: strip "Component" suffix for display name
+		// Category header: strip common suffixes for display name
 		let typeName = type.GetName(.. scope .());
 		let displayName = scope String(typeName);
 		if (displayName.EndsWith("Component"))
 			displayName.RemoveFromEnd(9);
+		else if (displayName.EndsWith("SceneModule"))
+			displayName.RemoveFromEnd(11);
+		else if (displayName.EndsWith("Module"))
+			displayName.RemoveFromEnd(6);
 		body.AppendF($"\tdesc.BeginCategory(\"{displayName}\");\n");
 
 		for (let field in type.GetFields())

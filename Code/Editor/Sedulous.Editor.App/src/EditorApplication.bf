@@ -27,6 +27,19 @@ using Sedulous.Engine;
 using Sedulous.Engine.Render;
 using Sedulous.Geometry.Resources;
 using Sedulous.Resources;
+using Sedulous.Textures.Importer;
+using Sedulous.Textures.Resources;
+using Sedulous.Engine.Navigation;
+using Sedulous.Engine.Audio;
+using Sedulous.Engine.Animation;
+using Sedulous.Engine.Physics;
+using Sedulous.Models.FBX;
+using Sedulous.Models.GLTF;
+using Sedulous.Images.STB;
+using System.IO;
+using Sedulous.Serialization;
+using Sedulous.Materials;
+using Sedulous.Materials.Resources;
 
 /// The Sedulous Editor application.
 /// Extends Runtime.Client.Application for direct control over UI and rendering.
@@ -96,6 +109,11 @@ class EditorApplication : Application, IDockableWindowHost
 
 	protected override void OnInitialize(Context context)
 	{
+		// Initialize model and image loaders
+		STBImageLoader.Initialize();
+		GltfModels.Initialize();
+		FbxModels.Initialize();
+
 		// Shader system
 		mShaderSystem = new ShaderSystem();
 		let shaderDir = scope String();
@@ -147,10 +165,10 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Register engine subsystems for scene rendering.
 		// SceneSubsystem manages scene lifecycle.
-		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.SceneSubsystem(mResourceSystem, mTypeRegistry));
+		mRuntimeContext.RegisterSubsystem(new SceneSubsystem(mResourceSystem, mTypeRegistry));
 
 		// RenderSubsystem provides ISceneRenderer for viewport rendering.
-		let renderSub = new Sedulous.Engine.Render.RenderSubsystem(mResourceSystem);
+		let renderSub = new RenderSubsystem(mResourceSystem);
 		renderSub.Device = Device;
 		renderSub.Window = Window;
 		renderSub.ShaderSystem = mShaderSystem;
@@ -158,10 +176,10 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Register all engine subsystems so all component types are available
 		// in the editor (Add Component, inspector, scene serialization).
-		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Physics.PhysicsSubsystem());
-		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Animation.AnimationSubsystem(mResourceSystem));
-		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Audio.AudioSubsystem(mResourceSystem));
-		mRuntimeContext.RegisterSubsystem(new Sedulous.Engine.Navigation.NavigationSubsystem());
+		mRuntimeContext.RegisterSubsystem(new PhysicsSubsystem());
+		mRuntimeContext.RegisterSubsystem(new AnimationSubsystem(mResourceSystem));
+		mRuntimeContext.RegisterSubsystem(new AudioSubsystem(mResourceSystem));
+		mRuntimeContext.RegisterSubsystem(new NavigationSubsystem());
 
 		let uiSub = new Sedulous.Engine.UI.EngineUISubsystem();
 		uiSub.Device = Device;
@@ -212,11 +230,6 @@ class EditorApplication : Application, IDockableWindowHost
 
 	protected override void OnContextStarted()
 	{
-		// Initialize model and image loaders
-		Sedulous.Images.STB.STBImageLoader.Initialize();
-		Sedulous.Models.GLTF.GltfModels.Initialize();
-		Sedulous.Models.FBX.FbxModels.Initialize();
-
 		// Register built-in asset creators
 		mEditorContext.RegisterAssetCreator(new MaterialAssetCreator());
 		mEditorContext.RegisterAssetCreator(new SceneAssetCreator());
@@ -233,7 +246,7 @@ class EditorApplication : Application, IDockableWindowHost
 			Device, mVGRenderer, Shell.InputManager.Keyboard, mTypeRegistry));
 
 		// Register built-in gizmo renderers
-		mEditorContext.RegisterGizmoRenderer(typeof(Sedulous.Engine.Render.LightComponent), new LightGizmoRenderer());
+		mEditorContext.RegisterGizmoRenderer(typeof(LightComponent), new LightGizmoRenderer());
 
 		// Initialize plugins after UI is set up.
 		mEditorContext.PluginRegistry.InitializeAll(mEditorContext);
@@ -725,23 +738,24 @@ class EditorApplication : Application, IDockableWindowHost
 		registryPath.AppendF("{}/builtin.registry", assetRoot);
 
 		// Check if assets need generating
-		bool needsGeneration = !System.IO.File.Exists(registryPath);
+		bool needsGeneration = !File.Exists(registryPath);
 
 		if (needsGeneration)
 		{
 			mEditorLogger.Log(.Information, "Generating default builtin assets...");
 			let provider = ResourceSystem.SerializerProvider;
-			let tempRegistry = scope Sedulous.Resources.ResourceRegistry();
+			let tempRegistry = scope ResourceRegistry();
 
 			GenerateDefaultPrimitives(assetRoot, provider, tempRegistry);
 			GenerateDefaultMaterials(assetRoot, provider, tempRegistry);
+			GenerateDefaultSkies(assetRoot, provider, tempRegistry);
 
 			tempRegistry.SaveToFile(registryPath);
 			mEditorLogger.Log(.Information, "Default builtin assets generated.");
 		}
 
 		// Load builtin registry with name "builtin" and root = asset directory
-		mPrimitiveRegistry = new Sedulous.Resources.ResourceRegistry("builtin", assetRoot);
+		mPrimitiveRegistry = new ResourceRegistry("builtin", assetRoot);
 		if (mPrimitiveRegistry.LoadFromFile(registryPath) case .Ok)
 		{
 			ResourceSystem.AddRegistry(mPrimitiveRegistry);
@@ -753,11 +767,11 @@ class EditorApplication : Application, IDockableWindowHost
 		}
 	}
 
-	private void GenerateDefaultPrimitives(StringView assetRoot, Sedulous.Serialization.ISerializerProvider provider, Sedulous.Resources.ResourceRegistry registry)
+	private void GenerateDefaultPrimitives(StringView assetRoot, ISerializerProvider provider, ResourceRegistry registry)
 	{
 		let primDir = scope String()..AppendF("{}/primitives", assetRoot);
-		if (!System.IO.Directory.Exists(primDir))
-			System.IO.Directory.CreateDirectory(primDir);
+		if (!Directory.Exists(primDir))
+			Directory.CreateDirectory(primDir);
 
 		// Plane
 		{
@@ -790,16 +804,16 @@ class EditorApplication : Application, IDockableWindowHost
 		}
 	}
 
-	private void GenerateDefaultMaterials(StringView assetRoot, Sedulous.Serialization.ISerializerProvider provider, Sedulous.Resources.ResourceRegistry registry)
+	private void GenerateDefaultMaterials(StringView assetRoot, ISerializerProvider provider, ResourceRegistry registry)
 	{
 		let matDir = scope String()..AppendF("{}/materials", assetRoot);
-		if (!System.IO.Directory.Exists(matDir))
-			System.IO.Directory.CreateDirectory(matDir);
+		if (!Directory.Exists(matDir))
+			Directory.CreateDirectory(matDir);
 
 		// Default PBR material
 		{
-			let mat = Sedulous.Materials.Materials.CreatePBR("Default", "forward");
-			let res = new Sedulous.Materials.Resources.MaterialResource(mat, true);
+			let mat = Materials.CreatePBR("Default", "forward");
+			let res = new MaterialResource(mat, true);
 			res.Name = "Default";
 			let path = scope String()..AppendF("{}/default.material", matDir);
 			res.SaveToFile(path, provider);
@@ -809,13 +823,50 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Default Unlit material
 		{
-			let mat = Sedulous.Materials.Materials.CreateUnlit("DefaultUnlit");
-			let res = new Sedulous.Materials.Resources.MaterialResource(mat, true);
+			let mat = Materials.CreateUnlit("DefaultUnlit");
+			let res = new MaterialResource(mat, true);
 			res.Name = "DefaultUnlit";
 			let path = scope String()..AppendF("{}/default_unlit.material", matDir);
 			res.SaveToFile(path, provider);
 			registry.Register(res.Id, "materials/default_unlit.material");
 			delete res;
+		}
+	}
+
+	private void GenerateDefaultSkies(StringView assetRoot, ISerializerProvider provider, ResourceRegistry registry)
+	{
+		let skyDir = scope String()..AppendF("{}/skies", assetRoot);
+		if (!Directory.Exists(skyDir))
+			Directory.CreateDirectory(skyDir);
+
+		// Realistic sky (equirectangular HDR)
+		{
+			let srcPath = scope String();
+			GetAssetPath("textures/environment/BlueSky.hdr", srcPath);
+
+			if (TextureImporter.ImportEquirectangular(srcPath) case .Ok(let res))
+			{
+				res.Name.Set("realistic_sky");
+				let path = scope String()..AppendF("{}/realistic_sky.texture", skyDir);
+				res.SaveToFile(path, provider);
+				registry.Register(res.Id, "skies/realistic_sky.texture");
+				delete res;
+			}
+		}
+
+		// Stylized sky (equirectangular PNG)
+		{
+			let srcPath = scope String();
+			GetAssetPath("textures/environment/sky_75_2k/sky_75_2k.png", srcPath);
+
+			if (TextureImporter.ImportEquirectangular(srcPath) case .Ok(let res))
+			{
+				res.Name.Set("stylized_sky");
+				let path = scope String()..AppendF("{}/stylized_sky.texture", skyDir);
+				res.SaveToFile(path, provider);
+				registry.Register(res.Id, "skies/stylized_sky.texture");
+				delete res;
+			}
 		}
 	}
 
@@ -1071,7 +1122,7 @@ class EditorApplication : Application, IDockableWindowHost
 			mVGRenderer.Prepare(batch, frame.FrameIndex);
 	}
 
-	protected override bool OnRenderFrame(Sedulous.Runtime.Client.RenderContext render)
+	protected override bool OnRenderFrame(RenderContext render)
 	{
 		let encoder = render.Encoder;
 		let frame = render.Frame;

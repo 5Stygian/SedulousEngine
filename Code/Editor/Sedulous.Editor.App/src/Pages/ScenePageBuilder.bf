@@ -458,8 +458,19 @@ static class ScenePageBuilder
 			let selected = p.PrimarySelection;
 			if (selected == .Invalid || !p.Scene.IsValid(selected))
 			{
-				headerLabel.SetText("Inspector");
+				headerLabel.SetText("Scene Settings");
 				addCompBtn.Visibility = .Gone;
+
+				// Show inspectable scene modules when no entity is selected
+				for (let module in p.Scene.Modules)
+				{
+					if (let inspectable = module as IInspectable)
+					{
+						let desc = scope EditorPropertyGridDescriptor(propertyGrid, editorContext?.DialogService, editorContext?.ResourceSystem?.SerializerProvider, editorContext?.ResourceSystem, editorContext);
+						inspectable.DescribeProperties(desc);
+					}
+				}
+
 				return;
 			}
 
