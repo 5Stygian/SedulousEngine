@@ -12,7 +12,7 @@ Obj_ %first {
 			string %id {"page:D:\\Dev\\Beef\\BeefGFX\\SedulousEngine\\Code\\Projects\\TowerDefense\\assets\\demo.scene"}
 		}
 	}
-	int32 %activeTab {1}
+	int32 %activeTab {0}
 }
 Obj_ %second {
 	int32 %type {0}

@@ -223,8 +223,8 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Recent projects
 		let recentPath = scope String();
-		GetAssetPath("cache/recent_projects.txt", recentPath);
-		mRecentProjects.Initialize(recentPath);
+		GetAssetPath("cache/recent_projects.oddl", recentPath);
+		mRecentProjects.Initialize(recentPath, ResourceSystem.SerializerProvider);
 
 		// Start with project picker
 		BuildProjectPicker();
