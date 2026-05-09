@@ -476,7 +476,7 @@ class TowerPlacement
 		transform.Scale = .One;
 		scene.SetLocalTransform(rootEntity, transform);
 
-		// Add PrefabReferenceComponent — PrefabComponentManager will instantiate
+		// Add PrefabReferenceComponent - PrefabComponentManager will instantiate
 		// the tower prefab hierarchy as children on the next update.
 		let towerName = GetTowerName(type);
 		let prefabMgr = scene.GetModule<PrefabComponentManager>();

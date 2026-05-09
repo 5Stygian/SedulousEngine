@@ -24,7 +24,7 @@ class SceneSerializer
 	{
 		// Collect alive entities, skipping prefab-instantiated entities.
 		// Those are recreated at runtime by PrefabComponentManager and should
-		// not be persisted — only the PrefabReferenceComponent is saved.
+		// not be persisted - only the PrefabReferenceComponent is saved.
 		let tagMgr = scene.GetModule<PrefabInstanceTagManager>();
 		let entities = scope List<EntityHandle>();
 		for (let entity in scene.Entities)

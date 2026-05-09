@@ -76,7 +76,7 @@ abstract class EngineApplication : IDisposable
 	// Builtin asset registry (builtin:// protocol)
 	private ResourceRegistry mBuiltinRegistry ~ delete _;
 
-	// Runtime directory (working directory at startup — where the application project lives)
+	// Runtime directory (working directory at startup - where the application project lives)
 	private String mRuntimeDirectory = new .() ~ delete _;
 
 	// Shader system (shared by all subsystems that need it)

@@ -69,7 +69,7 @@ class PrefabComponentManager : ComponentManager<PrefabReferenceComponent>
 
 	/// Instantiates a prefab's entities directly into the live scene under
 	/// the component's owning entity. Uses PrefabSerializer.Instantiate which
-	/// deserializes into the existing scene — component managers already on the
+	/// deserializes into the existing scene - component managers already on the
 	/// scene (injected by ISceneAware subsystems) handle resource resolution.
 	private void InstantiatePrefab(PrefabReferenceComponent comp, PrefabResource prefab)
 	{
@@ -98,7 +98,7 @@ class PrefabComponentManager : ComponentManager<PrefabReferenceComponent>
 		defer delete reader;
 
 		// Instantiate directly into the live scene. PrefabSerializer.Instantiate
-		// reads "ExposedParameters" and "Entities" by name from the document —
+		// reads "ExposedParameters" and "Entities" by name from the document -
 		// the Resource header fields (_type, _id, etc.) are ignored.
 		// Components are deserialized into the scene's existing managers (which
 		// have proper GPU resources, resolvers, etc. wired by ISceneAware).

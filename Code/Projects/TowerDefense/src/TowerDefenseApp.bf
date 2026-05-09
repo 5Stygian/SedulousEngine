@@ -429,7 +429,7 @@ class TowerDefenseApp : EngineApplication
 				}
 			}
 
-			// Child of weapon: projectile spawn point (empty entity — position adjusted in editor)
+			// Child of weapon: projectile spawn point (empty entity - position adjusted in editor)
 			let spawnPoint = prefabScene.CreateEntity("ProjectileSpawnPoint");
 			prefabScene.SetParent(spawnPoint, weaponEntity);
 			prefabScene.SetLocalTransform(spawnPoint, .() {

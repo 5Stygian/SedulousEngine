@@ -13,7 +13,7 @@ using Sedulous.Resources;
 using Sedulous.Engine;
 
 /// Creates SceneEditorPage instances for .prefab files.
-/// Prefabs open in the same scene editor as scenes — they're just
+/// Prefabs open in the same scene editor as scenes - they're just
 /// mini-scenes with an entity subgraph. Save serializes back as .prefab.
 class PrefabEditorPageFactory : IEditorPageFactory
 {

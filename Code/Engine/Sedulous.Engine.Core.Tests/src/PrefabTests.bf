@@ -536,7 +536,7 @@ class PrefabTests
 			scene.Update(0.016f);
 			Test.Assert(scene.EntityCount == 2); // instance + 1 prefab entity
 
-			// Destroy the instance entity — should clean up prefab entities
+			// Destroy the instance entity - should clean up prefab entities
 			scene.DestroyEntity(instanceEntity);
 			scene.Update(0.016f); // process deferred destroys
 
@@ -580,12 +580,12 @@ class PrefabTests
 				refComp.SetPrefabRef(prefabRef);
 			}
 
-			// First update — instantiates
+			// First update - instantiates
 			scene.Update(0.016f);
 			let firstInstRoot = FindByName(scene, "Root");
 			Test.Assert(firstInstRoot.IsAssigned);
 
-			// Second update — should NOT re-instantiate (same resource)
+			// Second update - should NOT re-instantiate (same resource)
 			scene.Update(0.016f);
 			let secondInstRoot = FindByName(scene, "Root");
 			Test.Assert(secondInstRoot == firstInstRoot); // Same entity handle = no re-instantiation

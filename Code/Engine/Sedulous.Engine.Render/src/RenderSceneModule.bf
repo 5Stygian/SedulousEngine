@@ -12,7 +12,7 @@ using Sedulous.Core.Mathematics;
 ///
 /// RenderSubsystem reads these values each frame and pushes them to the
 /// appropriate renderer objects (SkyPass, LightBuffer, TonemapEffect).
-/// This module is pure data — no GPU resources or rendering logic.
+/// This module is pure data - no GPU resources or rendering logic.
 class RenderSceneModule : SceneModule, IModuleSerializer
 {
 	public override StringView SerializationTypeId => "Sedulous.RenderSettings";

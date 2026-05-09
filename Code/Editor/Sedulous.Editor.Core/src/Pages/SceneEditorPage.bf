@@ -96,7 +96,7 @@ class SceneEditorPage : IEditorPage
 			if (prefabMgr == null) { Console.WriteLine("ERROR: No PrefabResourceManager"); return; }
 
 			// TODO: store ExposedParameters on the page so they survive save.
-			// Currently saves with empty params — exposed parameters not yet editable.
+			// Currently saves with empty params - exposed parameters not yet editable.
 			let parameters = scope List<ExposedParameterDescriptor>();
 			result = prefabMgr.SavePrefabToFile(mScene, parameters, mFilePath);
 		}
