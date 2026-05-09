@@ -87,6 +87,7 @@ class EditorApplication : Application, IDockableWindowHost
 	private EditorProject mProject = new .() ~ delete _;
 	private RecentProjects mRecentProjects = new .() ~ delete _;
 	private DockablePanel mPlaceholderPanel; // "Open an asset..." placeholder, removed when first page opens
+	private bool mIsRestoringLayout; // Suppresses auto-docking in OnPageOpened during layout restore
 	private AssetBrowserPanel mAssetBrowserPanel ~ delete _;
 	private LogView mLogView;
 	private Dictionary<ObjectKey<IEditorPage>, DockablePanel> mPageDockPanels = new .() ~ delete _;
@@ -109,6 +110,9 @@ class EditorApplication : Application, IDockableWindowHost
 
 	protected override void OnInitialize(Context context)
 	{
+		// Set serializer provider on project for OpenDDL-based .sedproj files
+		mProject.SetSerializerProvider(ResourceSystem.SerializerProvider);
+
 		// Initialize model and image loaders
 		STBImageLoader.Initialize();
 		GltfModels.Initialize();
@@ -429,8 +433,8 @@ class EditorApplication : Application, IDockableWindowHost
 		placeholderContent.VAlign = .Middle;
 		placeholderContent.TextColor = .(100, 100, 115, 255);
 		mPlaceholderPanel = dockManager.AddPanel("Editor", placeholderContent);
+		mPlaceholderPanel.SetPersistenceId("editor");
 		mPlaceholderPanel.OnCloseRequested.Add(new (p) => { mPlaceholderPanel = null; });
-		dockManager.DockPanel(mPlaceholderPanel, .Center);
 
 		// Wire page manager events - each page gets its own dock tab.
 		mEditorContext.PageManager.OnPageOpened.Add(new (page) => OnPageOpened(page));
@@ -439,17 +443,13 @@ class EditorApplication : Application, IDockableWindowHost
 		// Asset browser panel (bottom)
 		mAssetBrowserPanel = new AssetBrowserPanel(mEditorContext);
 		let assetsPanel = dockManager.AddPanel("Assets", mAssetBrowserPanel.ContentView);
-		dockManager.DockPanelRelativeTo(assetsPanel, .Bottom, mPlaceholderPanel.Parent);
+		assetsPanel.SetPersistenceId("assets");
 
 		// Console panel (bottom tab with assets)
 		mLogView = new LogView();
 		mLogBuffer.SetLogView(mLogView); // Flushes buffered startup logs
 		let consolePanel = dockManager.AddPanel("Console", mLogView);
-		dockManager.DockPanelRelativeTo(consolePanel, .Center, assetsPanel.Parent);
-
-		// Set split ratio for page area vs bottom panels (70/30)
-		if (let split = assetsPanel.Parent?.Parent as DockSplit)
-			split.SplitRatio = 0.7f;
+		consolePanel.SetPersistenceId("console");
 
 		// Status bar
 		let statusBar = new StatusBar();
@@ -462,6 +462,61 @@ class EditorApplication : Application, IDockableWindowHost
 		mMainRoot.AddView(shell, new LayoutParams() {
 			Width = .Match, Height = .Match
 		});
+
+		// Restore open pages first (creates page dock panels with PersistenceIds),
+		// then apply layout to position everything. If no saved layout, use default.
+		mIsRestoringLayout = true;
+		RestoreOpenPages();
+		mIsRestoringLayout = false;
+
+		if (!TryRestoreLayout(dockManager))
+		{
+			// Default layout: placeholder or pages in center, assets+console at bottom.
+			if (mPlaceholderPanel != null && mPageDockPanels.Count == 0)
+			{
+				dockManager.DockPanel(mPlaceholderPanel, .Center);
+				dockManager.DockPanelRelativeTo(assetsPanel, .Bottom, mPlaceholderPanel.Parent);
+			}
+			else
+			{
+				// Pages were restored — dock them in center, remove placeholder.
+				DockablePanel firstPagePanel = null;
+				for (let kv in mPageDockPanels)
+				{
+					if (firstPagePanel == null)
+					{
+						dockManager.DockPanel(kv.value, .Center);
+						firstPagePanel = kv.value;
+					}
+					else
+					{
+						dockManager.DockPanelRelativeTo(kv.value, .Center, firstPagePanel.Parent);
+					}
+				}
+
+				if (mPlaceholderPanel != null)
+				{
+					dockManager.ClosePanel(mPlaceholderPanel);
+					mPlaceholderPanel = null;
+				}
+
+				dockManager.DockPanelRelativeTo(assetsPanel, .Bottom, firstPagePanel?.Parent ?? dockManager.RootNode);
+			}
+
+			dockManager.DockPanelRelativeTo(consolePanel, .Center, assetsPanel.Parent);
+
+			if (let split = assetsPanel.Parent?.Parent as DockSplit)
+				split.SplitRatio = 0.7f;
+		}
+		else
+		{
+			// Layout restored — if pages were restored, the placeholder is not needed.
+			if (mPageDockPanels.Count > 0 && mPlaceholderPanel != null)
+			{
+				dockManager.ClosePanel(mPlaceholderPanel);
+				mPlaceholderPanel = null;
+			}
+		}
 	}
 
 	private void BuildMenus(MenuBar menuBar)
@@ -605,6 +660,10 @@ class EditorApplication : Application, IDockableWindowHost
 		let panel = dockManager.AddPanel(page.Title, page.ContentView);
 		panel.Closable = true;
 
+		// Set persistence ID from file path so layout save/restore can track page panels.
+		if (page.FilePath.Length > 0)
+			panel.SetPersistenceId(scope $"page:{page.FilePath}");
+
 		// When dock tab X is clicked, detach content (page owns it) and close via PageManager.
 		// Note: DockManager's own OnCloseRequested handler (registered first in AddPanel)
 		// calls ClosePanel before this handler runs, so the dock panel is already undocked.
@@ -619,28 +678,32 @@ class EditorApplication : Application, IDockableWindowHost
 			mEditorContext.PageManager.Close(capturedPage);
 		});
 
-		// Dock in the right place.
-		if (mPlaceholderPanel != null)
+		// During layout restore, skip auto-docking — ApplyLayout will position the panel.
+		if (!mIsRestoringLayout)
 		{
-			let placeholder = mPlaceholderPanel;
-			mPlaceholderPanel = null;
-			dockManager.DockPanelRelativeTo(panel, .Center, placeholder.Parent);
-			dockManager.ClosePanel(placeholder);
-		}
-		else
-		{
-			// Subsequent pages: dock as tab next to existing pages.
-			DockablePanel relativePanel = null;
-			for (let kv in mPageDockPanels)
+			// Dock in the right place.
+			if (mPlaceholderPanel != null)
 			{
-				relativePanel = kv.value;
-				break;
+				let placeholder = mPlaceholderPanel;
+				mPlaceholderPanel = null;
+				dockManager.DockPanelRelativeTo(panel, .Center, placeholder.Parent);
+				dockManager.ClosePanel(placeholder);
 			}
-
-			if (relativePanel != null)
-				dockManager.DockPanelRelativeTo(panel, .Center, relativePanel.Parent);
 			else
-				dockManager.DockPanel(panel, .Center);
+			{
+				// Subsequent pages: dock as tab next to existing pages.
+				DockablePanel relativePanel = null;
+				for (let kv in mPageDockPanels)
+				{
+					relativePanel = kv.value;
+					break;
+				}
+
+				if (relativePanel != null)
+					dockManager.DockPanelRelativeTo(panel, .Center, relativePanel.Parent);
+				else
+					dockManager.DockPanel(panel, .Center);
+			}
 		}
 
 		mPageDockPanels[.(page)] = panel;
@@ -1288,10 +1351,89 @@ class EditorApplication : Application, IDockableWindowHost
 		}
 	}
 
+	// ==================== Layout Persistence ====================
+
+	private void GetLayoutFilePath(String outPath)
+	{
+		if (mProject.IsLoaded)
+			System.IO.Path.InternalCombine(outPath, mProject.ProjectDirectory, "editor_layout.oddl");
+	}
+
+	private bool TryRestoreLayout(DockManager dockManager)
+	{
+		let layoutPath = scope String();
+		GetLayoutFilePath(layoutPath);
+		if (layoutPath.Length == 0) return false;
+
+		let provider = ResourceSystem?.SerializerProvider;
+		if (provider == null) return false;
+
+		return EditorLayoutPersistence.RestoreLayout(dockManager, layoutPath, provider) == .Ok;
+	}
+
+	private void SaveEditorLayout()
+	{
+		let dockManager = mEditorContext?.DockManager;
+		if (dockManager == null) return;
+
+		let layoutPath = scope String();
+		GetLayoutFilePath(layoutPath);
+		if (layoutPath.Length == 0) return;
+
+		let provider = ResourceSystem?.SerializerProvider;
+		if (provider == null) return;
+
+		if (EditorLayoutPersistence.SaveLayout(dockManager, layoutPath, provider) case .Ok)
+			mEditorLogger.Log(.Information, "Editor layout saved.");
+	}
+
+	private void SaveOpenPages()
+	{
+		if (!mProject.IsLoaded) return;
+
+		let pages = mEditorContext.PageManager.OpenPages;
+		let activePage = mEditorContext.PageManager.ActivePage;
+
+		int32 activeIndex = -1;
+		for (int32 i = 0; i < pages.Length; i++)
+		{
+			if (pages[i] === activePage)
+			{
+				activeIndex = i;
+				break;
+			}
+		}
+
+		mProject.SetOpenPages(pages, activeIndex);
+		mProject.Save();
+	}
+
+	private void RestoreOpenPages()
+	{
+		if (!mProject.IsLoaded) return;
+
+		for (let path in mProject.OpenPagePaths)
+		{
+			if (path.Length == 0) continue;
+			if (!File.Exists(path)) continue;
+			mEditorContext.PageManager.OpenWithContext(path, mEditorContext);
+		}
+
+		// Restore active page
+		let pages = mEditorContext.PageManager.OpenPages;
+		let idx = mProject.ActivePageIndex;
+		if (idx >= 0 && idx < pages.Length)
+			mEditorContext.PageManager.SetActive(pages[idx]);
+	}
+
 	// ==================== Shutdown ====================
 
 	protected override void OnShutdown()
 	{
+		// Save editor state before shutting down
+		SaveEditorLayout();
+		SaveOpenPages();
+
 		// Shutdown plugins
 		mEditorContext.PluginRegistry.ShutdownAll();
 

@@ -342,6 +342,19 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		if (mRootNode != null)
 			AddView(mRootNode);
 
+		// Float any panels that weren't placed by the layout.
+		// This prevents panels from being invisible and unreachable.
+		float floatX = 100, floatY = 100;
+		for (let panel in mPanels)
+		{
+			if (panel.Parent == null)
+			{
+				FloatPanel(panel, floatX, floatY);
+				floatX += 30;
+				floatY += 30;
+			}
+		}
+
 		Invalidate();
 	}
 
