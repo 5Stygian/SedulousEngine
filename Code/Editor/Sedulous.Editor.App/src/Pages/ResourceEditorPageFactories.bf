@@ -3,9 +3,15 @@ namespace Sedulous.Editor.App;
 using System;
 using System.Collections;
 using Sedulous.UI;
+using Sedulous.UI.Toolkit;
 using Sedulous.Editor.Core;
+using Sedulous.Images;
+using Sedulous.Textures;
+using Sedulous.Textures.Resources;
+using Sedulous.Resources;
 
 /// Creates editor pages for .texture files.
+/// Displays image preview (FitCenter) and metadata properties.
 class TextureEditorPageFactory : IEditorPageFactory
 {
 	public void GetSupportedExtensions(List<String> outExtensions)
@@ -18,9 +24,125 @@ class TextureEditorPageFactory : IEditorPageFactory
 
 	public IEditorPage CreatePage(StringView path, EditorContext context)
 	{
-		let page = new ResourceEditorPage(path, "Texture");
-		page.SetContentView(BuildPlaceholder("Texture", path));
+		// Load the texture resource via resource system
+		TextureResource texRes = null;
+		if (context.ResourceSystem.LoadResource<TextureResource>(path) case .Ok(let handle))
+			texRes = handle.Resource;
+
+		let page = new TextureEditorPage(path, texRes);
+		page.SetContentView(BuildTextureView(path, texRes, page));
 		return page;
+	}
+
+	private static View BuildTextureView(StringView path, TextureResource texRes, TextureEditorPage page)
+	{
+		let root = new SplitView(.Horizontal);
+
+		// Left: image preview with dark background
+		let previewPanel = new Panel();
+		previewPanel.Background = new ColorDrawable(.(30, 30, 35, 255));
+
+		let imageView = new ImageView();
+		imageView.ScaleType = .FitCenter;
+
+		if (texRes?.Image != null)
+		{
+			let image = texRes.Image;
+			let colorSpace = IsHdrFormat(image.Format) ? ImageColorSpace.Linear : ImageColorSpace.Srgb;
+			let imageData = new ImageDataRef(image.Width, image.Height, image.Format,
+				image.Data.Ptr, image.Data.Length, colorSpace);
+			imageView.Image = imageData;
+			page.SetImageDataRef(imageData);
+		}
+
+		previewPanel.AddView(imageView);
+
+		// Right: metadata panel
+		let infoPanel = new FlexLayout();
+		infoPanel.Direction = .Vertical;
+		infoPanel.Padding = .(8);
+		infoPanel.Spacing = 4;
+
+		AddInfoLabel(infoPanel, "Texture Properties", 14);
+		AddSeparator(infoPanel);
+
+		if (texRes != null)
+		{
+			let image = texRes.Image;
+			if (image != null)
+			{
+				AddInfoRow(infoPanel, "Dimensions", scope $"{image.Width} x {image.Height}");
+				AddInfoRow(infoPanel, "Format", scope $"{image.Format}");
+				let dataSize = image.DataSize;
+				if (dataSize > 1024 * 1024)
+					AddInfoRow(infoPanel, "Data Size", scope $"{dataSize / (1024 * 1024)} MB");
+				else
+					AddInfoRow(infoPanel, "Data Size", scope $"{dataSize / 1024} KB");
+			}
+
+			AddInfoRow(infoPanel, "Shape", scope $"{texRes.Shape}");
+			AddInfoRow(infoPanel, "Min Filter", scope $"{texRes.MinFilter}");
+			AddInfoRow(infoPanel, "Mag Filter", scope $"{texRes.MagFilter}");
+			AddInfoRow(infoPanel, "Wrap U", scope $"{texRes.WrapU}");
+			AddInfoRow(infoPanel, "Wrap V", scope $"{texRes.WrapV}");
+			AddInfoRow(infoPanel, "Mipmaps", texRes.GenerateMipmaps ? "Yes" : "No");
+			AddInfoRow(infoPanel, "Anisotropy", scope $"{texRes.Anisotropy:F1}");
+		}
+		else
+		{
+			AddInfoLabel(infoPanel, "Failed to load texture", 12);
+		}
+
+		root.SetPanes(previewPanel, infoPanel);
+		root.SplitRatio = 0.7f;
+
+		return root;
+	}
+
+	private static void AddInfoLabel(FlexLayout container, StringView text, float fontSize)
+	{
+		let label = new Label();
+		label.SetText(text);
+		label.FontSize = fontSize;
+		label.TextColor = .(180, 180, 195, 255);
+		container.AddView(label, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
+	}
+
+	private static void AddInfoRow(FlexLayout container, StringView name, StringView value)
+	{
+		let row = new FlexLayout();
+		row.Direction = .Horizontal;
+
+		let nameLabel = new Label();
+		nameLabel.SetText(scope $"{name}:");
+		nameLabel.TextColor = .(140, 140, 155, 255);
+		row.AddView(nameLabel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(100)), Height = .Match });
+
+		let valueLabel = new Label();
+		valueLabel.SetText(value);
+		valueLabel.TextColor = .(220, 220, 230, 255);
+		row.AddView(valueLabel, new FlexLayout.LayoutParams() { Grow = 1, Height = .Match });
+
+		container.AddView(row, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(20)) });
+	}
+
+	private static void AddSeparator(FlexLayout container)
+	{
+		let sep = new Panel();
+		sep.Background = new ColorDrawable(.(60, 65, 80, 255));
+		container.AddView(sep, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(1)) });
+	}
+
+	private static bool IsHdrFormat(PixelFormat format)
+	{
+		switch (format)
+		{
+		case .R16F, .RG16F, .RGB16F, .RGBA16F,
+			 .R32F, .RG32F, .RGB32F, .RGBA32F:
+			return true;
+		default:
+			return false;
+		}
 	}
 
 	public static View BuildPlaceholder(StringView resourceType, StringView path)
