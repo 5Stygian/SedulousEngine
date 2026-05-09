@@ -502,6 +502,30 @@ Pipeline switches only occur when material render state differs between
 batch groups. Same-state materials share one pipeline (no switch). The
 `PipelineStateCache` handles caching by config hash.
 
+### Known Issue: PipelineStateCache Keyed by Hash, Not Key Struct
+
+`PipelineStateCache` uses `Dictionary<int, IRenderPipeline>` and
+`Dictionary<int, IPipelineLayout>` keyed by the **computed hash value**
+of `PipelineStateCacheKey`, not the struct itself. On cache lookup
+(line 116), if two different pipeline configurations produce the same
+hash, the second silently gets the first's pipeline — no `Equals` check
+is ever performed.
+
+Additionally, the `materialLayout` pointer is mixed into the hash
+*after* `BuildKey()` (line 112-113), so even `PipelineStateCacheKey.Equals()`
+wouldn't cover the full key if it were used.
+
+The hash function uses `* 31` polynomial chains with small enum inputs,
+so effective entropy is lower than the full 64-bit range. With typical
+pipeline counts (< 100), collision probability is very low but nonzero.
+A collision would cause silent rendering corruption (wrong blend mode,
+wrong shader, wrong vertex layout) that would be extremely hard to
+diagnose.
+
+**Fix:** Key the dictionary on the full `PipelineStateCacheKey` struct
+(extended to include materialLayout) so `Equals` handles collisions.
+Or add a secondary equality check on cache hit.
+
 ### Principles
 - Each feature targets what we actually need for the game
 - Build features properly - follow established engine architecture patterns, not shortcuts that need rework later
