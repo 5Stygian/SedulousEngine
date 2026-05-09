@@ -1034,6 +1034,37 @@ Phases 4a-4d are the core functional path. 4e-4f are enhancement/polish.
 - Likely mouse capture timing issue - gizmo capture may fail or release early
 - Needs investigation to reproduce reliably
 
+### Phase 5.5: Resource Editor Pages
+
+Stub page factories exist for all resource types — double-clicking any asset in the browser opens a tab. Each page needs real editing/viewing functionality.
+
+**Done:**
+- ✅ `ResourceEditorPage` — generic placeholder page (title label only)
+- ✅ `TextureEditorPage` — image preview (ImageView FitCenter) + metadata panel (dimensions, format, shape, filters, wrap, mipmaps, anisotropy)
+- ✅ Page factories registered for all resource types
+
+**Pages to implement (ordered by value):**
+
+| Page | Extension | What it needs |
+|------|-----------|---------------|
+| **Material Editor** | `.material` | Property grid for shader name, blend mode, cull mode, PBR values (base color, roughness, metallic, emissive). Texture slot assignment with ResourceRef editors. Live preview sphere in a viewport. |
+| **Mesh Viewer** | `.mesh` | 3D viewport with orbit camera rendering the mesh. Info panel: vertex/triangle count, submesh list, bounding box, vertex format. No editing — read-only. |
+| **Particle Editor** | `.particle` | 3D viewport with live particle simulation. Property editing for emitters, behaviors, initializers. Restart/pause controls. |
+| **Animation Viewer** | `.animation` | 3D viewport with skinned mesh playback. Timeline scrubber, play/pause/loop. Bone list. Read-only initially. |
+| **Skeleton Viewer** | `.skeleton` | 3D viewport showing bone hierarchy wireframe. Bone list with names and parent indices. Read-only. |
+| **Animation Graph** | `.animgraph` | Node graph editor for blend trees and state machines. Requires a graph editing widget (not yet in toolkit). |
+| **Property Animation** | `.propanim` | Curve editor with keyframe editing. Requires curve editor widget (not yet in toolkit). |
+| **Audio Clip** | `.audioclip` | Waveform display, play/pause/stop, metadata (sample rate, channels, duration). |
+| **Sound Cue** | `.soundcue` | Node graph for audio mixing/layering. Requires graph editor widget. |
+
+**Prerequisites for viewport-based pages (mesh, particle, animation, skeleton):**
+These need a standalone viewport that renders a single resource without a scene. Options:
+- Reuse `ViewportView` + create a temporary scene with the resource loaded
+- Lightweight preview renderer that bypasses the full scene pipeline
+
+**Prerequisites for graph-based pages (anim graph, sound cue):**
+- Node graph editing widget in Sedulous.UI.Toolkit (not yet implemented)
+
 ### Phase 6: Play Mode
 - `EditorSceneManager` - serialize/restore scene around play
 - Play/Pause/Stop controls
