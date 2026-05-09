@@ -6,10 +6,12 @@ using Sedulous.Editor.Core;
 using Sedulous.Resources;
 using Sedulous.Images;
 using Sedulous.Textures.Resources;
+using Sedulous.Textures.Importer;
 using Sedulous.Geometry.Tooling.Resources;
 
 /// Imports image files (.png, .jpg, .tga, .bmp, .hdr) as TextureResource.
-/// Produces a single .texture file per source image.
+/// Supports 2D textures with preset selection (3D, Sprite, UI, Sky) and
+/// cubemap import when 6 face images are detected.
 class TextureAssetImporter : IAssetImporter
 {
 	public void GetSupportedExtensions(List<String> outExtensions)
@@ -43,6 +45,29 @@ class TextureAssetImporter : IAssetImporter
 			item.InternalIndex = 0;
 			preview.Items.Add(item);
 
+			// Build import options with smart defaults
+			let options = new TextureImportOptions();
+
+			// Detect HDR -> default to equirectangular sky
+			let ext = scope String();
+			System.IO.Path.GetExtension(sourcePath, ext);
+			ext.ToLower();
+			if (ext == ".hdr")
+				options.Preset = .EquirectangularSky;
+
+			// Detect cubemap face files
+			if (TextureImporter.DetectCubemapFaces(sourcePath, options.CubemapFacePaths) case .Ok)
+			{
+				options.CubemapDetected = true;
+				options.Preset = .CubemapSky;
+
+				// Update item label to indicate cubemap
+				delete item.TypeLabel;
+				item.TypeLabel = new String(scope $"Cubemap ({image.Width}x{image.Height} per face)");
+			}
+
+			preview.Options = options;
+
 			return .Ok(preview);
 		}
 
@@ -55,20 +80,68 @@ class TextureAssetImporter : IAssetImporter
 		if (preview.Items.Count == 0 || !preview.Items[0].Selected)
 			return .Ok;
 
-		// Load the image
-		Image image;
-		if (ImageLoaderFactory.LoadImage(preview.SourcePath) case .Ok(var img))
-			image = img;
-		else
-			return .Err;
+		let options = (preview.Options as TextureImportOptions) ?? scope TextureImportOptions();
 
-		// Create texture resource (takes ownership of image)
-		let texRes = new TextureResource(image, true);
+		TextureResource texRes = null;
+		defer { if (texRes != null) delete texRes; }
+
+		// Import based on preset
+		switch (options.Preset)
+		{
+		case .CubemapSky:
+			if (options.CubemapDetected)
+			{
+				StringView[6] facePaths = .();
+				for (int i = 0; i < 6; i++)
+					facePaths[i] = options.CubemapFacePaths[i];
+
+				if (TextureImporter.ImportCubemap(facePaths) case .Ok(let res))
+					texRes = res;
+				else
+					return .Err;
+			}
+			else
+			{
+				// Fallback to equirectangular if cubemap not detected
+				if (TextureImporter.ImportEquirectangular(preview.SourcePath) case .Ok(let res))
+					texRes = res;
+				else
+					return .Err;
+			}
+
+		case .EquirectangularSky:
+			if (TextureImporter.ImportEquirectangular(preview.SourcePath) case .Ok(let res))
+				texRes = res;
+			else
+				return .Err;
+
+		case .Sprite:
+			if (TextureImporter.Import2D(preview.SourcePath) case .Ok(let res))
+			{
+				res.SetupForSprite();
+				texRes = res;
+			}
+			else
+				return .Err;
+
+		case .UI:
+			if (TextureImporter.Import2D(preview.SourcePath) case .Ok(let res))
+			{
+				res.SetupForUI();
+				texRes = res;
+			}
+			else
+				return .Err;
+
+		case .Texture3D:
+			if (TextureImporter.Import2D(preview.SourcePath) case .Ok(let res))
+				texRes = res;
+			else
+				return .Err;
+		}
+
+		// Use user-provided name from preview
 		texRes.Name.Set(preview.Items[0].Name);
-		texRes.SourcePath.Set(preview.SourcePath);
-		texRes.SetupFor3D();
-
-		defer delete texRes;
 
 		// Ensure output directory exists
 		if (!System.IO.Directory.Exists(outputDir))

@@ -104,6 +104,9 @@ class ImportDialog : Dialog
 		sep.Background = new ColorDrawable(.(60, 65, 80, 255));
 		content.AddView(sep, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(1)) });
 
+		// Import options (importer-specific)
+		BuildOptionsUI(content);
+
 		// Items header
 		let headerRow = new FlexLayout();
 		headerRow.Direction = .Horizontal;
@@ -169,6 +172,67 @@ class ImportDialog : Dialog
 		content.AddView(scrollView, new FlexLayout.LayoutParams() { Width = .Match, Grow = 1 });
 
 		SetContent(content);
+	}
+
+	/// Builds importer-specific options UI if the preview has options.
+	private void BuildOptionsUI(FlexLayout content)
+	{
+		if (let texOptions = mPreview.Options as TextureImportOptions)
+		{
+			let optionsRow = new FlexLayout();
+			optionsRow.Direction = .Horizontal;
+			optionsRow.Spacing = 6;
+
+			let presetLabel = new Label();
+			presetLabel.SetText("Preset:");
+			presetLabel.FontSize = 11;
+			presetLabel.TextColor = .(140, 145, 165, 255);
+			optionsRow.AddView(presetLabel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(50)), Height = .Match });
+
+			let combo = new ComboBox();
+			combo.AddItem("3D Texture");
+			combo.AddItem("Sprite");
+			combo.AddItem("UI");
+			combo.AddItem("Equirectangular Sky");
+
+			int cubemapIndex = -1;
+			if (texOptions.CubemapDetected)
+			{
+				cubemapIndex = combo.AddItem("Cubemap Sky");
+			}
+
+			// Set initial selection from options
+			switch (texOptions.Preset)
+			{
+			case .Texture3D:         combo.SelectedIndex = 0;
+			case .Sprite:            combo.SelectedIndex = 1;
+			case .UI:                combo.SelectedIndex = 2;
+			case .EquirectangularSky: combo.SelectedIndex = 3;
+			case .CubemapSky:        combo.SelectedIndex = (cubemapIndex >= 0) ? cubemapIndex : 3;
+			}
+
+			combo.OnSelectionChanged.Add(new [=texOptions, =cubemapIndex] (cb, idx) => {
+				switch (idx)
+				{
+				case 0: texOptions.Preset = .Texture3D;
+				case 1: texOptions.Preset = .Sprite;
+				case 2: texOptions.Preset = .UI;
+				case 3: texOptions.Preset = .EquirectangularSky;
+				default:
+					if (idx == cubemapIndex)
+						texOptions.Preset = .CubemapSky;
+				}
+			});
+
+			optionsRow.AddView(combo, new FlexLayout.LayoutParams() { Grow = 1, Height = .Match });
+
+			content.AddView(optionsRow, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(24)) });
+
+			// Separator after options
+			let optSep = new Panel();
+			optSep.Background = new ColorDrawable(.(60, 65, 80, 255));
+			content.AddView(optSep, new FlexLayout.LayoutParams() { Width = .Match, Height = .Fixed(.Px(1)) });
+		}
 	}
 
 	/// Runs the import with only the checked items.
