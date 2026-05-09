@@ -31,6 +31,9 @@ class TextureResource : Resource
 	/// The underlying image data.
 	public Image Image => mImage;
 
+	/// Texture shape (2D, cubemap, array, etc.).
+	public TextureShape Shape = .Texture2D;
+
 	/// Min filter mode.
 	public TextureFilter MinFilter = .Linear;
 
@@ -82,6 +85,7 @@ class TextureResource : Resource
 	/// Setup for UI textures (no mipmaps, linear, clamped).
 	public void SetupForUI()
 	{
+		Shape = .Texture2D;
 		MinFilter = .Linear;
 		MagFilter = .Linear;
 		WrapU = .ClampToEdge;
@@ -93,6 +97,7 @@ class TextureResource : Resource
 	/// Setup for sprite textures (nearest, clamped).
 	public void SetupForSprite()
 	{
+		Shape = .Texture2D;
 		MinFilter = .Nearest;
 		MagFilter = .Nearest;
 		WrapU = .ClampToEdge;
@@ -104,6 +109,7 @@ class TextureResource : Resource
 	/// Setup for 3D textures (mipmaps, linear, anisotropic).
 	public void SetupFor3D()
 	{
+		Shape = .Texture2D;
 		MinFilter = .MipmapLinear;
 		MagFilter = .Linear;
 		WrapU = .Repeat;
@@ -112,9 +118,23 @@ class TextureResource : Resource
 		Anisotropy = 16.0f;
 	}
 
-	/// Setup for skybox (clamped, no mipmaps).
-	public void SetupForSkybox()
+	/// Setup for equirectangular skybox (2D HDR map, clamped, no mipmaps).
+	public void SetupForEquirectangularSkybox()
 	{
+		Shape = .Texture2D;
+		MinFilter = .Linear;
+		MagFilter = .Linear;
+		WrapU = .ClampToEdge;
+		WrapV = .ClampToEdge;
+		WrapW = .ClampToEdge;
+		GenerateMipmaps = false;
+		Anisotropy = 1.0f;
+	}
+
+	/// Setup for cubemap skybox (6-face cube, clamped, no mipmaps).
+	public void SetupForCubemapSkybox()
+	{
+		Shape = .Cubemap;
 		MinFilter = .Linear;
 		MagFilter = .Linear;
 		WrapU = .ClampToEdge;
@@ -129,6 +149,7 @@ class TextureResource : Resource
 	/// Serializes texture metadata (not pixel data - that's in the binary sidecar).
 	protected override SerializationResult OnSerialize(Serializer s)
 	{
+		var shape = (int32)Shape;
 		var minFilter = (int32)MinFilter;
 		var magFilter = (int32)MagFilter;
 		var wrapU = (int32)WrapU;
@@ -137,6 +158,7 @@ class TextureResource : Resource
 		var genMips = GenerateMipmaps;
 		var aniso = Anisotropy;
 
+		s.Int32("shape", ref shape);
 		s.Int32("minFilter", ref minFilter);
 		s.Int32("magFilter", ref magFilter);
 		s.Int32("wrapU", ref wrapU);
@@ -147,6 +169,7 @@ class TextureResource : Resource
 
 		if (s.IsReading)
 		{
+			Shape = (TextureShape)shape;
 			MinFilter = (TextureFilter)minFilter;
 			MagFilter = (TextureFilter)magFilter;
 			WrapU = (TextureWrap)wrapU;

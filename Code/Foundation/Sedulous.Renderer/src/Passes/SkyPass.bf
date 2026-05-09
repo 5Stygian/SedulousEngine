@@ -94,6 +94,7 @@ class SkyPass : PipelinePass
 		get => mSkyTextureView;
 		set
 		{
+			if (mSkyTextureView == value) return;
 			mSkyTextureView = value;
 			mBindGroupsDirty = true;
 		}

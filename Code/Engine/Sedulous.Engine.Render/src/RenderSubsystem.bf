@@ -16,6 +16,7 @@ using Sedulous.Core.Mathematics;
 using Sedulous.Profiler;
 using Sedulous.Resources;
 using Sedulous.Geometry.Resources;
+using Sedulous.Textures;
 using Sedulous.Textures.Resources;
 using Sedulous.Materials.Resources;
 using System.Collections;
@@ -56,6 +57,12 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 
 	// Shared resource resolver
 	private RenderResourceResolver mResolver ~ delete _;
+
+	// Per-scene sky texture resolution state.
+	private Dictionary<Scene, ResolvedResource<TextureResource>> mSkyResolveStates = new .() ~ {
+		for (var kv in _) kv.value.Release();
+		delete _;
+	};
 
 	// Per-view extraction (one RenderView per frame view: main + shadow casters)
 	private RenderViewPool mViewPool = new .() ~ delete _;
@@ -292,6 +299,9 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 		using (Profiler.Begin("ShadowSetup"))
 			SetupShadows(mainView);
 
+		// Push scene-level render settings to renderer objects.
+		ApplyRenderSettings(scene, pipeline);
+
 		// Reset per-pipeline ring buffer offsets.
 		pipeline.BeginFrame(frameIndex);
 
@@ -307,6 +317,49 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 
 		// Transition output to ShaderRead for the application to blit.
 		encoder.TransitionTexture(colorTexture, .RenderTarget, .ShaderRead);
+	}
+
+	// ==================== Scene Render Settings ====================
+
+	/// Reads RenderSceneModule values and pushes them to SkyPass, LightBuffer,
+	/// and TonemapEffect on the pipeline for this scene.
+	private void ApplyRenderSettings(Scene scene, Pipeline pipeline)
+	{
+		let settings = scene.GetModule<RenderSceneModule>();
+		if (settings == null) return;
+
+		// --- Sky ---
+		if (let skyPass = pipeline.GetPass<SkyPass>())
+		{
+			// Only override sky texture when the module has a valid ref.
+			// If no ref is set, leave SkyPass.SkyTexture alone (allows manual override).
+			if (settings.SkyTextureRef.IsValid)
+			{
+				if (!mSkyResolveStates.ContainsKey(scene))
+					mSkyResolveStates[scene] = .();
+				var skyState = ref mSkyResolveStates[scene];
+
+				ITextureView skyView = null;
+				if (mResolver.ResolveTexture(ref skyState, settings.SkyTextureRef, out skyView))
+				{
+					skyPass.SkyTexture = skyView;
+
+					// Determine sky mode from the resolved texture's shape
+					let texRes = skyState.Handle.Resource;
+					if (texRes != null)
+						skyPass.Mode = (texRes.Shape == .Cubemap) ? .Cubemap : .Equirectangular;
+				}
+			}
+
+			skyPass.Intensity = settings.SkyIntensity;
+		}
+
+		// --- Ambient ---
+		pipeline.LightBuffer.AmbientColor = settings.AmbientColor;
+
+		// --- Exposure ---
+		if (let tonemap = pipeline.PostProcessStack?.GetEffect<TonemapEffect>())
+			tonemap.Exposure = settings.Exposure;
 	}
 
 	// ==================== Extraction ====================
@@ -733,6 +786,9 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 
 		scene.AddModule(new LightComponentManager());
 
+		// Scene-level render settings (sky, ambient, exposure).
+		scene.AddModule(new RenderSceneModule());
+
 		// Create a pipeline for this scene.
 		let pipeline = CreatePipelineForScene();
 		mScenePipelines[scene] = pipeline;
@@ -747,6 +803,13 @@ class RenderSubsystem : Subsystem, ISceneAware, IWindowAware, ISceneRenderer
 			pipeline.Shutdown();
 			delete pipeline;
 			mScenePipelines.Remove(scene);
+		}
+
+		if (mSkyResolveStates.ContainsKey(scene))
+		{
+			var state = ref mSkyResolveStates[scene];
+			state.Release();
+			mSkyResolveStates.Remove(scene);
 		}
 	}
 
