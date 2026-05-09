@@ -9,6 +9,7 @@ using Sedulous.Core.Mathematics;
 public class DockablePanel : ViewGroup, IDragSource
 {
 	private String mTitle = new .("Panel") ~ delete _;
+	private String mPersistenceId = new .() ~ delete _;
 	private View mContent; // in mChildren via AddView
 	private bool mClosable = true;
 	private bool mHeaderDrag; // true if mouse-down was on header (enables drag)
@@ -21,6 +22,19 @@ public class DockablePanel : ViewGroup, IDragSource
 	public IDockHost DockHost;
 
 	public Event<delegate void(DockablePanel)> OnCloseRequested ~ _.Dispose();
+
+	/// Stable identifier for layout persistence.
+	/// Set once when creating the panel (e.g., "Assets", "Console", "Inspector").
+	/// Must be unique within the DockManager.
+	public StringView PersistenceId
+	{
+		get => mPersistenceId;
+	}
+
+	public void SetPersistenceId(StringView id)
+	{
+		mPersistenceId.Set(id);
+	}
 
 	public StringView Title
 	{

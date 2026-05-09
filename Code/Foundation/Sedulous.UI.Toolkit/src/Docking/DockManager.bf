@@ -290,6 +290,201 @@ public class DockManager : ViewGroup, IDropTarget, IPopupOwner, IDockHost
 		}
 	}
 
+	// === Layout Persistence ===
+
+	/// Exports the current dock tree as a serializable data structure.
+	/// Returns null if the tree is empty.
+	/// The caller owns the returned DockLayoutNode and is responsible for
+	/// serializing it and deleting it.
+	public DockLayoutNode ExportLayout()
+	{
+		if (mRootNode == null) return null;
+		return ExportNode(mRootNode);
+	}
+
+	/// Rebuilds the dock tree from a previously exported layout.
+	/// Panels are matched by PersistenceId. Panels not found in the layout
+	/// remain undocked. Layout nodes referencing unknown panel IDs are skipped.
+	/// Existing tree structure is cleared before applying.
+	public void ApplyLayout(DockLayoutNode layout)
+	{
+		if (layout == null) return;
+
+		// Collect all registered panels by PersistenceId.
+		let panelMap = scope Dictionary<StringView, DockablePanel>();
+		for (let panel in mPanels)
+		{
+			if (panel.PersistenceId.Length > 0)
+				panelMap[panel.PersistenceId] = panel;
+		}
+
+		// Detach all panels from the current tree (don't delete them).
+		for (let panel in mPanels)
+		{
+			if (panel.Parent != null)
+			{
+				if (let tabGroup = panel.Parent as DockTabGroup)
+					tabGroup.RemovePanel(panel);
+				else if (panel.Parent === this)
+					RemoveView(panel);
+			}
+		}
+
+		// Clear old tree structure.
+		if (mRootNode != null)
+		{
+			ClearTreeStructure(mRootNode);
+			mRootNode = null;
+		}
+
+		// Rebuild from layout.
+		mRootNode = BuildNode(layout, panelMap);
+		if (mRootNode != null)
+			AddView(mRootNode);
+
+		Invalidate();
+	}
+
+	/// Finds a registered panel by its PersistenceId.
+	public DockablePanel FindPanelById(StringView persistenceId)
+	{
+		for (let panel in mPanels)
+		{
+			if (panel.PersistenceId == persistenceId)
+				return panel;
+		}
+		return null;
+	}
+
+	private DockLayoutNode ExportNode(View node)
+	{
+		if (let split = node as DockSplit)
+		{
+			let layoutNode = new DockLayoutNode();
+			layoutNode.Type = .Split;
+			layoutNode.Direction = split.Orientation;
+			layoutNode.SplitRatio = split.SplitRatio;
+
+			if (split.First != null)
+				layoutNode.First = ExportNode(split.First);
+			if (split.Second != null)
+				layoutNode.Second = ExportNode(split.Second);
+
+			return layoutNode;
+		}
+		else if (let tabGroup = node as DockTabGroup)
+		{
+			let layoutNode = new DockLayoutNode();
+			layoutNode.Type = .TabGroup;
+			layoutNode.ActiveTabIndex = tabGroup.SelectedIndex;
+
+			for (int i = 0; i < tabGroup.PanelCount; i++)
+			{
+				let panel = tabGroup.GetPanel(i);
+				if (panel.PersistenceId.Length > 0)
+					layoutNode.PanelIds.Add(new String(panel.PersistenceId));
+			}
+
+			return layoutNode;
+		}
+		else if (let panel = node as DockablePanel)
+		{
+			// Standalone panel not in a tab group — wrap in a TabGroup node.
+			let layoutNode = new DockLayoutNode();
+			layoutNode.Type = .TabGroup;
+			layoutNode.ActiveTabIndex = 0;
+			if (panel.PersistenceId.Length > 0)
+				layoutNode.PanelIds.Add(new String(panel.PersistenceId));
+			return layoutNode;
+		}
+
+		return null;
+	}
+
+	private View BuildNode(DockLayoutNode layoutNode, Dictionary<StringView, DockablePanel> panelMap)
+	{
+		if (layoutNode.Type == .Split)
+		{
+			let split = new DockSplit(layoutNode.Direction);
+			split.SplitRatio = layoutNode.SplitRatio;
+
+			View first = (layoutNode.First != null) ? BuildNode(layoutNode.First, panelMap) : null;
+			View second = (layoutNode.Second != null) ? BuildNode(layoutNode.Second, panelMap) : null;
+
+			if (first != null && second != null)
+			{
+				split.SetChildren(first, second);
+				return split;
+			}
+			else if (first != null)
+			{
+				delete split;
+				return first;
+			}
+			else if (second != null)
+			{
+				delete split;
+				return second;
+			}
+			else
+			{
+				delete split;
+				return null;
+			}
+		}
+		else // TabGroup
+		{
+			let tabGroup = new DockTabGroup();
+
+			for (let id in layoutNode.PanelIds)
+			{
+				if (panelMap.TryGetValue(id, let panel))
+					tabGroup.AddPanel(panel);
+			}
+
+			if (tabGroup.PanelCount == 0)
+			{
+				delete tabGroup;
+				return null;
+			}
+
+			if (layoutNode.ActiveTabIndex >= 0 && layoutNode.ActiveTabIndex < tabGroup.PanelCount)
+				tabGroup.SelectedIndex = layoutNode.ActiveTabIndex;
+
+			return tabGroup;
+		}
+	}
+
+	/// Deletes tree structure nodes (DockSplit, DockTabGroup) without deleting panels.
+	private void ClearTreeStructure(View node)
+	{
+		if (let split = node as DockSplit)
+		{
+			let first = split.First;
+			let second = split.Second;
+
+			if (second != null) split.RemoveView(second);
+			if (first != null) split.RemoveView(first);
+
+			if (first != null) ClearTreeStructure(first);
+			if (second != null) ClearTreeStructure(second);
+
+			if (node.Parent === this)
+				RemoveView(node);
+			QueueDeleteNode(split);
+		}
+		else if (let tabGroup = node as DockTabGroup)
+		{
+			// Remove panels without deleting them.
+			while (tabGroup.PanelCount > 0)
+				tabGroup.RemovePanel(tabGroup.GetPanel(tabGroup.PanelCount - 1));
+
+			if (node.Parent === this)
+				RemoveView(node);
+			QueueDeleteNode(tabGroup);
+		}
+	}
+
 	// === Internal tree operations ===
 
 	private void InsertSplit(View existingNode, DockablePanel panel, DockPosition position)
