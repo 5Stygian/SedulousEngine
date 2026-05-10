@@ -13,6 +13,9 @@ using Sedulous.Resources;
 /// Passed to plugins during initialization so they can register extensions.
 class EditorContext : IDisposable
 {
+	// Editor's own context (from Application base, for editor-side subsystems)
+	public Context EditorAppContext;
+
 	// Embedded runtime (engine instance for preview)
 	public Context RuntimeContext;
 

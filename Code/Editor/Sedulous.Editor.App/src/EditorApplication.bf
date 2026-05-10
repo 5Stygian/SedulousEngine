@@ -31,6 +31,9 @@ using Sedulous.Textures.Importer;
 using Sedulous.Textures.Resources;
 using Sedulous.Engine.Navigation;
 using Sedulous.Engine.Audio;
+using Sedulous.Audio;
+using Sedulous.Audio.Decoders;
+using Sedulous.Audio.Resources;
 using Sedulous.Engine.Animation;
 using Sedulous.Engine.Physics;
 using Sedulous.Models.FBX;
@@ -89,6 +92,7 @@ class EditorApplication : Application, IDockableWindowHost
 	private DockablePanel mPlaceholderPanel; // "Open an asset..." placeholder, removed when first page opens
 	private bool mIsRestoringLayout; // Suppresses auto-docking in OnPageOpened during layout restore
 	private AssetBrowserPanel mAssetBrowserPanel ~ delete _;
+	private AudioDecoderFactory mAudioDecoder ~ delete _;
 	private LogView mLogView;
 	private Dictionary<ObjectKey<IEditorPage>, DockablePanel> mPageDockPanels = new .() ~ delete _;
 	private int32 mNewSceneCounter;
@@ -206,6 +210,7 @@ class EditorApplication : Application, IDockableWindowHost
 
 		// Editor context
 		mEditorContext = new EditorContext();
+		mEditorContext.EditorAppContext = mContext;
 		mEditorContext.RuntimeContext = mRuntimeContext;
 		mEditorContext.SceneManager = mSceneManager;
 		mEditorContext.PrefabManager = mPrefabManager;
@@ -242,6 +247,10 @@ class EditorApplication : Application, IDockableWindowHost
 		// Register built-in asset importers
 		mEditorContext.RegisterAssetImporter(new ModelAssetImporter());
 		mEditorContext.RegisterAssetImporter(new TextureAssetImporter());
+
+		mAudioDecoder = new AudioDecoderFactory();
+		mAudioDecoder.RegisterDefaultDecoders();
+		mEditorContext.RegisterAssetImporter(new AudioAssetImporter(mAudioDecoder));
 
 		// Register built-in page factories
 		mEditorContext.RegisterPageFactory(new SceneEditorPageFactory(

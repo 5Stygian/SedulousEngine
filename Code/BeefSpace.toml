@@ -2,7 +2,7 @@ FileVersion = 1
 Locked = ["Bulkan", "cgltf-Beef", "cimgui-Beef", "Nuklear-Beef", "Dxc-Beef", "glslang-Beef", "SDL3", "SPIRV-Cross", "stb_image-Beef", "stb_truetype-Beef", "stb_vorbis-Beef", "dr_libs-Beef", "ufbx-Beef", "Win32", "joltc-Beef", "SDL3_image", "recastnavigation-Beef"]
 
 [Workspace]
-StartupProject = "Sedulous.Editor.App"
+StartupProject = "TowerDefense"
 
 [Projects]
 "Sedulous.RHI" = {Path = "Foundation/Sedulous.RHI"}
@@ -140,6 +140,7 @@ EngineSandbox = {Path = "Samples/EngineSandbox"}
 "Sedulous.GUI.Runtime" = {Path = "Deprecated/Sedulous.GUI.Runtime"}
 "Sedulous.Drawing.Renderer" = {Path = "Foundation/Sedulous.Drawing.Renderer"}
 "Sedulous.Audio.Resources" = {Path = "Foundation/Sedulous.Audio.Resources"}
+"Sedulous.Audio.Importer" = {Path = "Foundation/Sedulous.Audio.Importer"}
 "Sedulous.Animation.Resources" = {Path = "Foundation/Sedulous.Animation.Resources"}
 "Sedulous.Geometry.Resources" = {Path = "Foundation/Sedulous.Geometry.Resources"}
 "Sedulous.Textures.Resources" = {Path = "Foundation/Sedulous.Textures.Resources"}
@@ -209,7 +210,7 @@ Foundation = []
 "Foundation/Shell" = ["Sedulous.Shell", "Sedulous.Shell.SDL3", "Sedulous.Shell.Tests"]
 "Foundation/Profiling" = ["Sedulous.Profiler", "Sedulous.Profiler.Tests"]
 "Foundation/Animation" = ["Sedulous.Animation", "Sedulous.Animation.Tests", "Sedulous.Animation.Resources"]
-"Foundation/Audio" = ["Sedulous.Audio", "Sedulous.Audio.Decoders", "Sedulous.Audio.SDL3", "Sedulous.Audio.Tests", "Sedulous.Audio.Resources", "Sedulous.Audio.Effects", "Sedulous.Audio.Effects.Tests"]
+"Foundation/Audio" = ["Sedulous.Audio", "Sedulous.Audio.Decoders", "Sedulous.Audio.SDL3", "Sedulous.Audio.Tests", "Sedulous.Audio.Resources", "Sedulous.Audio.Importer", "Sedulous.Audio.Effects", "Sedulous.Audio.Effects.Tests"]
 "Foundation/Drawing" = ["Sedulous.DebugFont", "Sedulous.Drawing", "Sedulous.Drawing.Tests", "Sedulous.Drawing.Renderer"]
 "Foundation/Fonts" = ["Sedulous.Fonts", "Sedulous.Fonts.TTF", "Sedulous.Fonts.Tests"]
 "Foundation/Geometry" = ["Sedulous.Geometry", "Sedulous.Geometry.Tests", "Sedulous.Geometry.Tooling", "Sedulous.Geometry.Resources", "Sedulous.Geometry.Tooling.Resources"]
