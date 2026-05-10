@@ -974,12 +974,23 @@ class SandboxApp : EngineApplication
 				GetAssetPath("samples/audio/background/eyeless.wav", musicPath);
 				if (decoder.DecodeFile(musicPath) case .Ok(let clip))
 				{
+					Console.WriteLine("[EngineSandbox] Audio clip decoded:");
+					Console.WriteLine("  clip.SampleRate: {}", clip.SampleRate);
+					Console.WriteLine("  clip.Channels: {}", clip.Channels);
+					Console.WriteLine("  clip.Format: {}", clip.Format);
+					Console.WriteLine("  clip.Duration: {:.2}s", clip.Duration);
+					Console.WriteLine("  clip.DataLength: {} bytes", clip.DataLength);
+					Console.WriteLine("  clip.FrameCount: {}", clip.FrameCount);
+					Console.WriteLine("  clip.IsLoaded: {}", clip.IsLoaded);
+
 					mBgMusicClip = clip;
 					mBgMusicSource = audioSub.AudioSystem.CreateSource();
 					mBgMusicSource.Loop = true;
 					mBgMusicSource.Volume = 0.15f;
 					mBgMusicSource.Play(clip);
 					Console.WriteLine("Background music started");
+					Console.WriteLine("  source.State: {}", mBgMusicSource.State);
+					Console.WriteLine("  source.BusName: {}", mBgMusicSource.BusName);
 				}
 				else
 				{
