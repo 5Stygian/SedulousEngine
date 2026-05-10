@@ -327,6 +327,14 @@ class SDL3AudioSystem : IAudioSystem
 		// Update 3D parameters - these write floats to nodes, safe without locking
 		for (let source in mSources)
 		{
+			// Connect to bus if Play() was called after routing
+			if (source.NeedsBusConnect)
+			{
+				source.NeedsBusConnect = false;
+				let capturedSource = source;
+				mMixer.EnqueueCommand(new () => { capturedSource.ConnectToBus(); });
+			}
+
 			// Update 3D audio (distance attenuation + stereo panning)
 			source.Update3D(mListener);
 
