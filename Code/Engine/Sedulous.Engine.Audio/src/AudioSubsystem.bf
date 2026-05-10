@@ -91,9 +91,11 @@ class AudioSubsystem : Subsystem, ISceneAware
 
 		// Register resource managers
 		mClipResourceManager = new AudioClipResourceManager(mAudioSystem);
+		mClipResourceManager.SerializerProvider = mResourceSystem.SerializerProvider;
 		mResourceSystem.AddResourceManager(mClipResourceManager);
 
 		mCueResourceManager = new SoundCueResourceManager();
+		mCueResourceManager.SerializerProvider = mResourceSystem.SerializerProvider;
 		mResourceSystem.AddResourceManager(mCueResourceManager);
 	}
 

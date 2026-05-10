@@ -52,9 +52,13 @@ public class SourceNode : AudioNode
 		mFinished = false;
 	}
 
-	/// Stops playback.
+	/// Stops playback and clears the clip reference so the mixer thread
+	/// won't access freed clip data after the source is destroyed.
+	/// Clip is nulled before mPlaying is cleared -- ProcessAudio checks
+	/// both and exits on either, preventing a race with the mixer thread.
 	public void Stop()
 	{
+		mClip = null;
 		mPlaying = false;
 		mPlaybackPosition = 0;
 	}

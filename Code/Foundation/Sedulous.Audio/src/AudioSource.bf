@@ -32,6 +32,10 @@ class AudioSource : IAudioSource
 	// Graph connection target - set by the system when routing to a bus
 	private CombineNode mTargetBus;
 
+	/// Set when Play() is called and the source needs to be connected to the bus.
+	/// Cleared by the system after enqueuing the connect command.
+	public bool NeedsBusConnect;
+
 	/// The underlying SourceNode in the audio graph.
 	public SourceNode Node => mNode;
 
@@ -127,6 +131,11 @@ class AudioSource : IAudioSource
 		mNode.Play();
 
 		mState = .Playing;
+
+		// If we have a target bus but weren't connected (source was Stopped
+		// when SetTargetBus ran), flag for reconnection.
+		if (mTargetBus != null)
+			NeedsBusConnect = true;
 	}
 
 	public void Pause()
