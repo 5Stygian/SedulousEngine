@@ -3,41 +3,35 @@ using System.IO;
 using System.Collections;
 using Sedulous.Audio;
 using Sedulous.Resources;
+using Sedulous.Serialization;
 
 namespace Sedulous.Audio.Resources;
 
 /// Resource manager for loading audio clips through the ResourceSystem.
-/// Requires an IAudioSystem to create backend-specific audio clips.
+/// Handles .audioclip files (text metadata + binary PCM sidecar).
 class AudioClipResourceManager : ResourceManager<AudioClipResource>
 {
 	private IAudioSystem mAudioSystem;
 
-	/// Creates an AudioClipResourceManager with the specified audio system for clip loading.
 	public this(IAudioSystem audioSystem)
 	{
 		mAudioSystem = audioSystem;
 	}
 
+	protected override Result<AudioClipResource, ResourceLoadError> LoadFromFile(StringView path)
+	{
+		if (LoadTextFormat(path) case .Ok(let resource))
+		{
+			resource.AddRef();
+			return .Ok(resource);
+		}
+
+		return .Err(.ReadError);
+	}
+
 	protected override Result<AudioClipResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
 	{
-		// Read memory stream into a buffer
-		let buffer = scope List<uint8>((int)memory.Length);
-		buffer.Count = (int)memory.Length;
-		memory.Position = 0;
-		if (memory.TryRead(buffer) case .Err)
-			return .Err(.ReadError);
-
-		let data = Span<uint8>(buffer.Ptr, buffer.Count);
-		switch (mAudioSystem.LoadClip(data))
-		{
-		case .Ok(let clip):
-			let resource = new AudioClipResource();
-			resource.Clip = clip;
-			resource.AddRef(); // Manager's ownership ref - released in Unload
-			return .Ok(resource);
-		case .Err:
-			return .Err(.InvalidFormat);
-		}
+		return .Err(.NotSupported);
 	}
 
 	public override void Unload(AudioClipResource resource)
@@ -48,27 +42,81 @@ class AudioClipResourceManager : ResourceManager<AudioClipResource>
 
 	protected override Result<void, ResourceLoadError> ReloadResource(AudioClipResource resource, StringView path)
 	{
-		// Read file into buffer
-		let buffer = scope List<uint8>();
-		let stream = scope FileStream();
-		if (stream.Open(path, .Read, .Read) case .Err)
-			return .Err(.NotFound);
-
-		buffer.Count = (.)stream.Length;
-		if (stream.TryRead(buffer) case .Err)
-			return .Err(.ReadError);
-
-		let data = Span<uint8>(buffer.Ptr, buffer.Count);
-		switch (mAudioSystem.LoadClip(data))
+		if (LoadTextFormat(path) case .Ok(let reloaded))
 		{
-		case .Ok(let clip):
-			// Replace clip on existing resource
 			if (resource.Clip != null)
 				delete resource.Clip;
-			resource.Clip = clip;
+			resource.Clip = reloaded.Clip;
+			reloaded.[Friend]mClip = null;
+			resource.ClipSampleRate = reloaded.ClipSampleRate;
+			resource.ClipChannels = reloaded.ClipChannels;
+			resource.ClipFormat = reloaded.ClipFormat;
+			delete reloaded;
 			return .Ok;
-		case .Err:
-			return .Err(.InvalidFormat);
 		}
+
+		return .Err(.ReadError);
+	}
+
+	// ==================== Text + sidecar format ====================
+
+	private Result<AudioClipResource> LoadTextFormat(StringView path)
+	{
+		if (SerializerProvider == null)
+			return .Err;
+
+		let text = scope String();
+		if (File.ReadAllText(path, text) case .Err)
+			return .Err;
+
+		let reader = SerializerProvider.CreateReader(text);
+		if (reader == null)
+			return .Err;
+		defer delete reader;
+
+		let resource = new AudioClipResource();
+		if (resource.Serialize(reader) != .Ok)
+		{
+			delete resource;
+			return .Err;
+		}
+
+		// Load PCM data from binary sidecar
+		if (resource.BinaryPath.IsEmpty)
+		{
+			delete resource;
+			return .Err;
+		}
+
+		let relativeDir = Path.GetDirectoryPath(path, .. scope .());
+		let readPath = scope String();
+		Path.InternalCombine(readPath, relativeDir, resource.BinaryPath);
+
+		let binStream = scope FileStream();
+		if (binStream.Open(readPath, .Read) case .Err)
+		{
+			delete resource;
+			return .Err;
+		}
+
+		let binLen = (int)binStream.Length;
+		let binData = new uint8[binLen]*;
+		if (binStream.TryRead(Span<uint8>(binData, binLen)) case .Err)
+		{
+			delete binData;
+			delete resource;
+			return .Err;
+		}
+
+		let clip = new AudioClip(
+			binData, binLen,
+			resource.ClipSampleRate,
+			resource.ClipChannels,
+			(AudioFormat)resource.ClipFormat,
+			true
+		);
+		resource.Clip = clip;
+
+		return .Ok(resource);
 	}
 }
