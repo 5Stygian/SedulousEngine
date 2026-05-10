@@ -1,0 +1,13 @@
+FileVersion = 1
+
+[Project]
+Name = "Sedulous.Audio.Importer"
+TargetType = "BeefLib"
+
+[Dependencies]
+corlib = "*"
+"Sedulous.Audio" = "*"
+"Sedulous.Audio.Decoders" = "*"
+"Sedulous.Audio.Resources" = "*"
+"Sedulous.Resources" = "*"
+"Sedulous.Serialization" = "*"
