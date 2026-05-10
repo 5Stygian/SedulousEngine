@@ -36,10 +36,13 @@ class RecentProjects
 	/// Add a project path (moves to front if already present).
 	public void Add(StringView path)
 	{
+		// Copy first — path may be a StringView into an entry we're about to delete.
+		let pathCopy = scope String(path);
+
 		// Remove if already present.
 		for (int i = mPaths.Count - 1; i >= 0; i--)
 		{
-			if (StringView(mPaths[i]) == path)
+			if (StringView(mPaths[i]) == pathCopy)
 			{
 				delete mPaths[i];
 				mPaths.RemoveAt(i);
@@ -47,7 +50,7 @@ class RecentProjects
 		}
 
 		// Insert at front.
-		mPaths.Insert(0, new String(path));
+		mPaths.Insert(0, new String(pathCopy));
 
 		// Trim oldest.
 		while (mPaths.Count > mMaxEntries)
