@@ -526,6 +526,17 @@ diagnose.
 (extended to include materialLayout) so `Equals` handles collisions.
 Or add a secondary equality check on cache hit.
 
+### Known Issue: Validation Errors When No Scene Renders
+
+When an application runs without calling `RenderScene` (e.g., empty app with
+no scene created yet), the Pipeline Output color target remains in
+`VK_IMAGE_LAYOUT_UNDEFINED`. The blit-to-swapchain pass attempts to sample it,
+triggering validation errors about expected `SHADER_READ_ONLY_OPTIMAL` layout.
+
+The engine should handle this gracefully -- either skip the blit when no scene
+has rendered this frame, or transition the color target to a valid state (clear
++ transition) unconditionally in `PresentFrame` before the blit.
+
 ## Debug View Mode
 
 Visualize intermediate render data in the viewport for debugging materials, lighting, and post-processing. Two complementary mechanisms:

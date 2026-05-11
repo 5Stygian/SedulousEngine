@@ -20,12 +20,12 @@ class AudioSubsystem : Subsystem, ISceneAware
 {
 	public override int32 UpdateOrder => 200;
 
-	private Sedulous.Resources.ResourceSystem mResourceSystem;
+	private ResourceSystem mResourceSystem;
 	private IAudioSystem mAudioSystem ~ { _?.Dispose(); delete _; };
 	private AudioClipResourceManager mClipResourceManager ~ delete _;
 	private SoundCueResourceManager mCueResourceManager ~ delete _;
 
-	public this(Sedulous.Resources.ResourceSystem resourceSystem)
+	public this(ResourceSystem resourceSystem)
 	{
 		mResourceSystem = resourceSystem;
 	}

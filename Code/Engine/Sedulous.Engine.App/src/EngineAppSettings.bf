@@ -26,7 +26,7 @@ struct EngineAppSettings
 	public bool Resizable = true;
 
 	/// RHI backend to use.
-	public BackendType Backend = .DX12;
+	public BackendType Backend = .Vulkan;
 
 	/// Whether to enable RHI validation layer.
 	public bool EnableValidation = true;
@@ -37,5 +37,5 @@ struct EngineAppSettings
 	/// Presentation mode.
 	public PresentMode PresentMode = .Fifo;
 
-	public bool EnableShaderCache = false;
+	public bool EnableShaderCache = true;
 }

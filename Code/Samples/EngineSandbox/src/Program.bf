@@ -12,7 +12,8 @@ class Program
 		{
 			Title = "Engine Sandbox",
 			Width = 1280,
-			Height = 720
+			Height = 720,
+			EnableShaderCache = true
 		});
 	}
 }
