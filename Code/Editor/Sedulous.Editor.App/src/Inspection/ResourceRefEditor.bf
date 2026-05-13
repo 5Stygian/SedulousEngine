@@ -8,7 +8,7 @@ using Sedulous.Resources;
 using Sedulous.Serialization;
 using Sedulous.Shell;
 using Sedulous.VFS;
-using Sedulous.VFS.Disk;
+using Sedulous.Editor.Core;
 
 /// Property editor for a single ResourceRef.
 /// Shows path (or ID if no path), a clear button (X), and a browse button (...).
@@ -133,70 +133,66 @@ class ResourceRefEditor : PropertyEditor
 
 		mDialogs.ShowOpenFileDialog(
 			new (paths) => {
-				if (paths.Length > 0)
+				if (paths.Length == 0) return;
+
+				let absolutePath = paths[0];
+
+				// Resolve the picked absolute path to one of the editor's mounts.
+				// Files outside any mount can't be loaded later (LoadResource is
+				// URI-only) so we refuse them here instead of creating a broken ref.
+				IMount mount = null;
+				let locator = scope String();
+				if (mEditorContext == null ||
+					!MountResolver.TryResolveAbsolute(mEditorContext.MountEntries, absolutePath, out mount, locator))
 				{
-					let absolutePath = paths[0];
-					var guid = Guid();
-
-					// Try to read the resource header to get the GUID
-					if (mSerializerProvider != null)
-						guid = ReadResourceGuid(absolutePath, mSerializerProvider);
-
-					// Convert to scheme-prefixed URI if possible (e.g. builtin://primitives/cube.mesh)
-					// by walking the editor's mount entries for a FileSystemMount whose
-					// root prefixes the absolute path.
-					let refPath = scope String();
-					if (!TryMakeUri(absolutePath, refPath))
-						refPath.Set(absolutePath);
-
-					var newRef = ResourceRef(guid, refPath);
-					BeginEdit();
-					mSetter(newRef);
-					NotifyValueChanged();
-					EndEdit();
-					newRef.Dispose();
-					RefreshPathLabel();
+					Console.WriteLine("ResourceRefEditor: picked file is not inside any mount: {}", absolutePath);
+					return;
 				}
+
+				// Find the scheme the mount is registered under so we can build the URI.
+				let scheme = scope String();
+				for (let entry in mEditorContext.MountEntries)
+				{
+					if (entry.Mount === mount)
+					{
+						scheme.Set(entry.Scheme);
+						break;
+					}
+				}
+
+				var guid = Guid();
+				if (mSerializerProvider != null)
+					guid = ReadResourceGuid(mount, locator, mSerializerProvider);
+
+				let refPath = scope String()..AppendF("{}://{}", scheme, locator);
+
+				var newRef = ResourceRef(guid, refPath);
+				BeginEdit();
+				mSetter(newRef);
+				NotifyValueChanged();
+				EndEdit();
+				newRef.Dispose();
+				RefreshPathLabel();
 			},
 			default, default, false, null);
 	}
 
-	/// Walks the editor's mount entries to convert `absolutePath` into a
-	/// scheme-prefixed URI. Returns false if no FileSystemMount root prefixes
-	/// the path.
-	private bool TryMakeUri(StringView absolutePath, String outUri)
+	/// Reads just the GUID from a resource file header, opened through `mount`.
+	private static Guid ReadResourceGuid(IMount mount, StringView locator, ISerializerProvider provider)
 	{
-		if (mEditorContext == null) return false;
+		let openResult = mount.Open(locator);
+		if (openResult case .Err) return .();
+		let stream = openResult.Value;
+		defer delete stream;
 
-		let normalizedAbs = scope String(absolutePath);
-		normalizedAbs.Replace('\\', '/');
-
-		for (let entry in mEditorContext.MountEntries)
-		{
-			let fsMount = entry.Mount as FileSystemMount;
-			if (fsMount == null) continue;
-
-			let root = scope String(fsMount.RootPath);
-			root.Replace('\\', '/');
-			if (!root.EndsWith('/'))
-				root.Append('/');
-
-			if (normalizedAbs.StartsWith(root, .OrdinalIgnoreCase))
-			{
-				let rel = normalizedAbs.Substring(root.Length);
-				outUri.AppendF("{}://{}", entry.Scheme, rel);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/// Reads just the GUID from a resource file header.
-	private static Guid ReadResourceGuid(StringView path, ISerializerProvider provider)
-	{
 		let text = scope String();
-		if (System.IO.File.ReadAllText(path, text) case .Err)
-			return .();
+		let len = (int)stream.Length;
+		if (len > 0)
+		{
+			let buf = scope uint8[len];
+			if (stream.TryRead(.(&buf[0], len)) case .Err) return .();
+			text.Append((char8*)&buf[0], len);
+		}
 
 		let reader = provider.CreateReader(text);
 		if (reader == null)

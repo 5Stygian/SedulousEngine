@@ -1,8 +1,10 @@
 namespace Sedulous.Editor.Core;
 
 using System;
+using System.Collections;
 using Sedulous.Resources;
 using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 
 /// Editor-side bundle for a registered scheme: the mount that serves bytes,
 /// the index that maps GUIDs to URIs, the URI scheme they share, and an
@@ -40,5 +42,66 @@ class MountEntry
 		Index = index;
 		IndexLocator.Set(indexLocator);
 		IsLocked = isLocked;
+	}
+}
+
+/// Static helpers for going between mount-relative locators and absolute
+/// filesystem paths against a list of mount entries.
+///
+/// The asset browser deals in absolute filesystem paths (because it walks
+/// directories with `Directory.Enumerate*`); the resource system deals in
+/// URIs. These helpers bridge the two for editor code that has an absolute
+/// path in hand and needs to open it through the right mount.
+///
+/// Only `FileSystemMount`-backed entries can be resolved this way - a pak or
+/// remote mount has no absolute filesystem path, and `TryResolveAbsolute`
+/// will simply skip it. That's intentional: code that calls into this is
+/// implicitly disk-only.
+public static class MountResolver
+{
+	/// Walks `entries` for a FileSystemMount whose root path prefixes
+	/// `absolutePath`. On match, returns the mount and the mount-relative
+	/// locator. Returns false if no entry matches.
+	public static bool TryResolveAbsolute(List<MountEntry> entries, StringView absolutePath,
+		out IMount mount, String outLocator)
+	{
+		mount = null;
+		outLocator.Clear();
+		if (entries == null) return false;
+
+		let normalized = scope String(absolutePath);
+		normalized.Replace('\\', '/');
+
+		for (let entry in entries)
+		{
+			let fsMount = entry.Mount as FileSystemMount;
+			if (fsMount == null) continue;
+
+			let root = scope String(fsMount.RootPath);
+			root.Replace('\\', '/');
+			if (!root.EndsWith('/'))
+				root.Append('/');
+
+			if (normalized.StartsWith(root, .OrdinalIgnoreCase))
+			{
+				mount = entry.Mount;
+				outLocator.Set(normalized.Substring(root.Length));
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/// Same as `TryResolveAbsolute`, but additionally requires the mount to
+	/// be writable. Useful for save flows.
+	public static bool TryResolveAbsoluteWritable(List<MountEntry> entries, StringView absolutePath,
+		out IWritableMount mount, String outLocator)
+	{
+		mount = null;
+		IMount asMount;
+		if (!TryResolveAbsolute(entries, absolutePath, out asMount, outLocator))
+			return false;
+		mount = asMount as IWritableMount;
+		return mount != null;
 	}
 }

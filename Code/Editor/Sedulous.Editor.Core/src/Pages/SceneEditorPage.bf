@@ -94,7 +94,8 @@ class SceneEditorPage : IEditorPage
 		// walking the editor's mount entries.
 		IWritableMount mount = null;
 		let locator = scope String();
-		if (!TryResolveToMount(mFilePath, out mount, locator))
+		if (mEditorContext == null ||
+			!MountResolver.TryResolveAbsoluteWritable(mEditorContext.MountEntries, mFilePath, out mount, locator))
 		{
 			Console.WriteLine("ERROR: Save target is not inside any writable mount: {}", mFilePath);
 			return;
@@ -129,38 +130,6 @@ class SceneEditorPage : IEditorPage
 		{
 			Console.WriteLine("ERROR: Failed to save: {}", mFilePath);
 		}
-	}
-
-	/// Finds the writable mount whose root path is a prefix of `absolutePath`,
-	/// and returns the mount-relative locator. Returns false if no match.
-	private bool TryResolveToMount(StringView absolutePath, out IWritableMount mount, String outLocator)
-	{
-		mount = null;
-		outLocator.Clear();
-		if (mEditorContext == null) return false;
-
-		let normalizedAbs = scope String(absolutePath);
-		normalizedAbs.Replace('\\', '/');
-
-		for (let entry in mEditorContext.MountEntries)
-		{
-			let writable = entry.Mount as IWritableMount;
-			let fsMount = entry.Mount as FileSystemMount;
-			if (writable == null || fsMount == null) continue;
-
-			let root = scope String(fsMount.RootPath);
-			root.Replace('\\', '/');
-			if (!root.EndsWith('/'))
-				root.Append('/');
-
-			if (normalizedAbs.StartsWith(root, .OrdinalIgnoreCase))
-			{
-				mount = writable;
-				outLocator.Set(normalizedAbs.Substring(root.Length));
-				return true;
-			}
-		}
-		return false;
 	}
 
 	public void SaveAs(StringView path)
