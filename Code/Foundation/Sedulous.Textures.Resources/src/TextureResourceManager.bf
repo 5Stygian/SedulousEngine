@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Collections;
 using Sedulous.Resources;
 using Sedulous.Serialization;
 using Sedulous.Images;
@@ -7,50 +8,22 @@ using Sedulous.Images;
 namespace Sedulous.Textures.Resources;
 
 /// Resource manager for TextureResource.
-/// Handles .texture files (text metadata + binary sidecar) and standard image files.
+///
+/// Two locator shapes are recognized:
+///   - `*.texture` - serialized metadata (filter, wrap, format, sidecar locator).
+///     The actual pixel bytes live in a sibling sidecar file opened through
+///     `ctx.Mount`.
+///   - any other extension - raw image bytes parsed by `ImageLoaderFactory`.
 class TextureResourceManager : ResourceManager<TextureResource>
 {
-	protected override Result<TextureResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<TextureResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
 		// Handle .texture files (text metadata + binary sidecar)
-		if (path.EndsWith(".texture"))
-		{
-			if (LoadTextFormat(path) case .Ok(let resource))
-			{
-				resource.AddRef();
-				return .Ok(resource);
-			}
-			return .Err(.ReadError);
-		}
+		if (ctx.Locator.EndsWith(".texture"))
+			return LoadTextFormat(ctx);
 
 		// Load standard image files via ImageLoaderFactory
-		if (ImageLoaderFactory.LoadImage(path) case .Ok(let image))
-		{
-			let resource = new TextureResource(image, true);
-			resource.Name.Set(path);
-			resource.SetupFor3D();
-			resource.AddRef();
-			return .Ok(resource);
-		}
-
-		return .Err(.NotFound);
-	}
-
-	protected override Result<TextureResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		let data = new uint8[memory.Length];
-		defer delete data;
-		memory.TryRead(data);
-
-		if (ImageLoaderFactory.LoadImageFromMemory(data) case .Ok(let image))
-		{
-			let resource = new TextureResource(image, true);
-			resource.SetupFor3D();
-			resource.AddRef();
-			return .Ok(resource);
-		}
-
-		return .Err(.NotSupported);
+		return LoadImageBytes(ctx);
 	}
 
 	public override void Unload(TextureResource resource)
@@ -59,11 +32,12 @@ class TextureResourceManager : ResourceManager<TextureResource>
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(TextureResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(TextureResource resource, ResourceLoadContext ctx)
 	{
-		if (path.EndsWith(".texture"))
+		if (ctx.Locator.EndsWith(".texture"))
 		{
-			if (LoadTextFormat(path) case .Ok(let reloaded))
+			let result = LoadTextFormat(ctx);
+			if (result case .Ok(let reloaded))
 			{
 				TransferData(resource, reloaded);
 				delete reloaded;
@@ -72,10 +46,95 @@ class TextureResourceManager : ResourceManager<TextureResource>
 			return .Err(.ReadError);
 		}
 
-		if (ImageLoaderFactory.LoadImage(path) case .Ok(let image))
+		let bytes = scope List<uint8>();
+		Try!(ReadAllBytes(ctx.Stream, bytes));
+		if (ImageLoaderFactory.LoadImageFromMemory(.(bytes.Ptr, bytes.Count)) case .Ok(let image))
 		{
 			resource.SetImage(image, true);
 			return .Ok;
+		}
+		return .Err(.NotFound);
+	}
+
+	// === Text + sidecar format ===
+
+	private Result<TextureResource, ResourceLoadError> LoadTextFormat(ResourceLoadContext ctx)
+	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
+		let text = scope String();
+		Try!(ReadAllText(ctx.Stream, text));
+
+		let reader = SerializerProvider.CreateReader(text);
+		if (reader == null)
+			return .Err(.InvalidFormat);
+		defer delete reader;
+
+		let resource = new TextureResource();
+		if (resource.Serialize(reader) != .Ok)
+		{
+			delete resource;
+			return .Err(.InvalidFormat);
+		}
+
+		// Load pixel data from binary sidecar
+		if (resource.BinaryPath.IsEmpty || ctx.Mount == null)
+		{
+			delete resource;
+			return .Err(.InvalidFormat);
+		}
+
+		let sidecarLocator = scope String();
+		ResolveSiblingLocator(ctx.Locator, resource.BinaryPath, sidecarLocator);
+
+		let sidecarResult = ctx.Mount.Open(sidecarLocator);
+		if (sidecarResult case .Err)
+		{
+			delete resource;
+			return .Err(.NotFound);
+		}
+		let binStream = sidecarResult.Value;
+		defer delete binStream;
+
+		let binBytes = scope List<uint8>();
+		if (ReadAllBytes(binStream, binBytes) case .Err)
+		{
+			delete resource;
+			return .Err(.ReadError);
+		}
+
+		// Create image from serialized dimensions/format + sidecar pixel data.
+		// Image's constructor copies the pixel bytes into its own buffer, so
+		// the temporary array we allocate to feed it has to be freed here.
+		let pixelArr = new uint8[binBytes.Count];
+		defer delete pixelArr;
+		binBytes.CopyTo(pixelArr);
+		let image = new Image(
+			(uint32)resource.ImageWidth,
+			(uint32)resource.ImageHeight,
+			(PixelFormat)resource.ImageFormat,
+			pixelArr);
+		resource.SetImage(image, true);
+		resource.AddRef();
+		return .Ok(resource);
+	}
+
+	// === Raw image bytes ===
+
+	private Result<TextureResource, ResourceLoadError> LoadImageBytes(ResourceLoadContext ctx)
+	{
+		let bytes = scope List<uint8>();
+		Try!(ReadAllBytes(ctx.Stream, bytes));
+
+		if (ImageLoaderFactory.LoadImageFromMemory(.(bytes.Ptr, bytes.Count)) case .Ok(let image))
+		{
+			let resource = new TextureResource(image, true);
+			if (ctx.Locator.Length > 0)
+				resource.Name.Set(ctx.Locator);
+			resource.SetupFor3D();
+			resource.AddRef();
+			return .Ok(resource);
 		}
 
 		return .Err(.NotFound);
@@ -96,60 +155,11 @@ class TextureResourceManager : ResourceManager<TextureResource>
 		target.Anisotropy = source.Anisotropy;
 	}
 
-	// ==================== New text + sidecar format ====================
-
-	private Result<TextureResource> LoadTextFormat(StringView path)
+	private static void ResolveSiblingLocator(StringView mainLocator, StringView siblingName, String outLocator)
 	{
-		if (SerializerProvider == null)
-			return .Err;
-
-		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err;
-
-		let reader = SerializerProvider.CreateReader(text);
-		if (reader == null)
-			return .Err;
-		defer delete reader;
-
-		let resource = new TextureResource();
-		if (resource.Serialize(reader) != .Ok)
-		{
-			delete resource;
-			return .Err;
-		}
-
-		// Load pixel data from binary sidecar
-		if (resource.BinaryPath.IsEmpty)
-		{
-			delete resource;
-			return .Err;
-		}
-
-		let binStream = scope FileStream();
-		String relativeDir = Path.GetDirectoryPath(path, .. scope .());
-		String readPath = scope .();
-		Path.InternalCombine(readPath, relativeDir, resource.BinaryPath);
-		if (binStream.Open(readPath, .Read) case .Err)
-		{
-			delete resource;
-			return .Err;
-		}
-
-		let binData = new uint8[binStream.Length];
-		if (binStream.TryRead(binData) case .Err)
-		{
-			delete binData;
-			delete resource;
-			return .Err;
-		}
-
-		// Create image from serialized dimensions/format + sidecar pixel data
-		let image = new Image((uint32)resource.ImageWidth, (uint32)resource.ImageHeight, (PixelFormat)resource.ImageFormat, binData);
-		delete binData;
-		resource.SetImage(image, true);
-
-		return .Ok(resource);
+		let slash = mainLocator.LastIndexOf('/');
+		if (slash >= 0)
+			outLocator.Append(mainLocator.Substring(0, slash + 1));
+		outLocator.Append(siblingName);
 	}
-
 }

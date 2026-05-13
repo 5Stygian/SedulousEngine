@@ -5,15 +5,16 @@ using Sedulous.Serialization;
 
 namespace Sedulous.Particles.Resources;
 
-/// Resource manager for ParticleEffectResource.
-/// Handles loading particle effect definitions from files via the serialization framework.
+/// Resource manager for ParticleEffectResource. Text-based serialization.
 class ParticleEffectResourceManager : ResourceManager<ParticleEffectResource>
 {
-	protected override Result<ParticleEffectResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<ParticleEffectResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -21,8 +22,7 @@ class ParticleEffectResourceManager : ResourceManager<ParticleEffectResource>
 		defer delete reader;
 
 		let resource = new ParticleEffectResource();
-		let result = resource.Serialize(reader);
-		if (result != .Ok)
+		if (resource.Serialize(reader) != .Ok)
 		{
 			delete resource;
 			return .Err(.InvalidFormat);
@@ -30,11 +30,6 @@ class ParticleEffectResourceManager : ResourceManager<ParticleEffectResource>
 
 		resource.AddRef();
 		return .Ok(resource);
-	}
-
-	protected override Result<ParticleEffectResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
 	}
 
 	public override void Unload(ParticleEffectResource resource)

@@ -5,14 +5,15 @@ using Sedulous.Serialization;
 
 namespace Sedulous.Animation.Resources;
 
-/// Resource manager for AnimationGraphResource.
 class AnimationGraphResourceManager : ResourceManager<AnimationGraphResource>
 {
-	protected override Result<AnimationGraphResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<AnimationGraphResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -26,13 +27,8 @@ class AnimationGraphResourceManager : ResourceManager<AnimationGraphResource>
 
 		let resource = new AnimationGraphResource();
 		resource.Serialize(reader);
-		resource.AddRef(); // Manager's ownership ref - released in Unload
+		resource.AddRef();
 		return .Ok(resource);
-	}
-
-	protected override Result<AnimationGraphResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
 	}
 
 	public override void Unload(AnimationGraphResource resource)
@@ -41,11 +37,13 @@ class AnimationGraphResourceManager : ResourceManager<AnimationGraphResource>
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(AnimationGraphResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(AnimationGraphResource resource, ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)

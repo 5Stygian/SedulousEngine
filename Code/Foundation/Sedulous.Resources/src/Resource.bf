@@ -142,8 +142,11 @@ abstract class Resource : IResource, ISerializable
 		return .Err(.NotSupported);
 	}
 
-	/// Saves this resource to a file using the given serializer provider.
-	public virtual Result<void> SaveToFile(StringView path, Sedulous.Serialization.ISerializerProvider provider)
+	/// Writes this resource into `stream` using the given serializer provider.
+	/// Caller owns the stream and routes it to wherever it needs to go (a mount
+	/// `Save`, an in-memory buffer, etc.) - the resource has no opinion about
+	/// destinations.
+	public virtual Result<void> WriteToStream(Stream stream, Sedulous.Serialization.ISerializerProvider provider)
 	{
 		let writer = provider.CreateWriter();
 		if (writer == null)
@@ -155,6 +158,8 @@ abstract class Resource : IResource, ISerializable
 		let output = scope String();
 		provider.GetOutput(writer, output);
 
-		return File.WriteAllText(path, output);
+		if (stream.TryWrite(.((uint8*)output.Ptr, output.Length)) case .Err)
+			return .Err;
+		return .Ok;
 	}
 }

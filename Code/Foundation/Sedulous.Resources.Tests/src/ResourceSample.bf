@@ -138,11 +138,13 @@ class ResourceSample
 			File.WriteAllText(resourcePath, output);
 		}
 
-		// Create a custom resource manager for GameConfigResource
+		// Create a custom resource manager for GameConfigResource and load
+		// through it via a file stream.
 		let manager = scope GameConfigResourceManager();
+		let stream = scope FileStream();
+		Test.Assert(stream.Open(resourcePath, .Read, .Read) case .Ok);
 
-		// Load using the manager
-		let loadResult = manager.Load(resourcePath);
+		let loadResult = manager.Load(.(stream));
 		Test.Assert(loadResult case .Ok);
 
 		var handle = loadResult.Value;
@@ -163,22 +165,15 @@ class ResourceSample
 /// Resource manager for GameConfigResource.
 class GameConfigResourceManager : ResourceManager<GameConfigResource>
 {
-	protected override Result<GameConfigResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
+	protected override Result<GameConfigResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
-		// Read content as string
 		let content = scope String();
-		let bytes = scope uint8[memory.Length];
-		if (memory.TryRead(bytes) case .Err)
-			return .Err(.ReadError);
+		Try!(ReadAllText(ctx.Stream, content));
 
-		content.Append((char8*)bytes.Ptr, bytes.Count);
-
-		// Parse OpenDDL
 		let doc = scope DataDescription();
 		if (doc.ParseText(content) != .Ok)
 			return .Err(.InvalidFormat);
 
-		// Deserialize
 		let reader = OpenDDLSerializer.CreateReader(doc);
 		defer delete reader;
 
@@ -199,11 +194,10 @@ class GameConfigResourceManager : ResourceManager<GameConfigResource>
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(GameConfigResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(GameConfigResource resource, ResourceLoadContext ctx)
 	{
 		let content = scope String();
-		if (File.ReadAllText(path, content) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, content));
 
 		let doc = scope DataDescription();
 		if (doc.ParseText(content) != .Ok)

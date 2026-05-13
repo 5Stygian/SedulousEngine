@@ -6,64 +6,40 @@ using Sedulous.Resources;
 
 namespace Sedulous.Fonts.Resources;
 
-/// Resource manager for fonts
+/// Resource manager for fonts. Reads font bytes from the stream and hands them
+/// to `FontLoaderFactory.LoadFontFromMemory`. Caching is handled by the
+/// `ResourceSystem`'s `ResourceCache`, not by this manager.
 public class FontResourceManager : ResourceManager<FontResource>
 {
 	private FontLoadOptions mDefaultOptions;
-	private Dictionary<String, FontResource> mCache ~ DeleteDictionaryAndKeys!(_);
 
 	public this(FontLoadOptions defaultOptions = .Default)
 	{
 		mDefaultOptions = defaultOptions;
-		mCache = new .();
 	}
 
-	/// Load a font with custom options
-	public Result<FontResource, ResourceLoadError> LoadFont(StringView path, FontLoadOptions options)
+	/// Default load options. Format hint defaults to ".ttf"; override with a
+	/// custom `LoadFromContext` if you need to dispatch on locator extension.
+	public FontLoadOptions DefaultOptions
 	{
-		// Check cache first
-		let cacheKey = scope String(path);
-		if (mCache.TryGetValue(cacheKey, let cached))
-			return .Ok(cached);
-
-		// Load the font
-		if (FontLoaderFactory.LoadFont(path, options) case .Ok(let font))
-		{
-			// Create atlas
-			if (FontLoaderFactory.CreateAtlas(font, options) case .Ok(let atlas))
-			{
-				let resource = new FontResource(font, atlas, options);
-
-				// Cache it
-				let key = new String(path);
-				mCache[key] = resource;
-				resource.AddRef(); // Internal cache ref - released in Unload/ClearCache
-				resource.AddRef(); // Manager's ownership ref - released in Unload
-
-				return .Ok(resource);
-			}
-
-			delete (Object)font;
-			return .Err(.InvalidFormat);
-		}
-
-		return .Err(.NotFound);
+		get => mDefaultOptions;
+		set => mDefaultOptions = value;
 	}
 
-	protected override Result<FontResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
+	protected override Result<FontResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
-		let length = memory.Length;
-		let data = scope uint8[length];
-		if (memory.TryRead(data) case .Err)
-			return .Err(.ReadError);
+		let bytes = scope List<uint8>();
+		Try!(ReadAllBytes(ctx.Stream, bytes));
 
-		// Try to load as TTF by default
-		if (FontLoaderFactory.LoadFontFromMemory(data, ".ttf", mDefaultOptions) case .Ok(let font))
+		// Best-effort format hint from the locator extension. Default to .ttf.
+		let formatHint = ExtractExtension(ctx.Locator, ".ttf");
+
+		if (FontLoaderFactory.LoadFontFromMemory(.(bytes.Ptr, bytes.Count), formatHint, mDefaultOptions) case .Ok(let font))
 		{
 			if (FontLoaderFactory.CreateAtlas(font, mDefaultOptions) case .Ok(let atlas))
 			{
 				let resource = new FontResource(font, atlas, mDefaultOptions);
-				resource.AddRef(); // Manager's ownership ref - released in Unload
+				resource.AddRef();
 				return .Ok(resource);
 			}
 			delete (Object)font;
@@ -73,63 +49,17 @@ public class FontResourceManager : ResourceManager<FontResource>
 		return .Err(.InvalidFormat);
 	}
 
-	protected override Result<FontResource, ResourceLoadError> LoadFromFile(StringView path)
-	{
-		return LoadFont(path, mDefaultOptions);
-	}
-
 	public override void Unload(FontResource resource)
 	{
-		if (resource == null)
-			return;
-
-		// Remove from internal font cache and release that ref
-		for (let (key, cached) in mCache)
-		{
-			if (cached == resource)
-			{
-				mCache.Remove(key);
-				delete key;
-				resource.ReleaseRef(); // Release internal cache ref
-				break;
-			}
-		}
-
-		resource.ReleaseRef(); // Release manager's ownership ref
+		if (resource != null)
+			resource.ReleaseRef();
 	}
 
-	/// Clear all cached resources
-	public void ClearCache()
+	/// Returns the last `.ext` portion of `locator`, or `fallback` if none.
+	private static StringView ExtractExtension(StringView locator, StringView fallback)
 	{
-		for (let (key, resource) in mCache)
-		{
-			resource.ReleaseRef(); // Release cache's reference
-			delete key;
-		}
-		mCache.Clear();
-	}
-
-	protected override Result<void, ResourceLoadError> ReloadResource(FontResource resource, StringView path)
-	{
-		let options = resource.Options;
-		if (FontLoaderFactory.LoadFont(path, options) case .Ok(let font))
-		{
-			if (FontLoaderFactory.CreateAtlas(font, options) case .Ok(let atlas))
-			{
-				resource.SetFont(font);
-				resource.SetAtlas(atlas);
-				return .Ok;
-			}
-			delete (Object)font;
-			return .Err(.InvalidFormat);
-		}
-		return .Err(.NotFound);
-	}
-
-	/// Get default load options
-	public FontLoadOptions DefaultOptions
-	{
-		get => mDefaultOptions;
-		set => mDefaultOptions = value;
+		let dot = locator.LastIndexOf('.');
+		if (dot < 0) return fallback;
+		return locator.Substring(dot);
 	}
 }

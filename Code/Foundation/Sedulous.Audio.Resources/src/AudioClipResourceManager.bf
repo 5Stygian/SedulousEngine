@@ -7,8 +7,12 @@ using Sedulous.Serialization;
 
 namespace Sedulous.Audio.Resources;
 
-/// Resource manager for loading audio clips through the ResourceSystem.
-/// Handles .audioclip files (text metadata + binary PCM sidecar).
+/// Resource manager for AudioClip. Handles .audioclip files: text metadata
+/// (sample rate, channels, format, sidecar path) plus a binary PCM sidecar.
+///
+/// Sidecar path inside the resource file is mount-relative (e.g.
+/// "fx/explosion.audioclip.bin"), resolved by combining the locator's directory
+/// with the recorded `BinaryPath` and opening it through `ctx.Mount`.
 class AudioClipResourceManager : ResourceManager<AudioClipResource>
 {
 	private IAudioSystem mAudioSystem;
@@ -18,20 +22,69 @@ class AudioClipResourceManager : ResourceManager<AudioClipResource>
 		mAudioSystem = audioSystem;
 	}
 
-	protected override Result<AudioClipResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<AudioClipResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
-		if (LoadTextFormat(path) case .Ok(let resource))
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
+		// Parse text metadata first.
+		let text = scope String();
+		Try!(ReadAllText(ctx.Stream, text));
+
+		let reader = SerializerProvider.CreateReader(text);
+		if (reader == null)
+			return .Err(.InvalidFormat);
+		defer delete reader;
+
+		let resource = new AudioClipResource();
+		if (resource.Serialize(reader) != .Ok)
 		{
-			resource.AddRef();
-			return .Ok(resource);
+			delete resource;
+			return .Err(.InvalidFormat);
 		}
 
-		return .Err(.ReadError);
-	}
+		// Resolve sidecar locator: same directory as the main file.
+		if (resource.BinaryPath.IsEmpty || ctx.Mount == null)
+		{
+			delete resource;
+			return .Err(.InvalidFormat);
+		}
 
-	protected override Result<AudioClipResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
+		let sidecarLocator = scope String();
+		ResolveSiblingLocator(ctx.Locator, resource.BinaryPath, sidecarLocator);
+
+		// Load PCM data from binary sidecar through the same mount.
+		let sidecarResult = ctx.Mount.Open(sidecarLocator);
+		if (sidecarResult case .Err)
+		{
+			delete resource;
+			return .Err(.NotFound);
+		}
+		let binStream = sidecarResult.Value;
+		defer delete binStream;
+
+		// Read all PCM bytes.
+		let binBytes = scope List<uint8>();
+		if (ReadAllBytes(binStream, binBytes) case .Err)
+		{
+			delete resource;
+			return .Err(.ReadError);
+		}
+
+		// Hand ownership of the PCM buffer to the clip.
+		let pcm = new uint8[binBytes.Count]*;
+		Internal.MemCpy(pcm, binBytes.Ptr, binBytes.Count);
+
+		let clip = new AudioClip(
+			pcm, binBytes.Count,
+			resource.ClipSampleRate,
+			resource.ClipChannels,
+			(AudioFormat)resource.ClipFormat,
+			true);
+		resource.Clip = clip;
+
+		resource.AddRef();
+		return .Ok(resource);
 	}
 
 	public override void Unload(AudioClipResource resource)
@@ -40,83 +93,15 @@ class AudioClipResourceManager : ResourceManager<AudioClipResource>
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(AudioClipResource resource, StringView path)
+	/// Combines the directory portion of `mainLocator` with `siblingName`. e.g.
+	/// "fx/explosion.audioclip" + "explosion.audioclip.bin" -> "fx/explosion.audioclip.bin".
+	private static void ResolveSiblingLocator(StringView mainLocator, StringView siblingName, String outLocator)
 	{
-		if (LoadTextFormat(path) case .Ok(let reloaded))
+		let slash = mainLocator.LastIndexOf('/');
+		if (slash >= 0)
 		{
-			if (resource.Clip != null)
-				delete resource.Clip;
-			resource.Clip = reloaded.Clip;
-			reloaded.[Friend]mClip = null;
-			resource.ClipSampleRate = reloaded.ClipSampleRate;
-			resource.ClipChannels = reloaded.ClipChannels;
-			resource.ClipFormat = reloaded.ClipFormat;
-			delete reloaded;
-			return .Ok;
+			outLocator.Append(mainLocator.Substring(0, slash + 1));
 		}
-
-		return .Err(.ReadError);
-	}
-
-	// ==================== Text + sidecar format ====================
-
-	private Result<AudioClipResource> LoadTextFormat(StringView path)
-	{
-		if (SerializerProvider == null)
-			return .Err;
-
-		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err;
-
-		let reader = SerializerProvider.CreateReader(text);
-		if (reader == null)
-			return .Err;
-		defer delete reader;
-
-		let resource = new AudioClipResource();
-		if (resource.Serialize(reader) != .Ok)
-		{
-			delete resource;
-			return .Err;
-		}
-
-		// Load PCM data from binary sidecar
-		if (resource.BinaryPath.IsEmpty)
-		{
-			delete resource;
-			return .Err;
-		}
-
-		let relativeDir = Path.GetDirectoryPath(path, .. scope .());
-		let readPath = scope String();
-		Path.InternalCombine(readPath, relativeDir, resource.BinaryPath);
-
-		let binStream = scope FileStream();
-		if (binStream.Open(readPath, .Read) case .Err)
-		{
-			delete resource;
-			return .Err;
-		}
-
-		let binLen = (int)binStream.Length;
-		let binData = new uint8[binLen]*;
-		if (binStream.TryRead(Span<uint8>(binData, binLen)) case .Err)
-		{
-			delete binData;
-			delete resource;
-			return .Err;
-		}
-
-		let clip = new AudioClip(
-			binData, binLen,
-			resource.ClipSampleRate,
-			resource.ClipChannels,
-			(AudioFormat)resource.ClipFormat,
-			true
-		);
-		resource.Clip = clip;
-
-		return .Ok(resource);
+		outLocator.Append(siblingName);
 	}
 }

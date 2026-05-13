@@ -386,24 +386,31 @@ class PrefabTests
 
 	/// Creates a .prefab file on disk, sets up ResourceSystem + PrefabComponentManager,
 	/// and verifies end-to-end instantiation via the manager's update loop.
+	///
+	/// The callback receives the FileSystemMount over the temp dir and the
+	/// locator within it. Tests should `resSys.Mount("test", mount)` to make
+	/// the prefab loadable via the URI "test://<locator>".
 	private static void WithTempPrefabFile(Scene prefabScene, List<ExposedParameterDescriptor> parameters,
-		ComponentTypeRegistry registry, delegate void(StringView path) testBody)
+		ComponentTypeRegistry registry, delegate void(Sedulous.VFS.Disk.FileSystemMount mount, StringView locator) testBody)
 	{
 		let provider = scope OpenDDLSerializerProvider();
 		let prefabResMgr = scope PrefabResourceManager(registry, provider);
 
-		// Save to temp file
+		// Save to temp file via a one-off FileSystemMount over the temp dir.
 		let tempDir = scope String();
 		System.IO.Path.GetTempPath(tempDir);
+
+		let locator = scope String()..AppendF("test_prefab_{}.prefab", Guid.Create());
 		let tempPath = scope String();
-		System.IO.Path.InternalCombine(tempPath, tempDir, scope $"test_prefab_{Guid.Create()}.prefab");
+		System.IO.Path.InternalCombine(tempPath, tempDir, locator);
 
 		defer System.IO.File.Delete(tempPath);
 
-		let saveResult = prefabResMgr.SavePrefabToFile(prefabScene, parameters, tempPath);
+		let mount = scope Sedulous.VFS.Disk.FileSystemMount(tempDir);
+		let saveResult = prefabResMgr.SavePrefab(prefabScene, parameters, mount, locator);
 		Test.Assert(saveResult case .Ok);
 
-		testBody(tempPath);
+		testBody(mount, locator);
 
 		delete testBody;
 	}
@@ -429,14 +436,15 @@ class PrefabTests
 
 		let parameters = scope List<ExposedParameterDescriptor>();
 
-		WithTempPrefabFile(prefabScene, parameters, registry, new [&] (path) =>
+		WithTempPrefabFile(prefabScene, parameters, registry, new [&] (mount, locator) =>
 		{
 			let provider = scope OpenDDLSerializerProvider();
 
-			// Set up ResourceSystem
+			// Set up ResourceSystem with the temp dir mounted under "test://".
 			let logger = scope ConsoleLogger(.Trace);
 			let resSys = scope ResourceSystem(logger);
 			resSys.Startup();
+			resSys.Mount("test", mount);
 			let prefabResMgr = new PrefabResourceManager(registry, provider);
 			defer {resSys.RemoveResourceManager(prefabResMgr);  delete prefabResMgr;}
 			resSys.AddResourceManager(prefabResMgr);
@@ -454,7 +462,8 @@ class PrefabTests
 			let refHandle = prefabMgr.CreateComponent(instanceEntity);
 			if (let refComp = prefabMgr.Get(refHandle))
 			{
-				var prefabRef = ResourceRef(.Empty, path);
+				let uri = scope String()..AppendF("test://{}", locator);
+				var prefabRef = ResourceRef(.Empty, uri);
 				defer prefabRef.Dispose();
 				refComp.SetPrefabRef(prefabRef);
 			}
@@ -506,12 +515,13 @@ class PrefabTests
 		let root = prefabScene.CreateEntity("Root");
 		let parameters = scope List<ExposedParameterDescriptor>();
 
-		WithTempPrefabFile(prefabScene, parameters, registry, new [&] (path) =>
+		WithTempPrefabFile(prefabScene, parameters, registry, new [&] (mount, locator) =>
 		{
 			let provider = scope OpenDDLSerializerProvider();
 			let logger = scope ConsoleLogger(.Trace);
 			let resSys = scope ResourceSystem(logger);
 			resSys.Startup();
+			resSys.Mount("test", mount);
 			let prefabResMgr = new PrefabResourceManager(registry, provider);
 			defer {resSys.RemoveResourceManager(prefabResMgr);  delete prefabResMgr;}
 			resSys.AddResourceManager(prefabResMgr);
@@ -527,7 +537,8 @@ class PrefabTests
 			let refHandle = prefabMgr.CreateComponent(instanceEntity);
 			if (let refComp = prefabMgr.Get(refHandle))
 			{
-				var prefabRef = ResourceRef(.Empty, path);
+				let uri = scope String()..AppendF("test://{}", locator);
+				var prefabRef = ResourceRef(.Empty, uri);
 				defer prefabRef.Dispose();
 				refComp.SetPrefabRef(prefabRef);
 			}
@@ -554,12 +565,13 @@ class PrefabTests
 		prefabScene.CreateEntity("Root");
 		let parameters = scope List<ExposedParameterDescriptor>();
 
-		WithTempPrefabFile(prefabScene, parameters, registry, new [&] (path) =>
+		WithTempPrefabFile(prefabScene, parameters, registry, new [&] (mount, locator) =>
 		{
 			let provider = scope OpenDDLSerializerProvider();
 			let logger = scope ConsoleLogger(.Trace);
 			let resSys = scope ResourceSystem(logger);
 			resSys.Startup();
+			resSys.Mount("test", mount);
 			let prefabResMgr = new PrefabResourceManager(registry, provider);
 			defer {resSys.RemoveResourceManager(prefabResMgr);  delete prefabResMgr;}
 			resSys.AddResourceManager(prefabResMgr);
@@ -575,7 +587,8 @@ class PrefabTests
 			let refHandle = prefabMgr.CreateComponent(instanceEntity);
 			if (let refComp = prefabMgr.Get(refHandle))
 			{
-				var prefabRef = ResourceRef(.Empty, path);
+				let uri = scope String()..AppendF("test://{}", locator);
+				var prefabRef = ResourceRef(.Empty, uri);
 				defer prefabRef.Dispose();
 				refComp.SetPrefabRef(prefabRef);
 			}

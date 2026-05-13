@@ -5,14 +5,15 @@ using Sedulous.Serialization;
 
 namespace Sedulous.Animation.Resources;
 
-/// Resource manager for PropertyAnimationClipResource.
 class PropertyAnimationClipResourceManager : ResourceManager<PropertyAnimationClipResource>
 {
-	protected override Result<PropertyAnimationClipResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<PropertyAnimationClipResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -26,13 +27,8 @@ class PropertyAnimationClipResourceManager : ResourceManager<PropertyAnimationCl
 
 		let resource = new PropertyAnimationClipResource();
 		resource.Serialize(reader);
-		resource.AddRef(); // Manager's ownership ref - released in Unload
+		resource.AddRef();
 		return .Ok(resource);
-	}
-
-	protected override Result<PropertyAnimationClipResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
 	}
 
 	public override void Unload(PropertyAnimationClipResource resource)
@@ -41,11 +37,13 @@ class PropertyAnimationClipResourceManager : ResourceManager<PropertyAnimationCl
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(PropertyAnimationClipResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(PropertyAnimationClipResource resource, ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)

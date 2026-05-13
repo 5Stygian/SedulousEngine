@@ -6,15 +6,17 @@ using Sedulous.Serialization;
 
 namespace Sedulous.Geometry.Resources;
 
-/// Resource manager for MeshResource.
+/// Resource manager for StaticMeshResource.
 /// Note: Direct file loading is not implemented - use ModelLoader and converters instead.
 class StaticMeshResourceManager : ResourceManager<StaticMeshResource>
 {
-	protected override Result<StaticMeshResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<StaticMeshResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -32,22 +34,19 @@ class StaticMeshResourceManager : ResourceManager<StaticMeshResource>
 		return .Ok(resource);
 	}
 
-	protected override Result<StaticMeshResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
-	}
-
 	public override void Unload(StaticMeshResource resource)
 	{
 		if (resource != null)
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(StaticMeshResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(StaticMeshResource resource, ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)

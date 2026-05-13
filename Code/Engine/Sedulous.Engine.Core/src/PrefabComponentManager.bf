@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections;
 using Sedulous.Resources;
 using Sedulous.Serialization;
+using Sedulous.VFS;
 using Sedulous.Engine.Core.Resources;
 
 /// Manages PrefabReferenceComponents: resolves prefab ResourceRefs,
@@ -85,13 +86,35 @@ class PrefabComponentManager : ComponentManager<PrefabReferenceComponent>
 		mInstantiationStack.Add(prefab.Id);
 		defer { mInstantiationStack.RemoveAt(mInstantiationStack.Count - 1); }
 
-		let path = scope String();
-		if (prefab.SourcePath.Length > 0)
-			path.Set(prefab.SourcePath);
-		if (path.Length == 0) return;
+		// Re-read the prefab through the same mount it was loaded from. The URI
+		// lives on the component's ResourceRef ("scheme://locator"); we parse it,
+		// find the mount, and open the bytes for a fresh instantiation. The
+		// PrefabResource itself only carries the header parameters - entity data
+		// is re-read per instantiation.
+		StringView uri = comp.PrefabRef.HasPath ? StringView(comp.PrefabRef.Path) : StringView();
+		if (uri.IsEmpty) return;
+
+		let schemeSep = uri.IndexOf("://");
+		if (schemeSep <= 0) return;
+		let scheme = uri[0..<schemeSep];
+		let locator = uri[(schemeSep + 3)...];
+
+		let mount = ResourceSystem.GetMount(scheme);
+		if (mount == null) return;
+
+		let openResult = mount.Open(locator);
+		if (openResult case .Err) return;
+		let stream = openResult.Value;
+		defer delete stream;
 
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err) return;
+		let len = (int)stream.Length;
+		if (len > 0)
+		{
+			let bytes = scope uint8[len];
+			if (stream.TryRead(.(&bytes[0], len)) case .Err) return;
+			text.Append((char8*)&bytes[0], len);
+		}
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null) return;

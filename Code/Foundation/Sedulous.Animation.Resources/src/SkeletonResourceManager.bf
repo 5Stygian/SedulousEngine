@@ -6,14 +6,15 @@ using Sedulous.Serialization;
 
 namespace Sedulous.Animation.Resources;
 
-/// Resource manager for SkeletonResource.
 class SkeletonResourceManager : ResourceManager<SkeletonResource>
 {
-	protected override Result<SkeletonResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<SkeletonResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -27,13 +28,8 @@ class SkeletonResourceManager : ResourceManager<SkeletonResource>
 
 		let resource = new SkeletonResource();
 		resource.Serialize(reader);
-		resource.AddRef(); // Manager's ownership ref - released in Unload
+		resource.AddRef();
 		return .Ok(resource);
-	}
-
-	protected override Result<SkeletonResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
 	}
 
 	public override void Unload(SkeletonResource resource)
@@ -42,11 +38,13 @@ class SkeletonResourceManager : ResourceManager<SkeletonResource>
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(SkeletonResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(SkeletonResource resource, ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -62,8 +60,7 @@ class SkeletonResourceManager : ResourceManager<SkeletonResource>
 		return .Ok;
 	}
 
-	/// Create a skeleton resource from an existing Skeleton.
-	/// The resource takes ownership of the skeleton.
+	/// Create a skeleton resource from an existing Skeleton. The resource takes ownership.
 	public SkeletonResource CreateFromSkeleton(Skeleton skeleton, StringView name = "")
 	{
 		let resource = new SkeletonResource(skeleton, true);

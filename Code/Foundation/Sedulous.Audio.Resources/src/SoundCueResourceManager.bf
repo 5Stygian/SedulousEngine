@@ -9,11 +9,13 @@ namespace Sedulous.Audio.Resources;
 /// Resource manager for loading and managing SoundCue resources.
 class SoundCueResourceManager : ResourceManager<SoundCueResource>
 {
-	protected override Result<SoundCueResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<SoundCueResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -31,22 +33,19 @@ class SoundCueResourceManager : ResourceManager<SoundCueResource>
 		return .Ok(resource);
 	}
 
-	protected override Result<SoundCueResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
-	}
-
 	public override void Unload(SoundCueResource resource)
 	{
 		if (resource != null)
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(SoundCueResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(SoundCueResource resource, ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)

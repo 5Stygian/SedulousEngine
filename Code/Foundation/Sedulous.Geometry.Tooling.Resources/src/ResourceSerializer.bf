@@ -25,32 +25,62 @@ static class ResourceSerializer
 
 	public static Result<void> SaveStaticMesh(StaticMeshResource resource, StringView path, ISerializerProvider provider)
 	{
-		return resource?.SaveToFile(path, provider) ?? .Err;
+		return SaveResourceText(resource, path, provider);
 	}
 
 	public static Result<void> SaveSkinnedMesh(SkinnedMeshResource resource, StringView path, ISerializerProvider provider)
 	{
-		return resource?.SaveToFile(path, provider) ?? .Err;
+		return SaveResourceText(resource, path, provider);
 	}
 
 	public static Result<void> SaveSkeleton(SkeletonResource resource, StringView path, ISerializerProvider provider)
 	{
-		return resource?.SaveToFile(path, provider) ?? .Err;
+		return SaveResourceText(resource, path, provider);
 	}
 
 	public static Result<void> SaveAnimation(AnimationClipResource resource, StringView path, ISerializerProvider provider)
 	{
-		return resource?.SaveToFile(path, provider) ?? .Err;
+		return SaveResourceText(resource, path, provider);
 	}
 
 	public static Result<void> SaveMaterial(MaterialResource material, StringView path, ISerializerProvider provider)
 	{
-		return material?.SaveToFile(path, provider) ?? .Err;
+		return SaveResourceText(material, path, provider);
 	}
 
+	/// Saves a TextureResource as a `.texture` metadata file plus a `.texture.bin`
+	/// pixel sidecar next to it.
 	public static Result<void> SaveTexture(TextureResource resource, StringView path, ISerializerProvider provider)
 	{
-		return resource?.SaveToFile(path, provider) ?? .Err;
+		if (resource == null) return .Err;
+
+		// Record the sidecar filename on the resource before writing metadata so
+		// the manager can find it on load.
+		let sidecarPath = scope String()..AppendF("{}.bin", path);
+		let sidecarName = scope String();
+		Path.GetFileName(sidecarPath, sidecarName);
+		resource.BinaryPath.Set(sidecarName);
+
+		Try!(SaveResourceText(resource, path, provider));
+
+		let stream = scope FileStream();
+		if (stream.Create(sidecarPath, .Write) case .Err)
+			return .Err;
+		if (resource.WritePixelsToStream(stream) case .Err)
+			return .Err;
+		return .Ok;
+	}
+
+	/// Helper: serializes a Resource's text representation to a file at `path`.
+	private static Result<void> SaveResourceText(Resource resource, StringView path, ISerializerProvider provider)
+	{
+		if (resource == null) return .Err;
+		let stream = scope FileStream();
+		if (stream.Create(path, .Write) case .Err)
+			return .Err;
+		if (resource.WriteToStream(stream, provider) case .Err)
+			return .Err;
+		return .Ok;
 	}
 
 	// ===== Batch operations =====

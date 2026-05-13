@@ -7,11 +7,13 @@ namespace Sedulous.Materials.Resources;
 
 class MaterialResourceManager : ResourceManager<MaterialResource>
 {
-	protected override Result<MaterialResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<MaterialResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -29,25 +31,19 @@ class MaterialResourceManager : ResourceManager<MaterialResource>
 		return .Ok(resource);
 	}
 
-	protected override Result<MaterialResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return default;
-	}
-
 	public override void Unload(MaterialResource resource)
 	{
 		if (resource != null)
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(MaterialResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(MaterialResource resource, ResourceLoadContext ctx)
 	{
 		if (SerializerProvider == null)
 			return .Err(.NotSupported);
 
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)

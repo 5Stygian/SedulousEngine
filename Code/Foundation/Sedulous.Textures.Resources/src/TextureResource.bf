@@ -197,29 +197,15 @@ class TextureResource : Resource
 		return .Ok;
 	}
 
-	/// Saves text metadata via base class, then writes pixel data to binary sidecar.
-	public override Result<void> SaveToFile(StringView path, Sedulous.Serialization.ISerializerProvider provider)
+	/// Writes the raw pixel bytes to `stream`. Caller is responsible for writing
+	/// the text-metadata file via `WriteToStream` and ensuring `BinaryPath` was
+	/// set to the matching sidecar locator beforehand.
+	public Result<void> WritePixelsToStream(Stream stream)
 	{
 		if (mImage == null)
 			return .Err;
-
-		// Set sidecar path (relative - just the filename with .bin appended)
-		String writePath = scope $"{path}.bin";
-		BinaryPath.Clear();
-		Path.GetFileName(writePath, BinaryPath);
-
-		// Write text metadata via base class
-		if (base.SaveToFile(path, provider) case .Err)
+		if (stream.TryWrite(mImage.Data) case .Err)
 			return .Err;
-
-		// Write binary sidecar (raw pixel data)
-		let binStream = scope FileStream();
-		if (binStream.Create(writePath, .Write) case .Err)
-			return .Err;
-
-		let pixelData = mImage.Data;
-		binStream.Write(pixelData);
-
 		return .Ok;
 	}
 }

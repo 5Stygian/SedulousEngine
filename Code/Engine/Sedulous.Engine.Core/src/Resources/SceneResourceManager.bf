@@ -6,11 +6,15 @@ using System.Collections;
 using Sedulous.Resources;
 using Sedulous.Engine.Core;
 using Sedulous.Serialization;
+using Sedulous.VFS;
 
 /// Resource manager for scene files.
-/// Saves and loads scenes through the standard Resource serialization path,
-/// which writes the resource header (_type, _id, _name, _sourcePath) followed
-/// by scene data (entities, transforms, components) via SceneSerializer.
+///
+/// `Load` parses the resource header (`_type`, `_id`, `_name`, `_sourcePath`)
+/// into a `SceneResource`. Live scene instantiation is a separate step -
+/// `InstantiateScene` takes the resource plus a fresh mount+locator from which
+/// to re-read scene contents into a `Scene` whose component managers are
+/// already wired up.
 class SceneResourceManager : ResourceManager<SceneResource>
 {
 	private ComponentTypeRegistry mTypeRegistry;
@@ -24,57 +28,46 @@ class SceneResourceManager : ResourceManager<SceneResource>
 		mSerializerProvider = serializerProvider;
 	}
 
-	protected override Result<SceneResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
+	protected override Result<SceneResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
-		// Read raw bytes and parse as text
-		let bytes = scope List<uint8>();
-		bytes.Count = (.)memory.Length;
-		if (memory.TryRead(bytes) case .Err)
-			return .Err(.ReadError);
-
 		let text = scope String();
-		text.Append(Span<char8>((char8*)bytes.Ptr, bytes.Count));
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = mSerializerProvider.CreateReader(text);
 		if (reader == null)
 			return .Err(.ReadError);
 		defer delete reader;
 
-		// Create resource and deserialize header via Resource.Serialize()
 		let resource = new SceneResource();
 		resource.TypeRegistry = mTypeRegistry;
-		// Scene is not set yet -- will be set when InstantiateScene is called
+		// Scene is not set yet - InstantiateScene fills it in later.
 		resource.Serialize(reader);
-
+		resource.AddRef();
 		return .Ok(resource);
 	}
 
 	public override void Unload(SceneResource resource)
 	{
-		delete resource;
+		if (resource != null)
+			resource.ReleaseRef();
 	}
 
-	/// Creates a live Scene from a loaded SceneResource.
-	/// The scene must already have component managers injected (via ISceneAware subsystems).
-	public Result<void> InstantiateScene(SceneResource resource, Scene scene)
+	/// Re-reads the scene file from `mount`/`locator` into the live `scene`. The
+	/// scene must already have component managers injected (via ISceneAware
+	/// subsystems) before calling this.
+	public Result<void> InstantiateScene(SceneResource resource, Scene scene, IMount mount, StringView locator)
 	{
-		if (resource == null)
+		if (resource == null || mount == null)
 			return .Err;
 
-		// Re-read the file to deserialize scene data into the live scene.
-		// The resource header was already parsed in LoadFromMemory;
-		// we need to re-parse to get the scene data section.
-		let path = scope String();
-		if (resource.SourcePath.Length > 0)
-			path.Set(resource.SourcePath);
-		else if (resource.Name.Length > 0)
-			path.Set(resource.Name);
-
-		if (path.Length == 0)
+		let openResult = mount.Open(locator);
+		if (openResult case .Err)
 			return .Err;
+		let stream = openResult.Value;
+		defer delete stream;
 
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
+		if (ReadAllText(stream, text) case .Err)
 			return .Err;
 
 		let reader = mSerializerProvider.CreateReader(text);
@@ -82,52 +75,60 @@ class SceneResourceManager : ResourceManager<SceneResource>
 			return .Err;
 		defer delete reader;
 
-		// Set scene on resource so OnSerialize can load into it
+		// Set scene on resource so OnSerialize loads into it.
 		resource.Scene = scene;
 		resource.TypeRegistry = mTypeRegistry;
 		resource.Serialize(reader);
-		resource.Scene = null; // Clear reference after loading
+		resource.Scene = null;
 
 		return .Ok;
 	}
 
-	/// Saves a scene to a file through the standard Resource serialization path.
-	/// Writes resource header followed by scene data.
-	/// If the file already exists, reuses the existing resource GUID to avoid
-	/// creating duplicate registry entries.
-	/// Returns the resource GUID written to the file (for registry tracking).
-	public Result<Guid> SaveSceneToFile(Scene scene, StringView path)
+	/// Saves a scene through a writable mount. If the target locator already
+	/// exists, preserves its resource GUID. Returns the GUID that was written.
+	public Result<Guid> SaveScene(Scene scene, IWritableMount mount, StringView locator)
 	{
 		let resource = scope SceneResource();
 		resource.Scene = scene;
 		resource.TypeRegistry = mTypeRegistry;
 
-		// If the file already exists, read its resource header to preserve the GUID.
-		if (File.Exists(path))
+		// If an entry already exists at this locator, preserve its GUID.
+		if (mount.Exists(locator))
 		{
-			let existingText = scope String();
-			if (File.ReadAllText(path, existingText) case .Ok)
+			let existingOpen = mount.Open(locator);
+			if (existingOpen case .Ok(let existingStream))
 			{
-				let reader = mSerializerProvider.CreateReader(existingText);
-				if (reader != null)
+				defer delete existingStream;
+				let existingText = scope String();
+				if (ReadAllText(existingStream, existingText) case .Ok)
 				{
-					let existingRes = scope SceneResource();
-					existingRes.Serialize(reader);
-					if (existingRes.Id != .Empty)
-						resource.Id = existingRes.Id;
-					delete reader;
+					let reader = mSerializerProvider.CreateReader(existingText);
+					if (reader != null)
+					{
+						let existingRes = scope SceneResource();
+						existingRes.Serialize(reader);
+						if (existingRes.Id != .Empty)
+							resource.Id = existingRes.Id;
+						delete reader;
+					}
 				}
 			}
 		}
 
-		// Use filename without extension as the resource name
+		// Derive a friendly name from the locator filename.
 		let name = scope String();
-		System.IO.Path.GetFileNameWithoutExtension(path, name);
+		Path.GetFileNameWithoutExtension(locator, name);
 		resource.Name = name;
-		resource.SourcePath = scope .(path);
+		let locatorStr = scope String(locator);
+		resource.SourcePath = locatorStr;
 
-		// Use Resource.SaveToFile which calls Serialize() in write mode
-		if (resource.SaveToFile(path, mSerializerProvider) case .Err)
+		// Serialize to a memory buffer, then route to the mount.
+		let memStream = scope MemoryStream();
+		if (resource.WriteToStream(memStream, mSerializerProvider) case .Err)
+			return .Err;
+		memStream.Position = 0;
+
+		if (mount.Save(locator, memStream) case .Err)
 			return .Err;
 
 		return .Ok(resource.Id);

@@ -10,11 +10,13 @@ namespace Sedulous.Geometry.Resources;
 /// Note: Direct file loading is not implemented - use ModelLoader and converters instead.
 class SkinnedMeshResourceManager : ResourceManager<SkinnedMeshResource>
 {
-	protected override Result<SkinnedMeshResource, ResourceLoadError> LoadFromFile(StringView path)
+	protected override Result<SkinnedMeshResource, ResourceLoadError> LoadFromContext(ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)
@@ -30,22 +32,19 @@ class SkinnedMeshResourceManager : ResourceManager<SkinnedMeshResource>
 		return .Ok(resource);
 	}
 
-	protected override Result<SkinnedMeshResource, ResourceLoadError> LoadFromMemory(MemoryStream memory)
-	{
-		return .Err(.NotSupported);
-	}
-
 	public override void Unload(SkinnedMeshResource resource)
 	{
 		if (resource != null)
 			resource.ReleaseRef();
 	}
 
-	protected override Result<void, ResourceLoadError> ReloadResource(SkinnedMeshResource resource, StringView path)
+	protected override Result<void, ResourceLoadError> ReloadResource(SkinnedMeshResource resource, ResourceLoadContext ctx)
 	{
+		if (SerializerProvider == null)
+			return .Err(.NotSupported);
+
 		let text = scope String();
-		if (File.ReadAllText(path, text) case .Err)
-			return .Err(.NotFound);
+		Try!(ReadAllText(ctx.Stream, text));
 
 		let reader = SerializerProvider.CreateReader(text);
 		if (reader == null)

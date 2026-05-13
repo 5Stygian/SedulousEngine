@@ -57,29 +57,16 @@ class AudioClipResource : Resource
 		return .Ok;
 	}
 
-	/// Saves text metadata via base class, then writes PCM data to binary sidecar.
-	public override Result<void> SaveToFile(StringView path, Sedulous.Serialization.ISerializerProvider provider)
+	/// Writes the PCM bytes to `stream`. Caller is responsible for writing the
+	/// text-metadata file via `WriteToStream` and ensuring `BinaryPath` was set
+	/// to the matching sidecar locator beforehand.
+	public Result<void> WritePcmToStream(Stream stream)
 	{
 		if (mClip == null || !mClip.IsLoaded)
 			return .Err;
-
-		// Set sidecar path (relative - just the filename with .bin appended)
-		let writePath = scope String()..AppendF("{}.bin", path);
-		BinaryPath.Clear();
-		Path.GetFileName(writePath, BinaryPath);
-
-		// Write text metadata via base class
-		if (base.SaveToFile(path, provider) case .Err)
-			return .Err;
-
-		// Write binary sidecar (raw PCM data)
-		let binStream = scope FileStream();
-		if (binStream.Create(writePath, .Write) case .Err)
-			return .Err;
-
 		let pcmData = Span<uint8>(mClip.Data, mClip.DataLength);
-		binStream.Write(pcmData);
-
+		if (stream.TryWrite(pcmData) case .Err)
+			return .Err;
 		return .Ok;
 	}
 }
