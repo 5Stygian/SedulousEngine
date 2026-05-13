@@ -1,6 +1,6 @@
 uint64 %_type {175488002581160416}
 int32 %_version {1}
-string %_id {"02f2de9e-19fc-4aa8-ac50-6ac665751d32"}
+string %_id {"54e50e89-eb97-4631-a1e2-ffb3b297b68a"}
 string %_name {"DefaultUnlit"}
 string %_sourcePath {""}
 string %materialName {"DefaultUnlit"}

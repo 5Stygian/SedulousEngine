@@ -1,7 +1,7 @@
-2a2d3c9f-abb5-453b-98d1-29d476f0bd2c=primitives/plane.mesh
-fbd61c78-82a2-470f-8bac-8315a2e27eee=primitives/cube.mesh
-afba7128-eec2-4249-90d8-235466fa38de=primitives/sphere.mesh
-868704da-d9fe-4ea4-8cd1-55fa37a2e435=materials/default.material
-02f2de9e-19fc-4aa8-ac50-6ac665751d32=materials/default_unlit.material
-65fc10c1-4f1f-4148-9f29-a960bae5b0e6=skies/realistic_sky.texture
-670e5092-c971-4316-9f4a-06f050f18ef5=skies/stylized_sky.texture
+afda3f71-a2d6-479b-8564-7e343f22d12f=builtin://primitives/plane.mesh
+5763a2f1-580a-49bb-a439-9fbd25f82015=builtin://primitives/cube.mesh
+dc1de03f-efd4-453e-8007-b2c66374cbb1=builtin://primitives/sphere.mesh
+107f851e-6e86-4c3a-b5c8-bc75a0f1e25f=builtin://materials/default.material
+54e50e89-eb97-4631-a1e2-ffb3b297b68a=builtin://materials/default_unlit.material
+5653f8c1-87c0-4855-9498-504ac8e67832=builtin://skies/realistic_sky.texture
+705c0bd8-b8e3-451c-8a19-7cb033cb1e1c=builtin://skies/stylized_sky.texture
