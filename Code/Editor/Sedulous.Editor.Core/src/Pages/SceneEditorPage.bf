@@ -4,6 +4,8 @@ using System;
 using System.Collections;
 using Sedulous.UI;
 using Sedulous.Engine.Core;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 
 /// Scene editing page. Owns hierarchy, viewport, and inspector layout.
 /// Per-scene entity selection with change notifications.
@@ -88,6 +90,16 @@ class SceneEditorPage : IEditorPage
 	{
 		if (mFilePath.Length == 0) return;
 
+		// Resolve mFilePath (an absolute path) to a (mount, locator) pair by
+		// walking the editor's mount entries.
+		IWritableMount mount = null;
+		let locator = scope String();
+		if (!TryResolveToMount(mFilePath, out mount, locator))
+		{
+			Console.WriteLine("ERROR: Save target is not inside any writable mount: {}", mFilePath);
+			return;
+		}
+
 		Result<Guid> result;
 
 		if (mFilePath.EndsWith(".prefab", .OrdinalIgnoreCase))
@@ -98,12 +110,12 @@ class SceneEditorPage : IEditorPage
 			// TODO: store ExposedParameters on the page so they survive save.
 			// Currently saves with empty params - exposed parameters not yet editable.
 			let parameters = scope List<ExposedParameterDescriptor>();
-			result = prefabMgr.SavePrefabToFile(mScene, parameters, mFilePath);
+			result = prefabMgr.SavePrefab(mScene, parameters, mount, locator);
 		}
 		else
 		{
 			if (mEditorContext?.SceneManager == null) return;
-			result = mEditorContext.SceneManager.SaveSceneToFile(mScene, mFilePath);
+			result = mEditorContext.SceneManager.SaveScene(mScene, mount, locator);
 		}
 
 		if (result case .Ok(let guid))
@@ -117,6 +129,38 @@ class SceneEditorPage : IEditorPage
 		{
 			Console.WriteLine("ERROR: Failed to save: {}", mFilePath);
 		}
+	}
+
+	/// Finds the writable mount whose root path is a prefix of `absolutePath`,
+	/// and returns the mount-relative locator. Returns false if no match.
+	private bool TryResolveToMount(StringView absolutePath, out IWritableMount mount, String outLocator)
+	{
+		mount = null;
+		outLocator.Clear();
+		if (mEditorContext == null) return false;
+
+		let normalizedAbs = scope String(absolutePath);
+		normalizedAbs.Replace('\\', '/');
+
+		for (let entry in mEditorContext.MountEntries)
+		{
+			let writable = entry.Mount as IWritableMount;
+			let fsMount = entry.Mount as FileSystemMount;
+			if (writable == null || fsMount == null) continue;
+
+			let root = scope String(fsMount.RootPath);
+			root.Replace('\\', '/');
+			if (!root.EndsWith('/'))
+				root.Append('/');
+
+			if (normalizedAbs.StartsWith(root, .OrdinalIgnoreCase))
+			{
+				mount = writable;
+				outLocator.Set(normalizedAbs.Substring(root.Length));
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public void SaveAs(StringView path)

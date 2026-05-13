@@ -1,6 +1,7 @@
 namespace Sedulous.Editor.App;
 
 using System;
+using System.IO;
 using System.Collections;
 using Sedulous.Editor.Core;
 using Sedulous.Resources;
@@ -8,6 +9,7 @@ using Sedulous.Images;
 using Sedulous.Textures.Resources;
 using Sedulous.Textures.Importer;
 using Sedulous.Geometry.Tooling.Resources;
+using Sedulous.VFS;
 
 /// Imports image files (.png, .jpg, .tga, .bmp, .hdr) as TextureResource.
 /// Supports 2D textures with preset selection (3D, Sprite, UI, Sky) and
@@ -74,8 +76,7 @@ class TextureAssetImporter : IAssetImporter
 		return .Err;
 	}
 
-	public Result<void> Import(ImportPreview preview, StringView outputDir,
-		ResourceRegistry registry, Sedulous.Serialization.ISerializerProvider serializer)
+	public Result<void> Import(ImportPreview preview, AssetImportContext ctx)
 	{
 		if (preview.Items.Count == 0 || !preview.Items[0].Selected)
 			return .Ok;
@@ -143,45 +144,54 @@ class TextureAssetImporter : IAssetImporter
 		// Use user-provided name from preview
 		texRes.Name.Set(preview.Items[0].Name);
 
-		// Ensure output directory exists
-		if (!System.IO.Directory.Exists(outputDir))
-			System.IO.Directory.CreateDirectory(outputDir);
-
-		// Save to disk
+		// Build filename, locator, sidecar locator, and URI
 		let fileName = scope String();
 		fileName.AppendF("{}.texture", preview.Items[0].Name);
 		ResourceSerializer.SanitizePath(fileName);
 
-		let fullPath = scope String();
-		System.IO.Path.InternalCombine(fullPath, outputDir, fileName);
+		let sidecarName = scope String();
+		sidecarName.AppendF("{}.bin", fileName);
 
-		if (texRes.SaveToFile(fullPath, serializer) case .Err)
-			return .Err;
+		let locator = scope String();
+		locator.Append(ctx.BaseLocator);
+		locator.Append(fileName);
 
-		// Register in registry
-		let relPrefix = scope String();
-		if (registry.RootPath.Length > 0 && StringView(outputDir).StartsWith(registry.RootPath))
+		let sidecarLocator = scope String();
+		sidecarLocator.Append(ctx.BaseLocator);
+		sidecarLocator.Append(sidecarName);
+
+		let uri = scope String();
+		uri.Append(ctx.UriPrefix);
+		uri.Append(fileName);
+
+		// Record the sidecar locator on the resource so the metadata file
+		// carries the binary path. The manager combines it with the main
+		// locator's directory on load.
+		texRes.BinaryPath.Set(sidecarName);
+
+		// Save text metadata through the mount
 		{
-			let after = StringView(outputDir)[registry.RootPath.Length...];
-			if (after.StartsWith('/') || after.StartsWith('\\'))
-				relPrefix.Set(after[1...]);
-			else
-				relPrefix.Set(after);
-			relPrefix.Replace('\\', '/');
+			let memStream = scope MemoryStream();
+			if (texRes.WriteToStream(memStream, ctx.Serializer) case .Err)
+				return .Err;
+			memStream.Position = 0;
+			if (ctx.Mount.Save(locator, memStream) case .Err)
+				return .Err;
 		}
 
-		let relPath = scope String();
-		if (relPrefix.Length > 0)
-			relPath.AppendF("{}/{}", relPrefix, fileName);
-		else
-			relPath.Set(fileName);
+		// Save pixel sidecar through the mount
+		{
+			let pcmStream = scope MemoryStream();
+			if (texRes.WritePixelsToStream(pcmStream) case .Err)
+				return .Err;
+			pcmStream.Position = 0;
+			if (ctx.Mount.Save(sidecarLocator, pcmStream) case .Err)
+				return .Err;
+		}
 
-		registry.Register(texRes.Id, relPath);
-
-		// Save registry
-		let regFile = scope String();
-		System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-		registry.SaveToFile(regFile);
+		// Register the GUID -> URI mapping. Caller is responsible for
+		// persisting the index after the import.
+		ctx.Index.Register(texRes.Id, uri);
 
 		return .Ok;
 	}

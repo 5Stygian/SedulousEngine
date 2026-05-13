@@ -28,7 +28,11 @@ class PrefabAssetCreator : IAssetCreator
 		defer delete prefabRes;
 
 		prefabRes.Scene = scene;
-		if (prefabRes.SaveToFile(path, provider) case .Err)
+
+		let stream = scope FileStream();
+		if (stream.Create(path, .Write) case .Err)
+			return .Err;
+		if (prefabRes.WriteToStream(stream, provider) case .Err)
 			return .Err;
 
 		return .Ok(prefabRes.Id);

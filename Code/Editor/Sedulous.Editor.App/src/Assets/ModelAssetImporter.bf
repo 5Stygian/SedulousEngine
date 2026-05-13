@@ -1,12 +1,15 @@
 namespace Sedulous.Editor.App;
 
 using System;
+using System.IO;
 using System.Collections;
 using Sedulous.Editor.Core;
 using Sedulous.Resources;
 using Sedulous.Models;
 using Sedulous.Geometry.Tooling;
 using Sedulous.Geometry.Tooling.Resources;
+using Sedulous.Textures.Resources;
+using Sedulous.VFS;
 
 /// Options for model import, shown in the import dialog.
 class ModelImportDialogOptions : ImportOptions
@@ -22,8 +25,8 @@ class ModelImportDialogOptions : ImportOptions
 /// Imports 3D model files (.gltf, .glb, .fbx, .obj) into engine resources.
 /// Produces: static meshes, skinned meshes, materials, textures, skeletons, animations.
 ///
-/// Uses the existing pipeline: ModelLoaderFactory -> ModelImporter -> ResourceImportResult
-/// -> ResourceSerializer for disk save, then registers GUIDs in the target registry.
+/// Uses the existing pipeline: ModelLoaderFactory -> ModelImporter -> ResourceImportResult.
+/// Resources are written through the import context's mount and registered in its index.
 class ModelAssetImporter : IAssetImporter
 {
 	public void GetSupportedExtensions(List<String> outExtensions)
@@ -133,8 +136,7 @@ class ModelAssetImporter : IAssetImporter
 		return .Ok(preview);
 	}
 
-	public Result<void> Import(ImportPreview preview, StringView outputDir,
-		ResourceRegistry registry, Sedulous.Serialization.ISerializerProvider serializer)
+	public Result<void> Import(ImportPreview preview, AssetImportContext ctx)
 	{
 		// Re-import the model (CreatePreview was a dry run to enumerate items)
 		let model = scope Model();
@@ -170,12 +172,6 @@ class ModelAssetImporter : IAssetImporter
 		let resResult = ResourceImportResult.ConvertFrom(importResult, null, preview.SourcePath);
 		defer delete resResult;
 
-		let provider = serializer;
-
-		// Ensure output directory exists
-		if (!System.IO.Directory.Exists(outputDir))
-			System.IO.Directory.CreateDirectory(outputDir);
-
 		// Build list of selected item names for filtering
 		let selectedNames = scope List<StringView>();
 		for (let item in preview.Items)
@@ -184,44 +180,28 @@ class ModelAssetImporter : IAssetImporter
 				selectedNames.Add(item.Name);
 		}
 
-		// Compute relative path prefix for registry (relative to registry root)
-		let relPrefix = scope String();
-		if (registry.RootPath.Length > 0 && StringView(outputDir).StartsWith(registry.RootPath))
-		{
-			let after = StringView(outputDir)[registry.RootPath.Length...];
-			if (after.StartsWith('/') || after.StartsWith('\\'))
-				relPrefix.Set(after[1...]);
-			else
-				relPrefix.Set(after);
-			relPrefix.Replace('\\', '/');
-		}
-
-		// Save and register each selected resource
+		// Save and register each selected resource. Textures get a binary
+		// pixel sidecar; everything else is text-only.
 		for (let res in resResult.Textures)
-			SaveAndRegister(res, ".texture", selectedNames, outputDir, relPrefix, registry, provider);
+			SaveTexture(res, selectedNames, ctx);
 		for (let res in resResult.Materials)
-			SaveAndRegister(res, ".material", selectedNames, outputDir, relPrefix, registry, provider);
+			SaveText(res, ".material", selectedNames, ctx);
 		for (let res in resResult.StaticMeshes)
-			SaveAndRegister(res, ".mesh", selectedNames, outputDir, relPrefix, registry, provider);
+			SaveText(res, ".mesh", selectedNames, ctx);
 		for (let res in resResult.SkinnedMeshes)
-			SaveAndRegister(res, ".skinnedmesh", selectedNames, outputDir, relPrefix, registry, provider);
+			SaveText(res, ".skinnedmesh", selectedNames, ctx);
 		for (let res in resResult.Skeletons)
-			SaveAndRegister(res, ".skeleton", selectedNames, outputDir, relPrefix, registry, provider);
+			SaveText(res, ".skeleton", selectedNames, ctx);
 		for (let res in resResult.Animations)
-			SaveAndRegister(res, ".animation", selectedNames, outputDir, relPrefix, registry, provider);
-
-		// Save registry to disk
-		let regFile = scope String();
-		System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-		registry.SaveToFile(regFile);
+			SaveText(res, ".animation", selectedNames, ctx);
 
 		return .Ok;
 	}
 
-	/// Saves a single resource to disk and registers it in the registry if selected.
-	private void SaveAndRegister(Resource res, StringView @extension,
-		List<StringView> selectedNames, StringView outputDir, StringView relPrefix,
-		ResourceRegistry registry, Sedulous.Serialization.ISerializerProvider provider)
+	/// Saves a text-only resource through the context's mount and registers
+	/// its GUID in the context's index.
+	private static void SaveText(Resource res, StringView @extension,
+		List<StringView> selectedNames, AssetImportContext ctx)
 	{
 		if (res.Name == null || !selectedNames.Contains(res.Name))
 			return;
@@ -230,18 +210,67 @@ class ModelAssetImporter : IAssetImporter
 		fileName.AppendF("{}{}", res.Name, @extension);
 		ResourceSerializer.SanitizePath(fileName);
 
-		let fullPath = scope String();
-		System.IO.Path.InternalCombine(fullPath, outputDir, fileName);
+		let locator = scope String();
+		locator.Append(ctx.BaseLocator);
+		locator.Append(fileName);
 
-		if (res.SaveToFile(fullPath, provider) case .Ok)
+		let memStream = scope MemoryStream();
+		if (res.WriteToStream(memStream, ctx.Serializer) case .Err)
+			return;
+		memStream.Position = 0;
+		if (ctx.Mount.Save(locator, memStream) case .Err)
+			return;
+
+		let uri = scope String();
+		uri.Append(ctx.UriPrefix);
+		uri.Append(fileName);
+		ctx.Index.Register(res.Id, uri);
+	}
+
+	/// Saves a TextureResource (text metadata + pixel sidecar) through the
+	/// context's mount and registers its GUID.
+	private static void SaveTexture(TextureResource res, List<StringView> selectedNames, AssetImportContext ctx)
+	{
+		if (res.Name == null || !selectedNames.Contains(res.Name))
+			return;
+
+		let fileName = scope String();
+		fileName.AppendF("{}.texture", res.Name);
+		ResourceSerializer.SanitizePath(fileName);
+
+		let sidecarName = scope String();
+		sidecarName.AppendF("{}.bin", fileName);
+
+		let locator = scope String();
+		locator.Append(ctx.BaseLocator);
+		locator.Append(fileName);
+
+		let sidecarLocator = scope String();
+		sidecarLocator.Append(ctx.BaseLocator);
+		sidecarLocator.Append(sidecarName);
+
+		res.BinaryPath.Set(sidecarName);
+
 		{
-			let relPath = scope String();
-			if (relPrefix.Length > 0)
-				relPath.AppendF("{}/{}", relPrefix, fileName);
-			else
-				relPath.Set(fileName);
-
-			registry.Register(res.Id, relPath);
+			let memStream = scope MemoryStream();
+			if (res.WriteToStream(memStream, ctx.Serializer) case .Err)
+				return;
+			memStream.Position = 0;
+			if (ctx.Mount.Save(locator, memStream) case .Err)
+				return;
 		}
+		{
+			let pcmStream = scope MemoryStream();
+			if (res.WritePixelsToStream(pcmStream) case .Err)
+				return;
+			pcmStream.Position = 0;
+			if (ctx.Mount.Save(sidecarLocator, pcmStream) case .Err)
+				return;
+		}
+
+		let uri = scope String();
+		uri.Append(ctx.UriPrefix);
+		uri.Append(fileName);
+		ctx.Index.Register(res.Id, uri);
 	}
 }

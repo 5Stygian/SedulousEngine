@@ -39,6 +39,11 @@ class EditorContext : IDisposable
 	public IShell Shell;
 	public ResourceSystem ResourceSystem;
 
+	/// Asset-browser-facing list of registered (scheme, mount, index) bundles.
+	/// EditorApplication populates this when builtin/project mounts are set up
+	/// and when the user mounts/unmounts extras through the asset browser.
+	public List<MountEntry> MountEntries = new .() ~ DeleteContainerAndItems!(_);
+
 	// Registries (owned)
 	private List<IComponentInspector> mInspectors = new .() ~ delete _;
 	private Dictionary<Type, IComponentInspector> mInspectorMap = new .() ~ delete _;

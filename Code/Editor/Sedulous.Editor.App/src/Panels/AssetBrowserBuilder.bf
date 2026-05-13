@@ -1,14 +1,17 @@
 namespace Sedulous.Editor.App;
 
 using System;
+using System.IO;
 using System.Collections;
 using Sedulous.UI;
 using Sedulous.UI.Toolkit;
 using Sedulous.Resources;
 using Sedulous.Editor.Core;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 
 /// Builds the asset browser panel layout:
-///   Registry tree (left) | Content view (right)
+///   Mount tree (left) | Content view (right)
 ///   with breadcrumb bar above the content view.
 static class AssetBrowserBuilder
 {
@@ -30,16 +33,12 @@ static class AssetBrowserBuilder
 	/// Builds the complete asset browser layout.
 	public static BuildResult Build(EditorContext editorContext, AssetBrowserPanel panel)
 	{
-		let resourceSystem = editorContext.ResourceSystem;
-
 		// === Create adapters ===
 		let treeAdapter = new RegistryTreeAdapter();
 		let contentAdapter = new AssetContentAdapter();
 
-		// Populate tree from current registries
-		let registries = scope List<IResourceRegistry>();
-		resourceSystem.GetRegistries(registries);
-		treeAdapter.SetRegistries(registries);
+		// Populate tree from current mount entries
+		treeAdapter.SetEntries(editorContext.MountEntries);
 
 		// === Left pane: Registry toolbar + tree ===
 		let leftPane = new FlexLayout();
@@ -159,12 +158,12 @@ static class AssetBrowserBuilder
 		});
 
 		// === Wire tree selection -> content view ===
-		treeAdapter.OnFolderSelected.Add(new (registry, relativePath) => {
-			contentAdapter.SetFolder(registry, relativePath);
-			gridAdapter.SetFolder(registry, relativePath);
+		treeAdapter.OnFolderSelected.Add(new (entry, relativePath) => {
+			contentAdapter.SetFolder(entry, relativePath);
+			gridAdapter.SetFolder(entry, relativePath);
 
 			// Update breadcrumb
-			breadcrumb.SetPath(registry.Name, relativePath);
+			breadcrumb.SetPath(entry.Scheme, relativePath);
 		});
 
 		// Wire tree item click -> select node
@@ -180,69 +179,17 @@ static class AssetBrowserBuilder
 			treeAdapter.SelectNode(nodeId);
 
 			let screenCoords = ToScreenCoords(treeView, localX, localY);
-			let registry = treeAdapter.GetRegistryForNode(nodeId);
+			let entry = treeAdapter.GetEntryForNode(nodeId);
 			let isLocked = treeAdapter.IsNodeLocked(nodeId);
-			let isRoot = treeAdapter.IsRegistryRoot(nodeId);
+			let isRoot = treeAdapter.IsMountRoot(nodeId);
 
-			ShowTreeContextMenu(ctx, screenCoords.x, screenCoords.y, nodeId, registry,
+			ShowTreeContextMenu(ctx, screenCoords.x, screenCoords.y, nodeId, entry,
 				isRoot, isLocked, treeAdapter, contentAdapter, gridAdapter, editorContext, panel, breadcrumb);
 		});
 
-		// Wire rename commit -> rename file on disk and update registry
+		// Wire rename commit -> rename file on disk and update index
 		listAdapter.OnItemRenamed.Add(new (item, newName) => {
-			if (item.AbsolutePath == null || newName.Length == 0) return;
-
-			// Build new absolute path
-			let dir = scope String();
-			System.IO.Path.GetDirectoryPath(item.AbsolutePath, dir);
-			let newAbsPath = scope String();
-			System.IO.Path.InternalCombine(newAbsPath, dir, newName);
-
-			// Don't rename if target already exists
-			if (System.IO.File.Exists(newAbsPath) || System.IO.Directory.Exists(newAbsPath))
-				return;
-
-			// Rename file on disk
-			if (System.IO.File.Exists(item.AbsolutePath))
-				System.IO.File.Move(item.AbsolutePath, newAbsPath);
-			else if (System.IO.Directory.Exists(item.AbsolutePath))
-				System.IO.Directory.Move(item.AbsolutePath, newAbsPath);
-
-			// Rename .meta sidecar if exists
-			let oldMeta = scope String(item.AbsolutePath);
-			oldMeta.Append(".meta");
-			if (System.IO.File.Exists(oldMeta))
-			{
-				let newMeta = scope String(newAbsPath);
-				newMeta.Append(".meta");
-				System.IO.File.Move(oldMeta, newMeta);
-			}
-
-			// Update registry entry if registered
-			if (item.IsRegistered)
-			{
-				let registry = listAdapter.ActiveRegistry;
-				if (let concreteReg = registry as ResourceRegistry)
-				{
-					// Build new relative path
-					let newRelPath = scope String();
-					if (listAdapter.CurrentFolder.Length > 0)
-						newRelPath.AppendF("{}/{}", listAdapter.CurrentFolder, newName);
-					else
-						newRelPath.Set(newName);
-
-					concreteReg.Register(item.RegistryId, newRelPath);
-
-					// Save registry
-					let regFile = scope String();
-					System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-					concreteReg.SaveToFile(regFile);
-				}
-			}
-
-			// Refresh both views
-			listAdapter.Rebuild();
-			gridAdapter.Rebuild();
+			HandleRename(item, newName, listAdapter, gridAdapter);
 		});
 
 		// Wire F2 key -> inline rename on selected item
@@ -254,53 +201,9 @@ static class AssetBrowserBuilder
 			}
 		});
 
-		// Wire grid adapter rename commit -> rename file on disk and update registry
+		// Wire grid adapter rename commit -> rename file on disk and update index
 		gridAdapter.OnItemRenamed.Add(new (item, newName) => {
-			if (item.AbsolutePath == null || newName.Length == 0) return;
-
-			let dir = scope String();
-			System.IO.Path.GetDirectoryPath(item.AbsolutePath, dir);
-			let newAbsPath = scope String();
-			System.IO.Path.InternalCombine(newAbsPath, dir, newName);
-
-			if (System.IO.File.Exists(newAbsPath) || System.IO.Directory.Exists(newAbsPath))
-				return;
-
-			if (System.IO.File.Exists(item.AbsolutePath))
-				System.IO.File.Move(item.AbsolutePath, newAbsPath);
-			else if (System.IO.Directory.Exists(item.AbsolutePath))
-				System.IO.Directory.Move(item.AbsolutePath, newAbsPath);
-
-			let oldMeta = scope String(item.AbsolutePath);
-			oldMeta.Append(".meta");
-			if (System.IO.File.Exists(oldMeta))
-			{
-				let newMeta = scope String(newAbsPath);
-				newMeta.Append(".meta");
-				System.IO.File.Move(oldMeta, newMeta);
-			}
-
-			if (item.IsRegistered)
-			{
-				let registry = gridAdapter.ActiveRegistry;
-				if (let concreteReg = registry as ResourceRegistry)
-				{
-					let newRelPath = scope String();
-					if (gridAdapter.CurrentFolder.Length > 0)
-						newRelPath.AppendF("{}/{}", gridAdapter.CurrentFolder, newName);
-					else
-						newRelPath.Set(newName);
-
-					concreteReg.Register(item.RegistryId, newRelPath);
-
-					let regFile = scope String();
-					System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-					concreteReg.SaveToFile(regFile);
-				}
-			}
-
-			listAdapter.Rebuild();
-			gridAdapter.Rebuild();
+			HandleRename(item, newName, listAdapter, gridAdapter);
 		});
 
 		// Wire F2 key -> inline rename on selected grid item
@@ -328,7 +231,7 @@ static class AssetBrowserBuilder
 						contentAdapter.NavigateInto(folderName);
 						gridAdapter.NavigateInto(folderName);
 						breadcrumb.SetPath(
-							contentAdapter.ActiveRegistry?.Name ?? "",
+							contentAdapter.ActiveEntry?.Scheme ?? "",
 							contentAdapter.CurrentFolder);
 						delete folderName;
 					});
@@ -379,7 +282,7 @@ static class AssetBrowserBuilder
 					contentAdapter.NavigateInto(folderName);
 					gridAdapter.NavigateInto(folderName);
 					breadcrumb.SetPath(
-						contentAdapter.ActiveRegistry?.Name ?? "",
+						contentAdapter.ActiveEntry?.Scheme ?? "",
 						contentAdapter.CurrentFolder);
 					delete folderName;
 				});
@@ -422,22 +325,22 @@ static class AssetBrowserBuilder
 			if (ctx == null) return;
 
 			ctx.MutationQueue.QueueAction(new [=segmentIndex, =contentAdapter, =gridAdapter, =breadcrumb] () => {
-				let registry = contentAdapter.ActiveRegistry;
-				if (registry == null) return;
+				let entry = contentAdapter.ActiveEntry;
+				if (entry == null) return;
 
 				if (segmentIndex == 0)
 				{
-					contentAdapter.SetFolder(registry, "");
-					gridAdapter.SetFolder(registry, "");
+					contentAdapter.SetFolder(entry, "");
+					gridAdapter.SetFolder(entry, "");
 				}
 				else
 				{
 					let newPath = scope String();
 					breadcrumb.BuildPathToSegment(segmentIndex, newPath);
-					contentAdapter.SetFolder(registry, newPath);
-					gridAdapter.SetFolder(registry, newPath);
+					contentAdapter.SetFolder(entry, newPath);
+					gridAdapter.SetFolder(entry, newPath);
 				}
-				breadcrumb.SetPath(registry.Name, contentAdapter.CurrentFolder);
+				breadcrumb.SetPath(entry.Scheme, contentAdapter.CurrentFolder);
 			});
 		});
 
@@ -446,7 +349,7 @@ static class AssetBrowserBuilder
 		split.SetPanes(leftPane, rightPane);
 		split.SplitRatio = 0.25f;
 
-		// Select first registry by default if available
+		// Select first mount entry by default if available
 		if (treeAdapter.RootCount > 0)
 		{
 			// Get first root's node ID from the flattened adapter
@@ -474,7 +377,6 @@ static class AssetBrowserBuilder
 
 	// ==================== Helpers ====================
 
-
 	/// Converts local coordinates to screen coordinates by walking up the view tree.
 	private static (float x, float y) ToScreenCoords(View view, float localX, float localY)
 	{
@@ -490,6 +392,80 @@ static class AssetBrowserBuilder
 		return (sx, sy);
 	}
 
+	/// Renames an item on disk and updates the active index if the item is registered.
+	private static void HandleRename(AssetContentItem item, StringView newName,
+		AssetContentAdapter listAdapter, AssetContentAdapter gridAdapter)
+	{
+		if (item.AbsolutePath == null || newName.Length == 0) return;
+
+		// Build new absolute path
+		let dir = scope String();
+		Path.GetDirectoryPath(item.AbsolutePath, dir);
+		let newAbsPath = scope String();
+		Path.InternalCombine(newAbsPath, dir, newName);
+
+		// Don't rename if target already exists
+		if (File.Exists(newAbsPath) || Directory.Exists(newAbsPath))
+			return;
+
+		// Rename file on disk
+		if (File.Exists(item.AbsolutePath))
+			File.Move(item.AbsolutePath, newAbsPath);
+		else if (Directory.Exists(item.AbsolutePath))
+			Directory.Move(item.AbsolutePath, newAbsPath);
+
+		// Rename .meta sidecar if exists
+		let oldMeta = scope String(item.AbsolutePath);
+		oldMeta.Append(".meta");
+		if (File.Exists(oldMeta))
+		{
+			let newMeta = scope String(newAbsPath);
+			newMeta.Append(".meta");
+			File.Move(oldMeta, newMeta);
+		}
+
+		// Update index entry if registered
+		if (item.IsRegistered)
+		{
+			let entry = listAdapter.ActiveEntry;
+			if (entry != null && entry.Index != null)
+			{
+				// Build new mount-relative locator
+				let newLocator = scope String();
+				if (listAdapter.CurrentFolder.Length > 0)
+					newLocator.AppendF("{}/{}", listAdapter.CurrentFolder, newName);
+				else
+					newLocator.Set(newName);
+
+				let newUri = scope String();
+				newUri.AppendF("{}://{}", entry.Scheme, newLocator);
+				entry.Index.Register(item.RegistryId, newUri);
+
+				PersistIndex(entry);
+			}
+		}
+
+		// Refresh both views
+		listAdapter.Rebuild();
+		gridAdapter.Rebuild();
+	}
+
+	/// Serializes a MountEntry's index back through its mount, if both an
+	/// index and a writable mount + index locator are present.
+	private static void PersistIndex(MountEntry entry)
+	{
+		if (entry == null || entry.Index == null || entry.IndexLocator.IsEmpty)
+			return;
+		let writable = entry.Mount as IWritableMount;
+		if (writable == null)
+			return;
+		let stream = scope MemoryStream();
+		if (entry.Index.SerializeTo(stream) case .Err)
+			return;
+		stream.Position = 0;
+		writable.Save(entry.IndexLocator, stream);
+	}
+
 	// ==================== Context Menus ====================
 
 	/// Context menu for a file/asset item.
@@ -498,7 +474,7 @@ static class AssetBrowserBuilder
 		EditorContext editorContext, AssetBrowserPanel panel)
 	{
 		let menu = new ContextMenu();
-		let registry = adapter.ActiveRegistry;
+		let entry = adapter.ActiveEntry;
 
 		// Rename - double-deferred: the menu item action queues a first action,
 		// which runs after ClosePopup/PopFocus, and then queues StartRename.
@@ -516,30 +492,24 @@ static class AssetBrowserBuilder
 			let confirmMsg = scope String();
 			confirmMsg.AppendF("Delete '{}'?", item.Name);
 			let dialog = Dialog.Confirm("Confirm Delete", confirmMsg);
-			dialog.OnClosed.Add(new [=item, =registry, =panel] (dlg, result) => {
+			dialog.OnClosed.Add(new [=item, =entry, =panel] (dlg, result) => {
 				if (result != .OK) return;
 
-				if (item.AbsolutePath != null && System.IO.File.Exists(item.AbsolutePath))
-					System.IO.File.Delete(item.AbsolutePath);
+				if (item.AbsolutePath != null && File.Exists(item.AbsolutePath))
+					File.Delete(item.AbsolutePath);
 
-				// Unregister from registry and save
-				if (item.IsRegistered)
+				// Unregister from index and save
+				if (item.IsRegistered && entry != null && entry.Index != null)
 				{
-					if (let concreteReg = registry as ResourceRegistry)
-					{
-						concreteReg.Unregister(item.RegistryId);
-
-						let regFile = scope String();
-						System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-						concreteReg.SaveToFile(regFile);
-					}
+					entry.Index.Unregister(item.RegistryId);
+					PersistIndex(entry);
 				}
 
 				// Delete .meta sidecar if exists
 				let metaPath = scope String(item.AbsolutePath);
 				metaPath.Append(".meta");
-				if (System.IO.File.Exists(metaPath))
-					System.IO.File.Delete(metaPath);
+				if (File.Exists(metaPath))
+					File.Delete(metaPath);
 
 				panel.RefreshContent();
 			});
@@ -548,17 +518,17 @@ static class AssetBrowserBuilder
 
 		menu.AddSeparator();
 
-		// Copy Path (protocol path)
-		if (item.IsRegistered && registry != null)
+		// Copy Path (URI)
+		if (item.IsRegistered && entry != null)
 		{
-			menu.AddItem("Copy Path", new [=item, =registry, =ctx] () => {
-				let protocolPath = scope String();
-				if (registry.Name.Length > 0)
-					protocolPath.AppendF("{}://{}", registry.Name, item.RelativePath);
+			menu.AddItem("Copy Path", new [=item, =entry, =ctx] () => {
+				let uri = scope String();
+				if (entry.Scheme.Length > 0)
+					uri.AppendF("{}://{}", entry.Scheme, item.RelativePath);
 				else
-					protocolPath.Set(item.RelativePath);
+					uri.Set(item.RelativePath);
 
-				ctx.Clipboard?.SetText(protocolPath);
+				ctx.Clipboard?.SetText(uri);
 			});
 		}
 
@@ -579,7 +549,7 @@ static class AssetBrowserBuilder
 		{
 			menu.AddItem("Show in Explorer", new [=item, =editorContext] () => {
 				let dirPath = scope String();
-				System.IO.Path.GetDirectoryPath(item.AbsolutePath, dirPath);
+				Path.GetDirectoryPath(item.AbsolutePath, dirPath);
 				editorContext.Shell?.RevealInFileManager(dirPath);
 			});
 		}
@@ -593,7 +563,7 @@ static class AssetBrowserBuilder
 		EditorContext editorContext, AssetBrowserPanel panel, EditorBreadcrumbBar breadcrumb)
 	{
 		let menu = new ContextMenu();
-		let registry = adapter.ActiveRegistry;
+		let entry = adapter.ActiveEntry;
 
 		// The target folder for creating assets is the right-clicked folder
 		let targetFolder = scope String(folderItem.RelativePath);
@@ -608,7 +578,7 @@ static class AssetBrowserBuilder
 		});
 
 		// Create New submenu - assets go into the right-clicked folder
-		AddCreateNewSubmenu(menu, targetFolder, registry, editorContext, adapter, panel);
+		AddCreateNewSubmenu(menu, targetFolder, entry, editorContext, adapter, panel);
 
 		// Create Folder inside this folder
 		menu.AddItem("Create Folder", new [=folderItem, =panel] () => {
@@ -627,8 +597,8 @@ static class AssetBrowserBuilder
 			dialog.OnClosed.Add(new [=folderItem, =panel, =deletedRelPath] (dlg, result) => {
 				if (result != .OK) { delete deletedRelPath; return; }
 
-				if (folderItem.AbsolutePath != null && System.IO.Directory.Exists(folderItem.AbsolutePath))
-					System.IO.Directory.DelTree(folderItem.AbsolutePath);
+				if (folderItem.AbsolutePath != null && Directory.Exists(folderItem.AbsolutePath))
+					Directory.DelTree(folderItem.AbsolutePath);
 
 				panel.NavigateAwayFromDeletedFolder(deletedRelPath);
 				delete deletedRelPath;
@@ -655,19 +625,23 @@ static class AssetBrowserBuilder
 		EditorContext editorContext, AssetBrowserPanel panel, EditorBreadcrumbBar breadcrumb)
 	{
 		let menu = new ContextMenu();
-		let registry = adapter.ActiveRegistry;
+		let entry = adapter.ActiveEntry;
 
 		// Create New submenu - assets go into the current folder
-		AddCreateNewSubmenu(menu, targetFolder, registry, editorContext, adapter, panel);
+		AddCreateNewSubmenu(menu, targetFolder, entry, editorContext, adapter, panel);
 
 		// Create Folder in current directory
 		let currentAbsDir = new String();
-		if (registry != null)
+		if (entry != null)
 		{
-			if (targetFolder.Length > 0)
-				System.IO.Path.InternalCombine(currentAbsDir, registry.RootPath, targetFolder);
-			else
-				currentAbsDir.Set(registry.RootPath);
+			let fsMount = entry.Mount as FileSystemMount;
+			if (fsMount != null)
+			{
+				if (targetFolder.Length > 0)
+					Path.InternalCombine(currentAbsDir, fsMount.RootPath, targetFolder);
+				else
+					currentAbsDir.Set(fsMount.RootPath);
+			}
 		}
 		menu.AddOwnedObject(currentAbsDir);
 
@@ -688,7 +662,7 @@ static class AssetBrowserBuilder
 
 	/// Adds a "Create New" submenu populated from registered IAssetCreators.
 	private static void AddCreateNewSubmenu(ContextMenu menu, StringView targetFolder,
-		IResourceRegistry registry, EditorContext editorContext,
+		MountEntry entry, EditorContext editorContext,
 		AssetContentAdapter adapter, AssetBrowserPanel panel)
 	{
 		let createSub = menu.AddSubmenu("Create New");
@@ -723,7 +697,7 @@ static class AssetBrowserBuilder
 				let folderCopy = new String(targetFolder);
 				menu.AddOwnedObject(folderCopy);
 				targetMenu.AddItem(creator.DisplayName, new () => {
-					CreateAssetInFolder(creator, folderCopy, registry, editorContext, panel);
+					CreateAssetInFolder(creator, folderCopy, entry, editorContext, panel);
 				});
 			}
 		}
@@ -735,56 +709,58 @@ static class AssetBrowserBuilder
 		if (parentDir.Length == 0) return;
 
 		let newDir = scope String();
-		System.IO.Path.InternalCombine(newDir, parentDir, "New Folder");
+		Path.InternalCombine(newDir, parentDir, "New Folder");
 
-		if (System.IO.Directory.Exists(newDir))
+		if (Directory.Exists(newDir))
 		{
 			for (int i = 1; i < 100; i++)
 			{
 				newDir.Clear();
-				System.IO.Path.InternalCombine(newDir, parentDir, scope $"New Folder ({i})");
-				if (!System.IO.Directory.Exists(newDir))
+				Path.InternalCombine(newDir, parentDir, scope $"New Folder ({i})");
+				if (!Directory.Exists(newDir))
 					break;
 			}
 		}
 
-		System.IO.Directory.CreateDirectory(newDir);
+		Directory.CreateDirectory(newDir);
 	}
 
-	/// Creates an asset in a specific folder and registers it in the registry.
-	/// targetFolder is the relative path within the registry (e.g. "models" or "").
+	/// Creates an asset in a specific folder and registers it in the index.
+	/// targetFolder is the locator within the mount (e.g. "models" or "").
 	private static void CreateAssetInFolder(IAssetCreator creator,
-		StringView targetFolder, IResourceRegistry registry,
+		StringView targetFolder, MountEntry entry,
 		EditorContext editorContext, AssetBrowserPanel panel)
 	{
-		if (registry == null) return;
+		if (entry == null) return;
+		let fsMount = entry.Mount as FileSystemMount;
+		if (fsMount == null) return;
 
 		// Build absolute output directory
 		let absDir = scope String();
 		if (targetFolder.Length > 0)
-			System.IO.Path.InternalCombine(absDir, registry.RootPath, targetFolder);
+			Path.InternalCombine(absDir, fsMount.RootPath, targetFolder);
 		else
-			absDir.Set(registry.RootPath);
+			absDir.Set(fsMount.RootPath);
 
 		// Ensure directory exists
-		if (!System.IO.Directory.Exists(absDir))
-			System.IO.Directory.CreateDirectory(absDir);
+		if (!Directory.Exists(absDir))
+			Directory.CreateDirectory(absDir);
 
 		// Generate unique filename
 		let baseName = scope String()..AppendF("New {}", creator.DisplayName);
 		let fileName = scope String()..AppendF("{}{}", baseName, creator.Extension);
 		let fullPath = scope String();
-		System.IO.Path.InternalCombine(fullPath, absDir, fileName);
+		Path.InternalCombine(fullPath, absDir, fileName);
 
-		if (System.IO.File.Exists(fullPath))
+		if (File.Exists(fullPath))
 		{
 			for (int i = 1; i < 100; i++)
 			{
 				fileName.Clear();
 				fileName.AppendF("{} ({}){}", baseName, i, creator.Extension);
 				fullPath.Clear();
-				System.IO.Path.InternalCombine(fullPath, absDir, fileName);
-				if (!System.IO.File.Exists(fullPath))
+				Path.InternalCombine(fullPath, absDir, fileName);
+				if (!File.Exists(fullPath))
 					break;
 			}
 		}
@@ -792,21 +768,20 @@ static class AssetBrowserBuilder
 		// Create the asset
 		if (creator.Create(fullPath, editorContext) case .Ok(let resourceId))
 		{
-			// Register in the active registry
-			if (let concreteReg = registry as ResourceRegistry)
+			// Register in the active index
+			if (entry.Index != null)
 			{
-				let relPath = scope String();
+				let locator = scope String();
 				if (targetFolder.Length > 0)
-					relPath.AppendF("{}/{}", targetFolder, fileName);
+					locator.AppendF("{}/{}", targetFolder, fileName);
 				else
-					relPath.Set(fileName);
+					locator.Set(fileName);
 
-				concreteReg.Register(resourceId, relPath);
+				let uri = scope String();
+				uri.AppendF("{}://{}", entry.Scheme, locator);
+				entry.Index.Register(resourceId, uri);
 
-				// Save registry to disk
-				let regFile = scope String();
-				System.IO.Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-				concreteReg.SaveToFile(regFile);
+				PersistIndex(entry);
 			}
 
 			panel.RefreshContent();
@@ -817,8 +792,10 @@ static class AssetBrowserBuilder
 	private static void TriggerImportDialog(EditorContext editorContext,
 		AssetContentAdapter adapter, AssetBrowserPanel panel)
 	{
-		let registry = adapter.ActiveRegistry;
-		if (registry == null) return;
+		let entry = adapter.ActiveEntry;
+		if (entry == null) return;
+		let writable = entry.Mount as IWritableMount;
+		if (writable == null) return;
 
 		let dialogService = editorContext.DialogService;
 		if (dialogService == null) return;
@@ -842,14 +819,14 @@ static class AssetBrowserBuilder
 		}
 		StringView[1] filters = .(filterStr);
 
-		dialogService.ShowOpenFileDialog(new [=editorContext, =adapter, =panel, =registry] (paths) => {
+		dialogService.ShowOpenFileDialog(new [=editorContext, =adapter, =panel, =entry, =writable] (paths) => {
 			if (paths.Length == 0) return;
 
 			for (let sourcePath in paths)
 			{
 				// Find importer for this file
 				let ext = scope String();
-				System.IO.Path.GetExtension(sourcePath, ext);
+				Path.GetExtension(sourcePath, ext);
 
 				let importer = editorContext.GetImporterForExtension(ext);
 				if (importer == null)
@@ -868,28 +845,30 @@ static class AssetBrowserBuilder
 					continue;
 				}
 
-				// Build output directory (current folder in the active registry)
-				let outputDir = scope String();
+				// Build base locator (current folder in the active mount, with trailing slash)
+				let baseLocator = scope String();
 				if (adapter.CurrentFolder.Length > 0)
-					System.IO.Path.InternalCombine(outputDir, registry.RootPath, adapter.CurrentFolder);
-				else
-					outputDir.Set(registry.RootPath);
+				{
+					baseLocator.Append(adapter.CurrentFolder);
+					baseLocator.Append('/');
+				}
+
+				// URI prefix: "scheme://baseLocator"
+				let uriPrefix = scope String();
+				uriPrefix.AppendF("{}://{}", entry.Scheme, baseLocator);
 
 				// Show import dialog
-				if (let concreteReg = registry as ResourceRegistry)
+				let serializer = editorContext.ResourceSystem?.SerializerProvider;
+				if (serializer != null)
 				{
-					let serializer = editorContext.ResourceSystem?.SerializerProvider;
-					if (serializer != null)
+					let ctx = panel.ContentView?.Context;
+					if (ctx != null)
 					{
-						let ctx = panel.ContentView?.Context;
-						if (ctx != null)
-						{
-							// Dialog takes ownership of preview and is deleted by PopupLayer on close
-							let importDialog = new ImportDialog(preview, importer, outputDir,
-								concreteReg, serializer, panel);
-							importDialog.Show(ctx);
-							continue; // Don't delete preview - dialog owns it now
-						}
+						// Dialog takes ownership of preview and is deleted by PopupLayer on close
+						let importDialog = new ImportDialog(preview, importer, writable, baseLocator,
+							entry.Index, uriPrefix, entry.IndexLocator, serializer, panel);
+						importDialog.Show(ctx);
+						continue; // Don't delete preview - dialog owns it now
 					}
 				}
 
@@ -899,9 +878,9 @@ static class AssetBrowserBuilder
 		}, filters, default, true);
 	}
 
-	/// Context menu for the registry tree view nodes.
+	/// Context menu for the mount tree view nodes.
 	private static void ShowTreeContextMenu(UIContext ctx, float x, float y,
-		int32 nodeId, IResourceRegistry registry, bool isRoot, bool isLocked,
+		int32 nodeId, MountEntry entry, bool isRoot, bool isLocked,
 		RegistryTreeAdapter treeAdapter, AssetContentAdapter contentAdapter,
 		AssetContentAdapter gridAdapter, EditorContext editorContext,
 		AssetBrowserPanel panel, EditorBreadcrumbBar breadcrumb)
@@ -922,7 +901,7 @@ static class AssetBrowserBuilder
 			}, enabled: false);
 
 			// Create New submenu
-			AddCreateNewSubmenu(menu, relPath, registry, editorContext, contentAdapter, panel);
+			AddCreateNewSubmenu(menu, relPath, entry, editorContext, contentAdapter, panel);
 
 			// Create Folder
 			menu.AddItem("Create Folder", new [=absPathOwned, =panel] () => {
@@ -944,8 +923,8 @@ static class AssetBrowserBuilder
 				dialog.OnClosed.Add(new [=pathCopy, =relPathCopy, =panel] (dlg, result) => {
 					if (result != .OK) { delete pathCopy; delete relPathCopy; return; }
 
-					if (System.IO.Directory.Exists(pathCopy))
-						System.IO.Directory.DelTree(pathCopy);
+					if (Directory.Exists(pathCopy))
+						Directory.DelTree(pathCopy);
 
 					panel.NavigateAwayFromDeletedFolder(relPathCopy);
 					panel.RefreshRegistries();
@@ -964,10 +943,10 @@ static class AssetBrowserBuilder
 		}
 		else
 		{
-			// Registry root node - limited actions
+			// Mount root node - limited actions
 
-			// Create New submenu (at registry root)
-			AddCreateNewSubmenu(menu, "", registry, editorContext, contentAdapter, panel);
+			// Create New submenu (at mount root)
+			AddCreateNewSubmenu(menu, "", entry, editorContext, contentAdapter, panel);
 
 			// Create Folder at root
 			menu.AddItem("Create Folder", new [=absPathOwned, =panel] () => {
@@ -990,7 +969,7 @@ static class AssetBrowserBuilder
 				editorContext.Shell?.RevealInFileManager(absPathOwned);
 			});
 
-			// Unmount (only for non-locked registries)
+			// Unmount (only for non-locked entries)
 			if (!isLocked)
 			{
 				menu.AddSeparator();
@@ -1005,7 +984,7 @@ static class AssetBrowserBuilder
 }
 
 /// Simple breadcrumb path bar for folder navigation.
-/// Displays: [Registry] > [Folder] > [SubFolder]
+/// Displays: [Scheme] > [Folder] > [SubFolder]
 /// Each segment is clickable to navigate to that level.
 class EditorBreadcrumbBar : FlexLayout
 {
@@ -1019,14 +998,14 @@ class EditorBreadcrumbBar : FlexLayout
 		Padding = .(6, 3, 6, 3);
 	}
 
-	/// Sets the breadcrumb path from a registry name and relative path.
-	public void SetPath(StringView registryName, StringView relativePath)
+	/// Sets the breadcrumb path from a scheme name and relative path.
+	public void SetPath(StringView schemeName, StringView relativePath)
 	{
 		// Clear old segments and views
 		ClearInternal();
 
-		// Registry name as first segment
-		mSegments.Add(new String(registryName));
+		// Scheme name as first segment
+		mSegments.Add(new String(schemeName));
 
 		// Split relative path into segments
 		if (relativePath.Length > 0)
@@ -1063,7 +1042,7 @@ class EditorBreadcrumbBar : FlexLayout
 		Invalidate();
 	}
 
-	/// Reconstructs a relative path from segments 1..segmentIndex (0 is registry name).
+	/// Reconstructs a relative path from segments 1..segmentIndex (0 is scheme name).
 	public void BuildPathToSegment(int32 segmentIndex, String outPath)
 	{
 		for (int32 i = 1; i <= segmentIndex && i < mSegments.Count; i++)

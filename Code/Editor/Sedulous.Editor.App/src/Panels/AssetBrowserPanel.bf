@@ -7,43 +7,46 @@ using Sedulous.UI;
 using Sedulous.Shell;
 using Sedulous.Resources;
 using Sedulous.Editor.Core;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 
 /// The asset browser dockable panel.
-/// Shows mounted registries (left tree) and their contents (right list).
-/// Manages registry mount/create/unmount and persists extra registries in .sedproj.
+/// Shows mounted entries (left tree) and their contents (right list).
+/// Manages mount/create/unmount and persists extra mounts in .sedproj.
 class AssetBrowserPanel : IEditorPanel
 {
 	private EditorContext mEditorContext;
 	private View mContentView;
 	private AssetBrowserBuilder.BuildResult mBuildResult;
 
-	/// Extra registries mounted by the user (not builtin/project).
+	/// Extra mounts created by the user (not builtin/project).
 	/// These are persisted in .sedproj and restored on project open.
-	private List<MountedRegistryInfo> mExtraRegistries = new .() ~ {
+	private List<MountedExtraInfo> mExtraMounts = new .() ~ {
 		for (let info in _)
 		{
-			delete info.Name;
+			delete info.Scheme;
 			delete info.RootPath;
-			delete info.FilePath;
-			delete info.Registry;
+			delete info.IndexLocator;
 		}
 		delete _;
 	};
 
-	private struct MountedRegistryInfo
+	private struct MountedExtraInfo
 	{
-		public String Name;
+		public String Scheme;
 		public String RootPath;
-		public String FilePath;
-		public ResourceRegistry Registry;
+		public String IndexLocator;  // mount-relative locator where the index lives
+		public FileSystemMount Mount;
+		public InMemoryResourceIndex Index;
+		public MountEntry Entry;     // Lives in EditorContext.MountEntries (not owned here)
 	}
 
 	public this(EditorContext editorContext)
 	{
 		mEditorContext = editorContext;
 
-		// Restore extra registries from project settings before building UI
-		RestoreRegistries();
+		// Restore extra mounts from project settings before building UI
+		RestoreExtras();
 
 		mBuildResult = AssetBrowserBuilder.Build(editorContext, this);
 		mContentView = mBuildResult.RootView;
@@ -67,12 +70,10 @@ class AssetBrowserPanel : IEditorPanel
 	public void OnDeactivated() { }
 	public void Update(float deltaTime) { }
 
-	/// Refreshes the registry tree (e.g. after mount/unmount).
+	/// Refreshes the mount tree (e.g. after mount/unmount).
 	public void RefreshRegistries()
 	{
-		let registries = scope List<IResourceRegistry>();
-		mEditorContext.ResourceSystem.GetRegistries(registries);
-		mBuildResult.TreeAdapter.Refresh(registries);
+		mBuildResult.TreeAdapter.Refresh(mEditorContext.MountEntries);
 	}
 
 	/// Refreshes the content view (e.g. after import or file changes).
@@ -86,16 +87,19 @@ class AssetBrowserPanel : IEditorPanel
 	/// walks up to the closest existing parent.
 	public void NavigateToFolder(StringView relativePath)
 	{
-		let registry = mBuildResult.ListAdapter.ActiveRegistry;
-		if (registry == null) return;
+		let entry = mBuildResult.ListAdapter.ActiveEntry;
+		if (entry == null) return;
+
+		let fsMount = entry.Mount as FileSystemMount;
+		let rootPath = (fsMount != null) ? fsMount.RootPath : StringView();
 
 		// Walk up until we find an existing folder (or reach root)
 		let folder = scope String(relativePath);
 		while (folder.Length > 0)
 		{
 			let absPath = scope String();
-			System.IO.Path.InternalCombine(absPath, registry.RootPath, folder);
-			if (System.IO.Directory.Exists(absPath))
+			Path.InternalCombine(absPath, rootPath, folder);
+			if (Directory.Exists(absPath))
 				break;
 
 			let lastSlash = folder.LastIndexOf('/');
@@ -105,9 +109,9 @@ class AssetBrowserPanel : IEditorPanel
 				folder.Clear();
 		}
 
-		mBuildResult.ListAdapter.SetFolder(registry, folder);
-		mBuildResult.GridAdapter.SetFolder(registry, folder);
-		mBuildResult.Breadcrumb.SetPath(registry.Name, folder);
+		mBuildResult.ListAdapter.SetFolder(entry, folder);
+		mBuildResult.GridAdapter.SetFolder(entry, folder);
+		mBuildResult.Breadcrumb.SetPath(entry.Scheme, folder);
 	}
 
 	/// If the content view is currently inside the given folder, navigates
@@ -139,7 +143,7 @@ class AssetBrowserPanel : IEditorPanel
 		}
 	}
 
-	// ==================== Registry Management ====================
+	// ==================== Mount Management ====================
 
 	/// Mount an existing .registry file via file dialog.
 	public void MountRegistry()
@@ -153,41 +157,58 @@ class AssetBrowserPanel : IEditorPanel
 
 			let filePath = scope String(paths[0]);
 
-			// Derive name and root from file path
+			// Derive scheme name and root from file path
 			let rootDir = scope String();
 			Path.GetDirectoryPath(filePath, rootDir);
 
-			let fileName = scope String();
-			Path.GetFileNameWithoutExtension(filePath, fileName);
+			let scheme = scope String();
+			Path.GetFileNameWithoutExtension(filePath, scheme);
+
+			let indexLocator = scope String();
+			Path.GetFileName(filePath, indexLocator);
 
 			// Check not already mounted
-			for (let info in mExtraRegistries)
+			for (let info in mExtraMounts)
 			{
-				if (StringView(info.FilePath) == filePath)
+				if (StringView(info.Scheme) == scheme)
 					return; // Already mounted
 			}
 
-			// Create and mount the registry
-			let registry = new ResourceRegistry(fileName, rootDir);
-			registry.LoadFromFile(filePath);
-			mEditorContext.ResourceSystem.AddRegistry(registry);
+			// Create and register the mount + index
+			let mount = new FileSystemMount(rootDir);
+			let index = new InMemoryResourceIndex();
+			{
+				let stream = mount.Open(indexLocator);
+				if (stream case .Ok(let s))
+				{
+					defer delete s;
+					index.DeserializeFrom(s);
+				}
+			}
+			mEditorContext.ResourceSystem.Mount(scheme, mount);
+			mEditorContext.ResourceSystem.AddIndex(index);
+
+			let entry = new MountEntry(scheme, mount, index, indexLocator, false);
+			mEditorContext.MountEntries.Add(entry);
 
 			// Track for persistence
-			mExtraRegistries.Add(.()
+			mExtraMounts.Add(.()
 			{
-				Name = new String(fileName),
+				Scheme = new String(scheme),
 				RootPath = new String(rootDir),
-				FilePath = new String(filePath),
-				Registry = registry
+				IndexLocator = new String(indexLocator),
+				Mount = mount,
+				Index = index,
+				Entry = entry
 			});
 
-			SaveRegistriesToProject();
+			SaveExtrasToProject();
 			RefreshRegistries();
-			SelectRegistry(registry);
+			SelectEntry(entry);
 		}, filters);
 	}
 
-	/// Create a new registry in a user-selected folder.
+	/// Create a new mount in a user-selected folder.
 	public void CreateRegistry()
 	{
 		let dialogService = mEditorContext.DialogService;
@@ -198,102 +219,132 @@ class AssetBrowserPanel : IEditorPanel
 
 			let folderPath = scope String(paths[0]);
 
-			// Derive name from folder name
-			let folderName = scope String();
-			Path.GetFileName(folderPath, folderName);
-			if (folderName.Length == 0)
-				folderName.Set("registry");
+			// Derive scheme name from folder name
+			let scheme = scope String();
+			Path.GetFileName(folderPath, scheme);
+			if (scheme.Length == 0)
+				scheme.Set("registry");
 
-			let registryFile = scope String();
-			Path.InternalCombine(registryFile, folderPath, scope $"{folderName}.registry");
+			let indexLocator = scope String();
+			indexLocator.AppendF("{}.registry", scheme);
 
-			// Create empty registry file
-			let registry = new ResourceRegistry(folderName, folderPath);
-			registry.SaveToFile(registryFile);
-			mEditorContext.ResourceSystem.AddRegistry(registry);
+			// Create mount + empty index, persist the index immediately
+			let mount = new FileSystemMount(folderPath);
+			let index = new InMemoryResourceIndex();
+			{
+				let memStream = scope MemoryStream();
+				if (index.SerializeTo(memStream) case .Ok)
+				{
+					memStream.Position = 0;
+					mount.Save(indexLocator, memStream);
+				}
+			}
+			mEditorContext.ResourceSystem.Mount(scheme, mount);
+			mEditorContext.ResourceSystem.AddIndex(index);
+
+			let entry = new MountEntry(scheme, mount, index, indexLocator, false);
+			mEditorContext.MountEntries.Add(entry);
 
 			// Track for persistence
-			mExtraRegistries.Add(.()
+			mExtraMounts.Add(.()
 			{
-				Name = new String(folderName),
+				Scheme = new String(scheme),
 				RootPath = new String(folderPath),
-				FilePath = new String(registryFile),
-				Registry = registry
+				IndexLocator = new String(indexLocator),
+				Mount = mount,
+				Index = index,
+				Entry = entry
 			});
 
-			SaveRegistriesToProject();
+			SaveExtrasToProject();
 			RefreshRegistries();
-			SelectRegistry(registry);
+			SelectEntry(entry);
 		});
 	}
 
-	/// Unmount the currently selected registry (if not locked).
+	/// Unmount the currently selected entry (if not locked).
 	public void UnmountSelectedRegistry()
 	{
 		let selectedId = mBuildResult.TreeAdapter.SelectedNodeId;
 		if (selectedId < 0) return;
 
-		// Cannot unmount locked registries (builtin, project)
+		// Cannot unmount locked entries (builtin, project)
 		if (mBuildResult.TreeAdapter.IsNodeLocked(selectedId))
 			return;
 
-		let registry = mBuildResult.TreeAdapter.GetRegistryForNode(selectedId);
-		if (registry == null) return;
+		let entry = mBuildResult.TreeAdapter.GetEntryForNode(selectedId);
+		if (entry == null) return;
 
-		// Find and remove from extra registries
-		for (int i = 0; i < mExtraRegistries.Count; i++)
+		// Find and remove from extra mounts
+		for (int i = 0; i < mExtraMounts.Count; i++)
 		{
-			if (mExtraRegistries[i].Registry == registry)
+			if (mExtraMounts[i].Entry == entry)
 			{
-				let info = mExtraRegistries[i];
-				mEditorContext.ResourceSystem.RemoveRegistry(info.Registry);
-				delete info.Name;
+				let info = mExtraMounts[i];
+
+				// Unmount from ResourceSystem
+				mEditorContext.ResourceSystem.RemoveIndex(info.Index);
+				mEditorContext.ResourceSystem.Unmount(info.Scheme);
+
+				// Remove from EditorContext (owns the entry)
+				for (int j = mEditorContext.MountEntries.Count - 1; j >= 0; j--)
+				{
+					if (mEditorContext.MountEntries[j] == info.Entry)
+					{
+						delete mEditorContext.MountEntries[j];
+						mEditorContext.MountEntries.RemoveAt(j);
+						break;
+					}
+				}
+
+				delete info.Mount;
+				delete info.Index;
+				delete info.Scheme;
 				delete info.RootPath;
-				delete info.FilePath;
-				delete info.Registry;
-				mExtraRegistries.RemoveAt(i);
+				delete info.IndexLocator;
+				mExtraMounts.RemoveAt(i);
 				break;
 			}
 		}
 
-		SaveRegistriesToProject();
+		SaveExtrasToProject();
 		RefreshRegistries();
 
-		// Clear content view since the selected registry was removed
+		// Clear content view since the selected entry was removed
 		mBuildResult.ListAdapter.SetFolder(null, "");
 		mBuildResult.GridAdapter.SetFolder(null, "");
 		mBuildResult.Breadcrumb.SetPath("", "");
 	}
 
-	/// Selects a registry's root node in the tree and shows its content.
-	private void SelectRegistry(IResourceRegistry registry)
+	/// Selects a mount entry's root node in the tree and shows its content.
+	private void SelectEntry(MountEntry entry)
 	{
-		let nodeId = mBuildResult.TreeAdapter.GetRootNodeForRegistry(registry);
+		let nodeId = mBuildResult.TreeAdapter.GetRootNodeForEntry(entry);
 		if (nodeId >= 0)
 			mBuildResult.TreeAdapter.SelectNode(nodeId);
 	}
 
 	// ==================== Persistence ====================
 
-	/// Saves extra registry mount points to .sedproj.
-	private void SaveRegistriesToProject()
+	/// Saves extra mount points to .sedproj.
+	private void SaveExtrasToProject()
 	{
 		let project = mEditorContext.Project;
 		if (project == null || !project.IsLoaded) return;
 
-		project.SetSetting("registry.count", scope $"{mExtraRegistries.Count}");
-		for (int i = 0; i < mExtraRegistries.Count; i++)
+		project.SetSetting("registry.count", scope $"{mExtraMounts.Count}");
+		for (int i = 0; i < mExtraMounts.Count; i++)
 		{
-			let info = mExtraRegistries[i];
-			project.SetSetting(scope $"registry.{i}.name", info.Name);
+			let info = mExtraMounts[i];
+			project.SetSetting(scope $"registry.{i}.name", info.Scheme);
 			project.SetSetting(scope $"registry.{i}.root", info.RootPath);
-			project.SetSetting(scope $"registry.{i}.file", info.FilePath);
+			project.SetSetting(scope $"registry.{i}.file", info.IndexLocator);
 		}
 		project.Save();
 	}
 
-	/// Restores extra registry mount points from .sedproj.
-	private void RestoreRegistries()
+	/// Restores extra mount points from .sedproj.
+	private void RestoreExtras()
 	{
 		let project = mEditorContext.Project;
 		if (project == null || !project.IsLoaded) return;
@@ -307,18 +358,18 @@ class AssetBrowserPanel : IEditorPanel
 
 		for (int i = 0; i < count; i++)
 		{
-			let name = project.GetSetting(scope $"registry.{i}.name");
+			let scheme = project.GetSetting(scope $"registry.{i}.name");
 			let rootPath = project.GetSetting(scope $"registry.{i}.root");
-			let filePath = project.GetSetting(scope $"registry.{i}.file");
+			let indexLocator = project.GetSetting(scope $"registry.{i}.file");
 
-			if (name.Length == 0 || rootPath.Length == 0 || filePath.Length == 0)
+			if (scheme.Length == 0 || rootPath.Length == 0 || indexLocator.Length == 0)
 				continue;
 
 			// Don't mount duplicates
 			bool alreadyMounted = false;
-			for (let info in mExtraRegistries)
+			for (let info in mExtraMounts)
 			{
-				if (StringView(info.FilePath) == filePath)
+				if (StringView(info.Scheme) == scheme)
 				{
 					alreadyMounted = true;
 					break;
@@ -326,17 +377,31 @@ class AssetBrowserPanel : IEditorPanel
 			}
 			if (alreadyMounted) continue;
 
-			let registry = new ResourceRegistry(name, rootPath);
-			if (File.Exists(filePath))
-				registry.LoadFromFile(filePath);
-			mEditorContext.ResourceSystem.AddRegistry(registry);
-
-			mExtraRegistries.Add(.()
+			let mount = new FileSystemMount(rootPath);
+			let index = new InMemoryResourceIndex();
+			if (mount.Exists(indexLocator))
 			{
-				Name = new String(name),
+				let stream = mount.Open(indexLocator);
+				if (stream case .Ok(let s))
+				{
+					defer delete s;
+					index.DeserializeFrom(s);
+				}
+			}
+			mEditorContext.ResourceSystem.Mount(scheme, mount);
+			mEditorContext.ResourceSystem.AddIndex(index);
+
+			let entry = new MountEntry(scheme, mount, index, indexLocator, false);
+			mEditorContext.MountEntries.Add(entry);
+
+			mExtraMounts.Add(.()
+			{
+				Scheme = new String(scheme),
 				RootPath = new String(rootPath),
-				FilePath = new String(filePath),
-				Registry = registry
+				IndexLocator = new String(indexLocator),
+				Mount = mount,
+				Index = index,
+				Entry = entry
 			});
 		}
 	}

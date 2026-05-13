@@ -6,33 +6,37 @@ using System.Collections;
 using Sedulous.UI;
 using Sedulous.UI.Toolkit;
 using Sedulous.Resources;
+using Sedulous.Editor.Core;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 using Sedulous.Core.Mathematics;
 
-/// Tree adapter for the asset browser's registry pane.
-/// Root nodes are mounted registries. Children are filesystem subdirectories
-/// under each registry's root path.
+/// Tree adapter for the asset browser's mount pane.
+/// Root nodes are mounted entries (scheme + mount + index). Children are
+/// filesystem subdirectories under the mount's root (when the mount is
+/// disk-backed).
 ///
 /// Node ID scheme:
-///   - Registry roots: 1..N (index + 1)
+///   - Mount roots: 1..N (index + 1)
 ///   - Subdirectories: hash-based IDs (high bits set to avoid collision)
 class RegistryTreeAdapter : ITreeAdapter
 {
-	/// A node in the tree (either a registry root or a subdirectory).
+	/// A node in the tree (either a mount root or a subdirectory).
 	private class TreeNode
 	{
 		public int32 Id;
 		public int32 ParentId = -1;
 		public String DisplayName ~ delete _;
 		public String AbsolutePath ~ delete _;     // Full filesystem path
-		public String RelativePath ~ delete _;     // Path relative to registry root
-		public IResourceRegistry Registry;          // Which registry this belongs to
-		public bool IsRegistryRoot;
+		public String RelativePath ~ delete _;     // Path relative to mount root
+		public MountEntry Entry;                    // Which mount this belongs to
+		public bool IsMountRoot;
 		public bool IsLocked;                       // Builtin/project can't be removed
 		public List<int32> ChildIds = new .() ~ delete _;
 		public bool ChildrenLoaded;
 	}
 
-	private List<IResourceRegistry> mRegistries = new .() ~ delete _;
+	private List<MountEntry> mEntries = new .() ~ delete _;
 	private Dictionary<int32, TreeNode> mNodes = new .() ~ DeleteDictionaryAndValues!(_);
 	private List<int32> mRootIds = new .() ~ delete _;
 	private int32 mNextId = 1;
@@ -41,27 +45,27 @@ class RegistryTreeAdapter : ITreeAdapter
 	// Currently selected node
 	private int32 mSelectedNodeId = -1;
 
-	/// Fired when the user selects a tree node. Carries the registry and relative path.
-	public Event<delegate void(IResourceRegistry, StringView)> OnFolderSelected ~ _.Dispose();
+	/// Fired when the user selects a tree node. Carries the mount entry and relative path.
+	public Event<delegate void(MountEntry, StringView)> OnFolderSelected ~ _.Dispose();
 
 	/// Gets the selected node ID.
 	public int32 SelectedNodeId => mSelectedNodeId;
 
-	/// Rebuilds the tree from the current registry list.
-	public void SetRegistries(List<IResourceRegistry> registries)
+	/// Rebuilds the tree from the current mount list.
+	public void SetEntries(List<MountEntry> entries)
 	{
 		// Clear old state
 		for (let kv in mNodes)
 			delete kv.value;
 		mNodes.Clear();
 		mRootIds.Clear();
-		mRegistries.Clear();
+		mEntries.Clear();
 		mNextId = 1;
 
-		for (let reg in registries)
+		for (let entry in entries)
 		{
-			mRegistries.Add(reg);
-			let node = CreateRegistryRootNode(reg);
+			mEntries.Add(entry);
+			let node = CreateMountRootNode(entry);
 			mRootIds.Add(node.Id);
 		}
 
@@ -69,9 +73,9 @@ class RegistryTreeAdapter : ITreeAdapter
 	}
 
 	/// Refreshes the tree data (e.g. after mount/unmount).
-	public void Refresh(List<IResourceRegistry> registries)
+	public void Refresh(List<MountEntry> entries)
 	{
-		SetRegistries(registries);
+		SetEntries(entries);
 	}
 
 	/// Selects a node by ID and fires the OnFolderSelected event.
@@ -81,39 +85,39 @@ class RegistryTreeAdapter : ITreeAdapter
 
 		if (mNodes.TryGetValue(nodeId, let node))
 		{
-			let relativePath = node.IsRegistryRoot ? "" : StringView(node.RelativePath);
-			OnFolderSelected(node.Registry, relativePath);
+			let relativePath = node.IsMountRoot ? "" : StringView(node.RelativePath);
+			OnFolderSelected(node.Entry, relativePath);
 		}
 	}
 
-	/// Gets the registry associated with a node.
-	public IResourceRegistry GetRegistryForNode(int32 nodeId)
+	/// Gets the mount entry associated with a node.
+	public MountEntry GetEntryForNode(int32 nodeId)
 	{
 		if (mNodes.TryGetValue(nodeId, let node))
-			return node.Registry;
+			return node.Entry;
 		return null;
 	}
 
-	/// Finds the root node ID for a registry. Returns -1 if not found.
-	public int32 GetRootNodeForRegistry(IResourceRegistry registry)
+	/// Finds the root node ID for a mount entry. Returns -1 if not found.
+	public int32 GetRootNodeForEntry(MountEntry entry)
 	{
 		for (let rootId in mRootIds)
 		{
-			if (mNodes.TryGetValue(rootId, let node) && node.Registry == registry)
+			if (mNodes.TryGetValue(rootId, let node) && node.Entry == entry)
 				return rootId;
 		}
 		return -1;
 	}
 
-	/// Gets whether a node is a registry root (top level).
-	public bool IsRegistryRoot(int32 nodeId)
+	/// Gets whether a node is a mount root (top level).
+	public bool IsMountRoot(int32 nodeId)
 	{
 		if (mNodes.TryGetValue(nodeId, let node))
-			return node.IsRegistryRoot;
+			return node.IsMountRoot;
 		return false;
 	}
 
-	/// Gets the absolute path for a node.
+	/// Gets the absolute path for a node. Empty for non-disk mounts.
 	public StringView GetNodeAbsolutePath(int32 nodeId)
 	{
 		if (mNodes.TryGetValue(nodeId, let node) && node.AbsolutePath != null)
@@ -121,7 +125,7 @@ class RegistryTreeAdapter : ITreeAdapter
 		return "";
 	}
 
-	/// Gets the relative path for a node within its registry.
+	/// Gets the relative path for a node within its mount.
 	public StringView GetNodeRelativePath(int32 nodeId)
 	{
 		if (mNodes.TryGetValue(nodeId, let node) && node.RelativePath != null)
@@ -129,7 +133,7 @@ class RegistryTreeAdapter : ITreeAdapter
 		return "";
 	}
 
-	/// Gets whether a node represents a locked registry (builtin/project).
+	/// Gets whether a node represents a locked entry (builtin/project).
 	public bool IsNodeLocked(int32 nodeId)
 	{
 		if (mNodes.TryGetValue(nodeId, let node))
@@ -191,12 +195,12 @@ class RegistryTreeAdapter : ITreeAdapter
 		if (!mNodes.TryGetValue(nodeId, let node))
 			return false;
 
-		// Registry roots always show as expandable (lazy load)
-		if (node.IsRegistryRoot)
+		// Mount roots always show as expandable (lazy load)
+		if (node.IsMountRoot)
 			return true;
 
 		// Check if directory has subdirectories
-		if (node.AbsolutePath != null && Directory.Exists(node.AbsolutePath))
+		if (node.AbsolutePath != null && !node.AbsolutePath.IsEmpty && Directory.Exists(node.AbsolutePath))
 		{
 			for (let entry in Directory.EnumerateDirectories(node.AbsolutePath))
 				return true;
@@ -222,7 +226,7 @@ class RegistryTreeAdapter : ITreeAdapter
 		// Highlight selected node
 		if (nodeId == mSelectedNodeId)
 			itemView.TextColor = .(220, 225, 240, 255);
-		else if (node.IsRegistryRoot)
+		else if (node.IsMountRoot)
 			itemView.TextColor = .(180, 185, 200, 255);
 		else
 			itemView.TextColor = .(160, 165, 180, 255);
@@ -237,16 +241,19 @@ class RegistryTreeAdapter : ITreeAdapter
 
 	// === Internal ===
 
-	private TreeNode CreateRegistryRootNode(IResourceRegistry registry)
+	private TreeNode CreateMountRootNode(MountEntry entry)
 	{
 		let node = new TreeNode();
 		node.Id = mNextId++;
-		node.DisplayName = new String(registry.Name);
-		node.AbsolutePath = new String(registry.RootPath);
+		node.DisplayName = new String(entry.Scheme);
+		node.AbsolutePath = new String();
+		// Only disk-backed mounts have a meaningful filesystem root.
+		if (let fsMount = entry.Mount as FileSystemMount)
+			node.AbsolutePath.Set(fsMount.RootPath);
 		node.RelativePath = new String();
-		node.Registry = registry;
-		node.IsRegistryRoot = true;
-		node.IsLocked = (registry.Name == "builtin" || registry.Name == "project");
+		node.Entry = entry;
+		node.IsMountRoot = true;
+		node.IsLocked = entry.IsLocked;
 		mNodes[node.Id] = node;
 		return node;
 	}
@@ -259,7 +266,7 @@ class RegistryTreeAdapter : ITreeAdapter
 
 		node.ChildrenLoaded = true;
 
-		if (node.AbsolutePath == null || !Directory.Exists(node.AbsolutePath))
+		if (node.AbsolutePath == null || node.AbsolutePath.IsEmpty || !Directory.Exists(node.AbsolutePath))
 			return;
 
 		// Enumerate subdirectories and create child nodes
@@ -296,8 +303,8 @@ class RegistryTreeAdapter : ITreeAdapter
 			else
 				childNode.RelativePath.Set(dirName);
 
-			childNode.Registry = node.Registry;
-			childNode.IsRegistryRoot = false;
+			childNode.Entry = node.Entry;
+			childNode.IsMountRoot = false;
 			childNode.IsLocked = false;
 
 			mNodes[childNode.Id] = childNode;

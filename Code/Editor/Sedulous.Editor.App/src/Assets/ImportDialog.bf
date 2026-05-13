@@ -8,21 +8,27 @@ using Sedulous.Core.Mathematics;
 using Sedulous.Editor.Core;
 using Sedulous.Resources;
 using Sedulous.Serialization;
+using Sedulous.VFS;
+using System.IO;
 
 /// Modal dialog for asset import.
-/// Shows a preview of items to be imported with checkboxes, output directory,
+/// Shows a preview of items to be imported with checkboxes, output location,
 /// and Import/Cancel buttons.
 ///
 /// Usage:
-///   let dialog = new ImportDialog(preview, importer, outputDir, registry, serializer, panel);
+///   let dialog = new ImportDialog(preview, importer, mount, baseLocator,
+///                                 index, uriPrefix, indexLocator, serializer, panel);
 ///   dialog.Show(ctx);
 ///   // Dialog owns itself - deleted on close via PopupLayer.
 class ImportDialog : Dialog
 {
 	private ImportPreview mPreview ~ delete _;
 	private IAssetImporter mImporter;
-	private String mOutputDir = new .() ~ delete _;
-	private ResourceRegistry mRegistry;
+	private IWritableMount mMount;
+	private String mBaseLocator = new .() ~ delete _;
+	private IResourceIndex mIndex;
+	private String mUriPrefix = new .() ~ delete _;
+	private String mIndexLocator = new .() ~ delete _; // locator the index is persisted to
 	private ISerializerProvider mSerializer;
 	private AssetBrowserPanel mPanel;
 
@@ -30,14 +36,18 @@ class ImportDialog : Dialog
 	private List<CheckBox> mItemChecks = new .() ~ delete _;
 
 	public this(ImportPreview preview, IAssetImporter importer,
-		StringView outputDir, ResourceRegistry registry,
+		IWritableMount mount, StringView baseLocator,
+		IResourceIndex index, StringView uriPrefix, StringView indexLocator,
 		ISerializerProvider serializer, AssetBrowserPanel panel)
 		: base("Import Assets")
 	{
 		mPreview = preview;
 		mImporter = importer;
-		mOutputDir.Set(outputDir);
-		mRegistry = registry;
+		mMount = mount;
+		mBaseLocator.Set(baseLocator);
+		mIndex = index;
+		mUriPrefix.Set(uriPrefix);
+		mIndexLocator.Set(indexLocator);
 		mSerializer = serializer;
 		mPanel = panel;
 
@@ -92,7 +102,11 @@ class ImportDialog : Dialog
 		outputRow.AddView(outputLabel, new FlexLayout.LayoutParams() { Width = .Fixed(.Px(50)), Height = .Match });
 
 		let outputPath = new Label();
-		outputPath.SetText(mOutputDir);
+		// Show URI prefix + base locator so the user sees the scheme-prefixed
+		// destination (e.g. "project://imports/").
+		let display = scope String();
+		display.AppendF("{}{}", mUriPrefix, mBaseLocator);
+		outputPath.SetText(display);
 		outputPath.FontSize = 11;
 		outputPath.Ellipsis = true;
 		outputRow.AddView(outputPath, new FlexLayout.LayoutParams() { Height = .Match, Grow = 1 });
@@ -256,8 +270,31 @@ class ImportDialog : Dialog
 		if (!anySelected)
 			return;
 
-		if (mImporter.Import(mPreview, mOutputDir, mRegistry, mSerializer) case .Ok)
+		AssetImportContext ctx = .()
+		{
+			Mount = mMount,
+			BaseLocator = mBaseLocator,
+			Index = mIndex,
+			UriPrefix = mUriPrefix,
+			Serializer = mSerializer,
+		};
+
+		if (mImporter.Import(mPreview, ctx) case .Ok)
+		{
 			Console.WriteLine("Imported: {} ({} items selected)", mPreview.SourcePath, mItemChecks.Count);
+
+			// Persist the index back through the mount so subsequent loads
+			// pick up the new GUID -> URI mappings.
+			if (mIndexLocator.Length > 0)
+			{
+				let indexStream = scope MemoryStream();
+				if (mIndex.SerializeTo(indexStream) case .Ok)
+				{
+					indexStream.Position = 0;
+					mMount.Save(mIndexLocator, indexStream);
+				}
+			}
+		}
 		else
 			Console.WriteLine("Import failed: {}", mPreview.SourcePath);
 

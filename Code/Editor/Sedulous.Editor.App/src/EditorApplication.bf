@@ -27,6 +27,8 @@ using Sedulous.Engine;
 using Sedulous.Engine.Render;
 using Sedulous.Geometry.Resources;
 using Sedulous.Resources;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 using Sedulous.Textures.Importer;
 using Sedulous.Textures.Resources;
 using Sedulous.Engine.Navigation;
@@ -58,11 +60,13 @@ class EditorApplication : Application, IDockableWindowHost
 	private SceneResourceManager mSceneManager ~ delete _;
 	private PrefabResourceManager mPrefabManager ~ delete _;
 
-	// Default primitive registry
-	private ResourceRegistry mPrimitiveRegistry ~ delete _;
+	// Default primitive mount + index (builtin:// scheme)
+	private FileSystemMount mBuiltinMount ~ delete _;
+	private InMemoryResourceIndex mBuiltinIndex ~ delete _;
 
-	// Project asset registry
-	private ResourceRegistry mProjectRegistry ~ delete _;
+	// Project asset mount + index (project:// scheme)
+	private FileSystemMount mProjectMount ~ delete _;
+	private InMemoryResourceIndex mProjectIndex ~ delete _;
 
 	// Editor context (service locator for plugins, pages, panels)
 	private EditorContext mEditorContext ~ delete _;
@@ -222,6 +226,14 @@ class EditorApplication : Application, IDockableWindowHost
 		mEditorContext.DialogService = Shell.Dialogs;
 		mEditorContext.Shell = Shell;
 		mEditorContext.ResourceSystem = mResourceSystem;
+
+		// Surface the builtin mount entry to panels (asset browser, etc.).
+		// The project entry is added later when a project is opened.
+		if (mBuiltinMount != null)
+		{
+			mEditorContext.MountEntries.Add(new MountEntry(
+				"builtin", mBuiltinMount, mBuiltinIndex, "builtin.registry", true));
+		}
 
 		// Discover plugins
 		mEditorContext.PluginRegistry.DiscoverPlugins();
@@ -383,22 +395,50 @@ class EditorApplication : Application, IDockableWindowHost
 		mProjectLoaded = true;
 		mEditorLogger.Log(.Information, "Project opened: {}", path);
 
-		// Load or create project registry
+		// Mount the project directory under "project://" and load its identity index
 		let projectDir = scope String();
 		projectDir.Set(mProject.ProjectDirectory);
-		let projRegistryPath = scope String()..AppendF("{}/project.registry", projectDir);
 
-		if (mProjectRegistry != null)
+		if (mProjectIndex != null)
 		{
-			ResourceSystem.RemoveRegistry(mProjectRegistry);
-			delete mProjectRegistry;
+			ResourceSystem.RemoveIndex(mProjectIndex);
+			delete mProjectIndex;
+			mProjectIndex = null;
+		}
+		if (mProjectMount != null)
+		{
+			ResourceSystem.Unmount("project");
+			delete mProjectMount;
+			mProjectMount = null;
 		}
 
-		mProjectRegistry = new Sedulous.Resources.ResourceRegistry("project", projectDir);
-		if (System.IO.File.Exists(projRegistryPath))
-			mProjectRegistry.LoadFromFile(projRegistryPath);
-		ResourceSystem.AddRegistry(mProjectRegistry);
-		mEditorLogger.Log(.Information, scope String()..AppendF("Project registry loaded ({} entries)", mProjectRegistry.Count));
+		// Drop any prior "project" MountEntry so we don't keep a dangling reference.
+		for (int i = mEditorContext.MountEntries.Count - 1; i >= 0; i--)
+		{
+			if (mEditorContext.MountEntries[i].Scheme == "project")
+			{
+				delete mEditorContext.MountEntries[i];
+				mEditorContext.MountEntries.RemoveAt(i);
+			}
+		}
+
+		mProjectMount = new FileSystemMount(projectDir);
+		ResourceSystem.Mount("project", mProjectMount);
+
+		mProjectIndex = new InMemoryResourceIndex();
+		if (mProjectMount.Exists("project.registry"))
+		{
+			let regStream = mProjectMount.Open("project.registry");
+			if (regStream case .Ok(let s))
+			{
+				defer delete s;
+				mProjectIndex.DeserializeFrom(s);
+			}
+		}
+		ResourceSystem.AddIndex(mProjectIndex);
+		mEditorContext.MountEntries.Add(new MountEntry(
+			"project", mProjectMount, mProjectIndex, "project.registry", true));
+		mEditorLogger.Log(.Information, scope String()..AppendF("Project registry loaded ({} entries)", mProjectIndex.Count));
 
 		// Defer view switch - the button that triggered this is inside the picker.
 		// Deleting immediately would use-after-free in Button.FireClick.
@@ -616,7 +656,7 @@ class EditorApplication : Application, IDockableWindowHost
 
 	private void RegisterInProjectRegistry(IEditorPage page)
 	{
-		if (mProjectRegistry == null || page.FilePath.Length == 0) return;
+		if (mProjectIndex == null || mProjectMount == null || page.FilePath.Length == 0) return;
 
 		if (let scenePage = page as SceneEditorPage)
 		{
@@ -641,11 +681,16 @@ class EditorApplication : Application, IDockableWindowHost
 			}
 
 			relativePath.Replace('\\', '/');
-			mProjectRegistry.Register(sceneGuid, relativePath);
+			let uri = scope String()..AppendF("project://{}", relativePath);
+			mProjectIndex.Register(sceneGuid, uri);
 
-			// Save registry to disk
-			let registryPath = scope String()..AppendF("{}/project.registry", projectDir);
-			mProjectRegistry.SaveToFile(registryPath);
+			// Save index back through the project mount
+			let indexStream = scope MemoryStream();
+			if (mProjectIndex.SerializeTo(indexStream) case .Ok)
+			{
+				indexStream.Position = 0;
+				mProjectMount.Save("project.registry", indexStream);
+			}
 			mEditorLogger.Log(.Information, scope String()..AppendF("Registered in project registry: {}", relativePath));
 		}
 	}
@@ -810,38 +855,56 @@ class EditorApplication : Application, IDockableWindowHost
 	// ==================== Default Assets ====================
 
 	/// Ensures default builtin assets (primitives, materials) exist on disk.
-	/// Creates them if missing, loads the registry, and adds it to ResourceSystem.
+	/// Creates them if missing, mounts the builtin scheme, loads the identity
+	/// index, and registers it with ResourceSystem.
 	private void EnsureDefaultAssets()
 	{
 		let assetRoot = scope String();
 		GetAssetPath("", assetRoot);
 
-		let registryPath = scope String();
-		registryPath.AppendF("{}/builtin.registry", assetRoot);
+		// Mount the asset directory under "builtin://" so subsequent saves and
+		// loads route through the VFS. Generation reuses this same mount.
+		mBuiltinMount = new FileSystemMount(assetRoot);
+		ResourceSystem.Mount("builtin", mBuiltinMount);
 
 		// Check if assets need generating
-		bool needsGeneration = !File.Exists(registryPath);
+		bool needsGeneration = !mBuiltinMount.Exists("builtin.registry");
+
+		let tempIndex = scope InMemoryResourceIndex();
 
 		if (needsGeneration)
 		{
 			mEditorLogger.Log(.Information, "Generating default builtin assets...");
 			let provider = ResourceSystem.SerializerProvider;
-			let tempRegistry = scope ResourceRegistry();
 
-			GenerateDefaultPrimitives(assetRoot, provider, tempRegistry);
-			GenerateDefaultMaterials(assetRoot, provider, tempRegistry);
-			GenerateDefaultSkies(assetRoot, provider, tempRegistry);
+			GenerateDefaultPrimitives(mBuiltinMount, tempIndex, provider);
+			GenerateDefaultMaterials(mBuiltinMount, tempIndex, provider);
+			GenerateDefaultSkies(mBuiltinMount, tempIndex, provider, assetRoot);
 
-			tempRegistry.SaveToFile(registryPath);
+			let indexStream = scope MemoryStream();
+			if (tempIndex.SerializeTo(indexStream) case .Ok)
+			{
+				indexStream.Position = 0;
+				mBuiltinMount.Save("builtin.registry", indexStream);
+			}
 			mEditorLogger.Log(.Information, "Default builtin assets generated.");
 		}
 
-		// Load builtin registry with name "builtin" and root = asset directory
-		mPrimitiveRegistry = new ResourceRegistry("builtin", assetRoot);
-		if (mPrimitiveRegistry.LoadFromFile(registryPath) case .Ok)
+		// Load the persisted identity index
+		mBuiltinIndex = new InMemoryResourceIndex();
+		let regStream = mBuiltinMount.Open("builtin.registry");
+		if (regStream case .Ok(let s))
 		{
-			ResourceSystem.AddRegistry(mPrimitiveRegistry);
-			mEditorLogger.Log(.Information, scope String()..AppendF("Builtin registry loaded ({} entries)", mPrimitiveRegistry.Count));
+			defer delete s;
+			if (mBuiltinIndex.DeserializeFrom(s) case .Ok)
+			{
+				ResourceSystem.AddIndex(mBuiltinIndex);
+				mEditorLogger.Log(.Information, scope String()..AppendF("Builtin registry loaded ({} entries)", mBuiltinIndex.Count));
+			}
+			else
+			{
+				mEditorLogger.Log(.Warning, "Failed to load builtin registry.");
+			}
 		}
 		else
 		{
@@ -849,19 +912,14 @@ class EditorApplication : Application, IDockableWindowHost
 		}
 	}
 
-	private void GenerateDefaultPrimitives(StringView assetRoot, ISerializerProvider provider, ResourceRegistry registry)
+	private void GenerateDefaultPrimitives(IWritableMount mount, IResourceIndex index, ISerializerProvider provider)
 	{
-		let primDir = scope String()..AppendF("{}/primitives", assetRoot);
-		if (!Directory.Exists(primDir))
-			Directory.CreateDirectory(primDir);
-
 		// Plane
 		{
 			let res = StaticMeshResource.CreatePlane(10, 10, 1, 1);
 			res.Name = "Plane";
-			let path = scope String()..AppendF("{}/plane.mesh", primDir);
-			res.SaveToFile(path, provider);
-			registry.Register(res.Id, "primitives/plane.mesh");
+			SaveResourceText(res, mount, "primitives/plane.mesh", provider);
+			index.Register(res.Id, "builtin://primitives/plane.mesh");
 			delete res;
 		}
 
@@ -869,9 +927,8 @@ class EditorApplication : Application, IDockableWindowHost
 		{
 			let res = StaticMeshResource.CreateCube(1.0f);
 			res.Name = "Cube";
-			let path = scope String()..AppendF("{}/cube.mesh", primDir);
-			res.SaveToFile(path, provider);
-			registry.Register(res.Id, "primitives/cube.mesh");
+			SaveResourceText(res, mount, "primitives/cube.mesh", provider);
+			index.Register(res.Id, "builtin://primitives/cube.mesh");
 			delete res;
 		}
 
@@ -879,27 +936,21 @@ class EditorApplication : Application, IDockableWindowHost
 		{
 			let res = StaticMeshResource.CreateSphere(0.5f, 32, 16);
 			res.Name = "Sphere";
-			let path = scope String()..AppendF("{}/sphere.mesh", primDir);
-			res.SaveToFile(path, provider);
-			registry.Register(res.Id, "primitives/sphere.mesh");
+			SaveResourceText(res, mount, "primitives/sphere.mesh", provider);
+			index.Register(res.Id, "builtin://primitives/sphere.mesh");
 			delete res;
 		}
 	}
 
-	private void GenerateDefaultMaterials(StringView assetRoot, ISerializerProvider provider, ResourceRegistry registry)
+	private void GenerateDefaultMaterials(IWritableMount mount, IResourceIndex index, ISerializerProvider provider)
 	{
-		let matDir = scope String()..AppendF("{}/materials", assetRoot);
-		if (!Directory.Exists(matDir))
-			Directory.CreateDirectory(matDir);
-
 		// Default PBR material
 		{
 			let mat = Materials.CreatePBR("Default", "forward");
 			let res = new MaterialResource(mat, true);
 			res.Name = "Default";
-			let path = scope String()..AppendF("{}/default.material", matDir);
-			res.SaveToFile(path, provider);
-			registry.Register(res.Id, "materials/default.material");
+			SaveResourceText(res, mount, "materials/default.material", provider);
+			index.Register(res.Id, "builtin://materials/default.material");
 			delete res;
 		}
 
@@ -908,19 +959,14 @@ class EditorApplication : Application, IDockableWindowHost
 			let mat = Materials.CreateUnlit("DefaultUnlit");
 			let res = new MaterialResource(mat, true);
 			res.Name = "DefaultUnlit";
-			let path = scope String()..AppendF("{}/default_unlit.material", matDir);
-			res.SaveToFile(path, provider);
-			registry.Register(res.Id, "materials/default_unlit.material");
+			SaveResourceText(res, mount, "materials/default_unlit.material", provider);
+			index.Register(res.Id, "builtin://materials/default_unlit.material");
 			delete res;
 		}
 	}
 
-	private void GenerateDefaultSkies(StringView assetRoot, ISerializerProvider provider, ResourceRegistry registry)
+	private void GenerateDefaultSkies(IWritableMount mount, IResourceIndex index, ISerializerProvider provider, StringView assetRoot)
 	{
-		let skyDir = scope String()..AppendF("{}/skies", assetRoot);
-		if (!Directory.Exists(skyDir))
-			Directory.CreateDirectory(skyDir);
-
 		// Realistic sky (equirectangular HDR)
 		{
 			let srcPath = scope String();
@@ -929,9 +975,8 @@ class EditorApplication : Application, IDockableWindowHost
 			if (TextureImporter.ImportEquirectangular(srcPath) case .Ok(let res))
 			{
 				res.Name.Set("realistic_sky");
-				let path = scope String()..AppendF("{}/realistic_sky.texture", skyDir);
-				res.SaveToFile(path, provider);
-				registry.Register(res.Id, "skies/realistic_sky.texture");
+				SaveTextureWithSidecar(res, mount, "skies/realistic_sky.texture", "realistic_sky.texture.bin", provider);
+				index.Register(res.Id, "builtin://skies/realistic_sky.texture");
 				delete res;
 			}
 		}
@@ -944,12 +989,49 @@ class EditorApplication : Application, IDockableWindowHost
 			if (TextureImporter.ImportEquirectangular(srcPath) case .Ok(let res))
 			{
 				res.Name.Set("stylized_sky");
-				let path = scope String()..AppendF("{}/stylized_sky.texture", skyDir);
-				res.SaveToFile(path, provider);
-				registry.Register(res.Id, "skies/stylized_sky.texture");
+				SaveTextureWithSidecar(res, mount, "skies/stylized_sky.texture", "stylized_sky.texture.bin", provider);
+				index.Register(res.Id, "builtin://skies/stylized_sky.texture");
 				delete res;
 			}
 		}
+	}
+
+	/// Serializes a Resource's text representation into memory and writes it to
+	/// `mount` at `locator`.
+	private static Result<void> SaveResourceText(Resource resource, IWritableMount mount, StringView locator, ISerializerProvider provider)
+	{
+		let memStream = scope MemoryStream();
+		if (resource.WriteToStream(memStream, provider) case .Err)
+			return .Err;
+		memStream.Position = 0;
+		if (mount.Save(locator, memStream) case .Err)
+			return .Err;
+		return .Ok;
+	}
+
+	/// Saves a TextureResource as a text metadata file plus a pixel sidecar
+	/// in the same directory. `sidecarName` is the filename portion only - it
+	/// gets recorded on the resource and combined with the main locator's
+	/// directory by `TextureResourceManager` on load.
+	private static Result<void> SaveTextureWithSidecar(TextureResource resource, IWritableMount mount, StringView locator, StringView sidecarName, ISerializerProvider provider)
+	{
+		resource.BinaryPath.Set(sidecarName);
+		Try!(SaveResourceText(resource, mount, locator, provider));
+
+		// Sidecar locator = main locator's directory + sidecar name.
+		let sidecarLocator = scope String();
+		let slash = locator.LastIndexOf('/');
+		if (slash >= 0)
+			sidecarLocator.Append(locator.Substring(0, slash + 1));
+		sidecarLocator.Append(sidecarName);
+
+		let pcmStream = scope MemoryStream();
+		if (resource.WritePixelsToStream(pcmStream) case .Err)
+			return .Err;
+		pcmStream.Position = 0;
+		if (mount.Save(sidecarLocator, pcmStream) case .Err)
+			return .Err;
+		return .Ok;
 	}
 
 	// ==================== Scene Creation ====================

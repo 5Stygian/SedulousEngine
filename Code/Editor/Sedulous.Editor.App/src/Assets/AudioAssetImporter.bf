@@ -8,10 +8,11 @@ using Sedulous.Resources;
 using Sedulous.Audio;
 using Sedulous.Audio.Decoders;
 using Sedulous.Audio.Resources;
+using Sedulous.VFS;
 
 /// Imports audio files (.wav, .ogg, .mp3, .flac) as AudioClipResource.
-/// The source audio file is copied as-is to .audioclip -- AudioClipResourceManager
-/// handles decoding on load.
+/// The source audio file is decoded to PCM and stored as a text metadata file
+/// plus a binary PCM sidecar -- AudioClipResourceManager handles loading both.
 class AudioAssetImporter : IAssetImporter
 {
 	private AudioDecoderFactory mDecoder;
@@ -64,8 +65,7 @@ class AudioAssetImporter : IAssetImporter
 		return .Err;
 	}
 
-	public Result<void> Import(ImportPreview preview, StringView outputDir,
-		ResourceRegistry registry, Sedulous.Serialization.ISerializerProvider serializer)
+	public Result<void> Import(ImportPreview preview, AssetImportContext ctx)
 	{
 		if (preview.Items.Count == 0 || !preview.Items[0].Selected)
 			return .Ok;
@@ -86,43 +86,49 @@ class AudioAssetImporter : IAssetImporter
 		resource.SourcePath.Set(preview.SourcePath);
 		defer delete resource;
 
-		// Ensure output directory exists
-		if (!Directory.Exists(outputDir))
-			Directory.CreateDirectory(outputDir);
-
-		// Save as text metadata + binary PCM sidecar
+		// Build filename, locator, sidecar locator, and URI
 		let fileName = scope String();
 		fileName.AppendF("{}.audioclip", preview.Items[0].Name);
 
-		let fullPath = scope String();
-		Path.InternalCombine(fullPath, outputDir, fileName);
+		let sidecarName = scope String();
+		sidecarName.AppendF("{}.bin", fileName);
 
-		if (resource.SaveToFile(fullPath, serializer) case .Err)
-			return .Err;
+		let locator = scope String();
+		locator.Append(ctx.BaseLocator);
+		locator.Append(fileName);
 
-		// Register in registry
-		let relPrefix = scope String();
-		if (registry.RootPath.Length > 0 && StringView(outputDir).StartsWith(registry.RootPath))
+		let sidecarLocator = scope String();
+		sidecarLocator.Append(ctx.BaseLocator);
+		sidecarLocator.Append(sidecarName);
+
+		let uri = scope String();
+		uri.Append(ctx.UriPrefix);
+		uri.Append(fileName);
+
+		// Record sidecar locator on the resource before writing metadata.
+		resource.BinaryPath.Set(sidecarName);
+
+		// Save text metadata
 		{
-			let after = StringView(outputDir)[registry.RootPath.Length...];
-			if (after.StartsWith('/') || after.StartsWith('\\'))
-				relPrefix.Set(after[1...]);
-			else
-				relPrefix.Set(after);
-			relPrefix.Replace('\\', '/');
+			let memStream = scope MemoryStream();
+			if (resource.WriteToStream(memStream, ctx.Serializer) case .Err)
+				return .Err;
+			memStream.Position = 0;
+			if (ctx.Mount.Save(locator, memStream) case .Err)
+				return .Err;
 		}
 
-		let relPath = scope String();
-		if (relPrefix.Length > 0)
-			relPath.AppendF("{}/{}", relPrefix, fileName);
-		else
-			relPath.Set(fileName);
+		// Save PCM sidecar
+		{
+			let pcmStream = scope MemoryStream();
+			if (resource.WritePcmToStream(pcmStream) case .Err)
+				return .Err;
+			pcmStream.Position = 0;
+			if (ctx.Mount.Save(sidecarLocator, pcmStream) case .Err)
+				return .Err;
+		}
 
-		registry.Register(resource.Id, relPath);
-
-		let regFile = scope String();
-		Path.InternalCombine(regFile, registry.RootPath, scope $"{registry.Name}.registry");
-		registry.SaveToFile(regFile);
+		ctx.Index.Register(resource.Id, uri);
 
 		return .Ok;
 	}

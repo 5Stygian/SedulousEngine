@@ -3,6 +3,7 @@ namespace Sedulous.Editor.Core;
 using System;
 using System.Collections;
 using Sedulous.Resources;
+using Sedulous.VFS;
 
 /// Converts source files (.fbx, .gltf, .png, etc.) into baked engine resources.
 ///
@@ -10,7 +11,7 @@ using Sedulous.Resources;
 ///   1. GetSupportedExtensions() - discover which files this importer handles
 ///   2. CreatePreview(sourcePath) - analyze source, return list of importable items
 ///   3. User reviews/configures items in the import dialog
-///   4. Import(preview, outputDir, registry) - save selected items, register GUIDs
+///   4. Import(preview, ctx) - save selected items, register GUIDs in the index
 interface IAssetImporter
 {
 	/// File extensions this importer handles (e.g. ".gltf", ".glb", ".fbx").
@@ -20,10 +21,25 @@ interface IAssetImporter
 	/// Called before showing the import dialog so the user can review and configure.
 	Result<ImportPreview> CreatePreview(StringView sourcePath);
 
-	/// Import selected items from the preview into the output directory.
-	/// Registers each resource's GUID in the given registry.
-	Result<void> Import(ImportPreview preview, StringView outputDir,
-		ResourceRegistry registry, Sedulous.Serialization.ISerializerProvider serializer);
+	/// Import selected items from the preview into the destination described
+	/// by `ctx`.
+	Result<void> Import(ImportPreview preview, AssetImportContext ctx);
+}
+
+/// Where an import writes to.
+///   - `Mount`/`BaseLocator`: where to write bytes. Locator within the mount
+///     is built as `BaseLocator + filename` (BaseLocator includes a trailing
+///     `/` when non-empty).
+///   - `Index`/`UriPrefix`: where to register resulting GUIDs. URI for each
+///     entry is `UriPrefix + filename`.
+///   - `Serializer`: text serialization format provider.
+struct AssetImportContext
+{
+	public IWritableMount Mount;
+	public StringView BaseLocator;
+	public IResourceIndex Index;
+	public StringView UriPrefix;
+	public Sedulous.Serialization.ISerializerProvider Serializer;
 }
 
 /// One importable item discovered in a source file.

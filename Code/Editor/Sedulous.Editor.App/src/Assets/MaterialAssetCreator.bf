@@ -25,7 +25,11 @@ class MaterialAssetCreator : IAssetCreator
 		defer delete res;
 
 		res.Name = "New Material";
-		if (res.SaveToFile(path, provider) case .Err)
+
+		let stream = scope FileStream();
+		if (stream.Create(path, .Write) case .Err)
+			return .Err;
+		if (res.WriteToStream(stream, provider) case .Err)
 			return .Err;
 
 		return .Ok(res.Id);

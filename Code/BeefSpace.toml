@@ -161,6 +161,11 @@ VGSandbox = {Path = "Samples/VG/VGSandbox"}
 "Sedulous.Slug.Tests" = {Path = "Experimental/Sedulous.Slug.Tests"}
 "Sedulous.Slug.TTF" = {Path = "Experimental/Sedulous.Slug.TTF"}
 "Sedulous.Slug.Renderer" = {Path = "Experimental/Sedulous.Slug.Renderer"}
+"Sedulous.VFS" = {Path = "Experimental/Sedulous.VFS"}
+"Sedulous.VFS.Disk" = {Path = "Experimental/Sedulous.VFS.Disk"}
+"Sedulous.VFS.Pak" = {Path = "Experimental/Sedulous.VFS.Pak"}
+"Sedulous.VFS.Pak.Tool" = {Path = "Experimental/Sedulous.VFS.Pak.Tool"}
+"Sedulous.VFS.Tests" = {Path = "Experimental/Sedulous.VFS.Tests"}
 FontRendering = {Path = "Samples/FontRendering"}
 GUISandbox = {Path = "Deprecated/GUISandbox"}
 ImGuiSample = {Path = "Samples/ImGuiSample"}
@@ -233,6 +238,7 @@ Editor = ["Sedulous.Editor.Core", "Sedulous.Editor.App"]
 Tools = ["ModelViewer"]
 Experimental = []
 "Experimental/Slug" = ["Sedulous.Slug", "Sedulous.Slug.Renderer", "Sedulous.Slug.Tests", "Sedulous.Slug.TTF", "SlugSample"]
+"Experimental/VFS" = ["Sedulous.VFS", "Sedulous.VFS.Disk", "Sedulous.VFS.Pak", "Sedulous.VFS.Pak.Tool", "Sedulous.VFS.Tests"]
 "Foundation/Messaging" = ["Sedulous.Messaging", "Sedulous.Messaging.Runtime", "Sedulous.Messaging.Tests"]
 Projects = ["TowerDefense"]
 "Deprecated/LegacyUI" = ["LegacyUISandbox", "Sedulous.LegacyUI", "Sedulous.LegacyUI.Resources", "Sedulous.LegacyUI.Runtime", "Sedulous.LegacyUI.Shell", "Sedulous.LegacyUI.Tests", "Sedulous.LegacyUI.Toolkit", "Sedulous.LegacyUI.Viewport"]

@@ -59,8 +59,6 @@ class AssetPickerDialog : Dialog
 
 	private void BuildContent(StringView extensionFilter)
 	{
-		let resourceSystem = mEditorContext.ResourceSystem;
-
 		// Create adapters
 		mTreeAdapter = new RegistryTreeAdapter();
 		mListAdapter = new AssetContentAdapter();
@@ -73,10 +71,8 @@ class AssetPickerDialog : Dialog
 		mGridAdapter.RegistryOnly = true;
 		mGridAdapter.SetExtensionFilter(extensionFilter);
 
-		// Populate tree from registries
-		let registries = scope List<IResourceRegistry>();
-		resourceSystem.GetRegistries(registries);
-		mTreeAdapter.SetRegistries(registries);
+		// Populate tree from the editor's mount entries
+		mTreeAdapter.SetEntries(mEditorContext.MountEntries);
 
 		// === Layout ===
 		let split = new SplitView(.Horizontal);
@@ -154,10 +150,10 @@ class AssetPickerDialog : Dialog
 			mTreeAdapter.SelectNode(clickInfo.NodeId);
 		});
 
-		mTreeAdapter.OnFolderSelected.Add(new (registry, relativePath) => {
-			mListAdapter.SetFolder(registry, relativePath);
-			mGridAdapter.SetFolder(registry, relativePath);
-			breadcrumb.SetPath(registry.Name, relativePath);
+		mTreeAdapter.OnFolderSelected.Add(new (entry, relativePath) => {
+			mListAdapter.SetFolder(entry, relativePath);
+			mGridAdapter.SetFolder(entry, relativePath);
+			breadcrumb.SetPath(entry.Scheme, relativePath);
 		});
 
 		// List double-click -> navigate folder or select asset
@@ -174,7 +170,7 @@ class AssetPickerDialog : Dialog
 						mListAdapter.NavigateInto(folderName);
 						mGridAdapter.NavigateInto(folderName);
 						breadcrumb.SetPath(
-							mListAdapter.ActiveRegistry?.Name ?? "",
+							mListAdapter.ActiveEntry?.Scheme ?? "",
 							mListAdapter.CurrentFolder);
 						delete folderName;
 					});
@@ -199,7 +195,7 @@ class AssetPickerDialog : Dialog
 					mListAdapter.NavigateInto(folderName);
 					mGridAdapter.NavigateInto(folderName);
 					breadcrumb.SetPath(
-						mListAdapter.ActiveRegistry?.Name ?? "",
+						mListAdapter.ActiveEntry?.Scheme ?? "",
 						mListAdapter.CurrentFolder);
 					delete folderName;
 				});
@@ -237,22 +233,22 @@ class AssetPickerDialog : Dialog
 			if (ctx == null) return;
 
 			ctx.MutationQueue.QueueAction(new () => {
-				let registry = mListAdapter.ActiveRegistry;
-				if (registry == null) return;
+				let entry = mListAdapter.ActiveEntry;
+				if (entry == null) return;
 
 				if (segmentIndex == 0)
 				{
-					mListAdapter.SetFolder(registry, "");
-					mGridAdapter.SetFolder(registry, "");
+					mListAdapter.SetFolder(entry, "");
+					mGridAdapter.SetFolder(entry, "");
 				}
 				else
 				{
 					let newPath = scope String();
 					breadcrumb.BuildPathToSegment(segmentIndex, newPath);
-					mListAdapter.SetFolder(registry, newPath);
-					mGridAdapter.SetFolder(registry, newPath);
+					mListAdapter.SetFolder(entry, newPath);
+					mGridAdapter.SetFolder(entry, newPath);
 				}
-				breadcrumb.SetPath(registry.Name, mListAdapter.CurrentFolder);
+				breadcrumb.SetPath(entry.Scheme, mListAdapter.CurrentFolder);
 			});
 		});
 
@@ -295,16 +291,16 @@ class AssetPickerDialog : Dialog
 		if (item == null || !item.IsRegistered || item.IsFolder)
 			return;
 
-		let registry = mListAdapter.ActiveRegistry;
-		if (registry == null) return;
+		let entry = mListAdapter.ActiveEntry;
+		if (entry == null) return;
 
-		// Build protocol path
-		let protocolPath = scope String();
-		if (registry.Name.Length > 0)
-			protocolPath.AppendF("{}://{}", registry.Name, item.RelativePath);
+		// Build scheme-prefixed URI
+		let uri = scope String();
+		if (entry.Scheme.Length > 0)
+			uri.AppendF("{}://{}", entry.Scheme, item.RelativePath);
 		else
-			protocolPath.Set(item.RelativePath);
+			uri.Set(item.RelativePath);
 
-		mOnSelected?.Invoke(protocolPath, item.RegistryId);
+		mOnSelected?.Invoke(uri, item.RegistryId);
 	}
 }

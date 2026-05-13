@@ -30,7 +30,11 @@ class SceneAssetCreator : IAssetCreator
 		defer delete sceneRes;
 
 		sceneRes.Scene = scene;
-		if (sceneRes.SaveToFile(path, provider) case .Err)
+
+		let stream = scope FileStream();
+		if (stream.Create(path, .Write) case .Err)
+			return .Err;
+		if (sceneRes.WriteToStream(stream, provider) case .Err)
 			return .Err;
 
 		return .Ok(sceneRes.Id);

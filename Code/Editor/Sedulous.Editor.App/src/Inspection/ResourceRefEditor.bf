@@ -7,6 +7,8 @@ using Sedulous.Core.Mathematics;
 using Sedulous.Resources;
 using Sedulous.Serialization;
 using Sedulous.Shell;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 
 /// Property editor for a single ResourceRef.
 /// Shows path (or ID if no path), a clear button (X), and a browse button (...).
@@ -140,11 +142,11 @@ class ResourceRefEditor : PropertyEditor
 					if (mSerializerProvider != null)
 						guid = ReadResourceGuid(absolutePath, mSerializerProvider);
 
-					// Convert to protocol path if possible (e.g. builtin://primitives/cube.mesh)
+					// Convert to scheme-prefixed URI if possible (e.g. builtin://primitives/cube.mesh)
+					// by walking the editor's mount entries for a FileSystemMount whose
+					// root prefixes the absolute path.
 					let refPath = scope String();
-					if (mResourceSystem != null)
-						mResourceSystem.TryMakeProtocolPath(absolutePath, refPath);
-					else
+					if (!TryMakeUri(absolutePath, refPath))
 						refPath.Set(absolutePath);
 
 					var newRef = ResourceRef(guid, refPath);
@@ -157,6 +159,36 @@ class ResourceRefEditor : PropertyEditor
 				}
 			},
 			default, default, false, null);
+	}
+
+	/// Walks the editor's mount entries to convert `absolutePath` into a
+	/// scheme-prefixed URI. Returns false if no FileSystemMount root prefixes
+	/// the path.
+	private bool TryMakeUri(StringView absolutePath, String outUri)
+	{
+		if (mEditorContext == null) return false;
+
+		let normalizedAbs = scope String(absolutePath);
+		normalizedAbs.Replace('\\', '/');
+
+		for (let entry in mEditorContext.MountEntries)
+		{
+			let fsMount = entry.Mount as FileSystemMount;
+			if (fsMount == null) continue;
+
+			let root = scope String(fsMount.RootPath);
+			root.Replace('\\', '/');
+			if (!root.EndsWith('/'))
+				root.Append('/');
+
+			if (normalizedAbs.StartsWith(root, .OrdinalIgnoreCase))
+			{
+				let rel = normalizedAbs.Substring(root.Length);
+				outUri.AppendF("{}://{}", entry.Scheme, rel);
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/// Reads just the GUID from a resource file header.

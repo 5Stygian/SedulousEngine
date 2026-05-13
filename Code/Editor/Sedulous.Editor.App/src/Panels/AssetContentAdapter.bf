@@ -6,6 +6,9 @@ using System.Collections;
 using Sedulous.UI;
 using Sedulous.UI.Toolkit;
 using Sedulous.Resources;
+using Sedulous.Editor.Core;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 using Sedulous.Core.Mathematics;
 
 /// Represents one item in the asset browser content view.
@@ -15,32 +18,32 @@ class AssetContentItem
 
 	public String Name ~ delete _;              // Display name (filename or folder name)
 	public String AbsolutePath ~ delete _;      // Full filesystem path
-	public String RelativePath ~ delete _;      // Path relative to registry root
+	public String RelativePath ~ delete _;      // Path relative to mount root (locator)
 	public String Extension ~ delete _;         // File extension (e.g. ".mesh"), empty for folders
 	public ItemKind Kind;
 	public Guid RegistryId;                     // GUID if registered, default Guid if not
-	public bool IsRegistered;                   // Has a GUID in the active registry
+	public bool IsRegistered;                   // Has a GUID in the active index
 
 	public bool IsFolder => Kind == .Folder;
 }
 
 /// List adapter for the asset browser content pane.
-/// Shows files and folders in the selected directory, merged with registry entries.
+/// Shows files and folders in the selected directory, merged with index entries.
 ///
 /// Items come from two sources:
 ///   1. Filesystem: files and subdirectories at the current path
-///   2. Registry: entries whose relative path matches the current folder
+///   2. Index: entries whose URI points into the current folder
 ///
 /// Folders always sort before files. Within each group, items are sorted alphabetically.
 class AssetContentAdapter : ListAdapterBase
 {
 	private List<AssetContentItem> mItems = new .() ~ DeleteContainerAndItems!(_);
-	private IResourceRegistry mRegistry;
-	private String mCurrentFolder = new .() ~ delete _;  // Relative path within registry (e.g. "primitives")
-	private String mAbsoluteRoot = new .() ~ delete _;   // Absolute root of active registry
+	private MountEntry mEntry;
+	private String mCurrentFolder = new .() ~ delete _;  // Locator within mount (e.g. "primitives")
+	private String mAbsoluteRoot = new .() ~ delete _;   // Absolute root of active mount (disk only)
 
-	/// When true, only shows items that have a GUID in the active registry.
-	/// Filesystem items without registry entries are hidden.
+	/// When true, only shows items that have a GUID in the active index.
+	/// Filesystem items without index entries are hidden.
 	public bool RegistryOnly;
 
 	/// When set (non-empty), only shows files whose extension matches.
@@ -75,11 +78,11 @@ class AssetContentAdapter : ListAdapterBase
 		return mItems[position];
 	}
 
-	/// Gets the current folder path (relative to registry root).
+	/// Gets the current folder path (relative to mount root).
 	public StringView CurrentFolder => mCurrentFolder;
 
-	/// Gets the active registry.
-	public IResourceRegistry ActiveRegistry => mRegistry;
+	/// Gets the active mount entry.
+	public MountEntry ActiveEntry => mEntry;
 
 	/// The owning ListView (set by AssetBrowserBuilder after construction).
 	public ListView OwnerListView { get; set; }
@@ -87,14 +90,17 @@ class AssetContentAdapter : ListAdapterBase
 	/// The owning GridContentView (set by AssetBrowserBuilder after construction).
 	public GridContentView OwnerGridView { get; set; }
 
-	/// Sets the active registry and navigates to a folder within it.
-	public void SetFolder(IResourceRegistry registry, StringView relativePath)
+	/// Sets the active mount and navigates to a folder within it.
+	public void SetFolder(MountEntry entry, StringView relativePath)
 	{
-		mRegistry = registry;
+		mEntry = entry;
 		mCurrentFolder.Set(relativePath);
 		mAbsoluteRoot.Clear();
-		if (registry != null)
-			mAbsoluteRoot.Set(registry.RootPath);
+		if (entry != null)
+		{
+			if (let fsMount = entry.Mount as FileSystemMount)
+				mAbsoluteRoot.Set(fsMount.RootPath);
+		}
 
 		Rebuild();
 
@@ -133,12 +139,12 @@ class AssetContentAdapter : ListAdapterBase
 		return true;
 	}
 
-	/// Rebuilds the item list from filesystem + registry.
+	/// Rebuilds the item list from filesystem + index.
 	public void Rebuild()
 	{
 		ClearItems();
 
-		if (mRegistry == null || mAbsoluteRoot.Length == 0)
+		if (mEntry == null || mAbsoluteRoot.Length == 0)
 		{
 			NotifyDataSetChanged();
 			return;
@@ -151,16 +157,39 @@ class AssetContentAdapter : ListAdapterBase
 		else
 			absDir.Set(mAbsoluteRoot);
 
-		// Collect registry entries for this folder
-		let registryPrefix = scope String();
+		// Collect index entries whose URI lives in this folder.
+		// URI prefix matches "scheme://currentFolder/" for the active mount.
+		let uriPrefix = scope String();
+		uriPrefix.AppendF("{}://", mEntry.Scheme);
 		if (mCurrentFolder.Length > 0)
-			registryPrefix.AppendF("{}/", mCurrentFolder);
+		{
+			uriPrefix.Append(mCurrentFolder);
+			uriPrefix.Append('/');
+		}
 
+		// (guid, filename-within-folder) pairs for direct children only.
 		let registryEntries = scope List<(Guid id, StringView path, StringView name)>();
-		if (let concreteReg = mRegistry as ResourceRegistry)
-			concreteReg.GetEntriesInFolder(registryPrefix, registryEntries);
+		if (mEntry.Index != null)
+		{
+			let allEntries = scope List<(Guid id, StringView uri)>();
+			mEntry.Index.GetEntries(allEntries);
+			for (let e in allEntries)
+			{
+				let uri = e.uri;
+				if (!uri.StartsWith(uriPrefix))
+					continue;
+				let remainder = uri[uriPrefix.Length...];
+				if (remainder.Contains('/'))
+					continue; // not a direct child
 
-		// Build a set of registry-known filenames for quick lookup
+				// `path` slot: relative locator inside the mount (no scheme).
+				let schemeSep = uri.IndexOf("://");
+				let relPath = (schemeSep >= 0) ? uri[(schemeSep + 3)...] : uri;
+				registryEntries.Add((e.id, relPath, remainder));
+			}
+		}
+
+		// Build a set of indexed filenames for quick lookup
 		let registryNames = scope Dictionary<StringView, Guid>();
 		for (let entry in registryEntries)
 			registryNames[entry.name] = entry.id;
@@ -238,14 +267,14 @@ class AssetContentAdapter : ListAdapterBase
 				else
 					item.RelativePath.Set(fileName);
 
-				// Check if this file is in the registry
+				// Check if this file is in the index
 				if (registryNames.TryGetValueAlt(StringView(fileName), let guid))
 				{
 					item.IsRegistered = true;
 					item.RegistryId = guid;
 				}
 
-				// RegistryOnly mode: skip files without a registry entry
+				// RegistryOnly mode: skip files without an index entry
 				if (RegistryOnly && !item.IsRegistered)
 				{
 					delete item;
@@ -264,7 +293,7 @@ class AssetContentAdapter : ListAdapterBase
 			}
 		}
 
-		// Add registry entries that point to missing files (warning items)
+		// Add index entries that point to missing files (warning items)
 		for (let entry in registryEntries)
 		{
 			bool foundOnDisk = false;
