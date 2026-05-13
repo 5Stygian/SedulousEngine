@@ -663,25 +663,32 @@ class EditorApplication : Application, IDockableWindowHost
 			let sceneGuid = scenePage.LastSavedGuid;
 			if (sceneGuid == .Empty) return;
 
-			// Convert absolute path to project-relative
-			let projectDir = mProject.ProjectDirectory;
-			let filePath = page.FilePath;
-
-			let relativePath = scope String();
-			if (filePath.StartsWith(projectDir))
+			// Resolve the page's absolute FilePath to a mount-relative locator
+			// against the editor's mount entries. Slash and trailing-separator
+			// conventions vary across platforms - MountResolver normalizes them.
+			// If the file isn't inside any mounted scheme, refuse to register
+			// (a URI we can't load later isn't worth recording).
+			IMount mount = null;
+			let locator = scope String();
+			if (!MountResolver.TryResolveAbsolute(mEditorContext.MountEntries, page.FilePath, out mount, locator))
 			{
-				var rel = filePath.Substring(projectDir.Length);
-				if (rel.StartsWith("/") || rel.StartsWith("\\"))
-					rel = rel.Substring(1);
-				relativePath.Set(rel);
-			}
-			else
-			{
-				relativePath.Set(filePath);
+				mEditorLogger.Log(.Warning,
+					scope String()..AppendF("Skipping registry write: '{}' is not inside any mounted scheme", page.FilePath));
+				return;
 			}
 
-			relativePath.Replace('\\', '/');
-			let uri = scope String()..AppendF("project://{}", relativePath);
+			// Find the scheme the resolved mount is registered under.
+			let scheme = scope String();
+			for (let entry in mEditorContext.MountEntries)
+			{
+				if (entry.Mount === mount)
+				{
+					scheme.Set(entry.Scheme);
+					break;
+				}
+			}
+
+			let uri = scope String()..AppendF("{}://{}", scheme, locator);
 			mProjectIndex.Register(sceneGuid, uri);
 
 			// Save index back through the project mount
@@ -691,7 +698,7 @@ class EditorApplication : Application, IDockableWindowHost
 				indexStream.Position = 0;
 				mProjectMount.Save("project.registry", indexStream);
 			}
-			mEditorLogger.Log(.Information, scope String()..AppendF("Registered in project registry: {}", relativePath));
+			mEditorLogger.Log(.Information, scope String()..AppendF("Registered in project registry: {}", uri));
 		}
 	}
 
