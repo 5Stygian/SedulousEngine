@@ -1,12 +1,11 @@
 # Sedulous Virtual Filesystem (VFS)
 
-Living document covering the experimental virtual-filesystem layer that
-decouples byte access from any specific backend (disk, pak archive, remote,
-etc.), and how `Sedulous.Resources` builds on top of it.
+Living document covering the virtual-filesystem layer that decouples byte
+access from any specific backend (disk, pak archive, remote, etc.), and how
+`Sedulous.Resources` builds on top of it.
 
-The VFS lives under `Code/Experimental/` until it has been used in anger
-long enough to graduate. Foundation libraries (`Sedulous.Resources`) already
-depend on it.
+The VFS lives under `Code/Foundation/` alongside `Sedulous.Resources`, which
+depends on it.
 
 ---
 
@@ -606,7 +605,7 @@ See `PrefabTests.WithTempPrefabFile` for the pattern.
 ## Workspace Layout
 
 ```
-Code/Experimental/
+Code/Foundation/
   Sedulous.VFS/                core interfaces + MountError
     src/IMount.bf
     src/IEnumerableMount.bf

@@ -1,12 +1,46 @@
 # Sedulous.UI - Framework Plan
 
-Clean-slate UI framework for the Sedulous engine. Keeps the View/ViewGroup model
-and LayoutParams pattern from Sedulous.LegacyUI but replaces MeasureSpec with BoxConstraints,
-adds CSS Flex-inspired containers, and fixes the defaults and friction points
-discovered building real applications.
+Clean-slate UI framework for the Sedulous engine.
+
+## Lineage
+
+Sedulous.UI is **Android-inspired**, the same lineage as Sedulous.LegacyUI
+(the predecessor it replaced). Anyone familiar with Android's view system
+will recognize the shape of the framework:
+
+- `View` / `ViewGroup` / `RootView` hierarchy with a per-context ViewId registry
+- `LayoutParams` attached to each child to declare how it sits in its parent
+- Retained-mode tree (build once, mutate in place) rather than immediate-mode
+- Composite controls built from the same View primitives the framework ships
+- Drawable / stylesheet / theme system layered on top of the view tree
+- Gravity, padding, margins, visibility - the Android vocabulary, kept
+
+What changed relative to LegacyUI (and Android proper):
+
+- **BoxConstraints instead of MeasureSpec.** Android's `MeasureSpec` packs a
+  mode and a size into an int and forces every view to interpret the
+  `AT_MOST` / `EXACTLY` / `UNSPECIFIED` modes correctly. `BoxConstraints` is
+  the Flutter-style `(minWidth, maxWidth, minHeight, maxHeight)` range. It's
+  easier to reason about, composes cleanly through layout containers, and
+  removes a class of bugs where views misinterpreted the mode.
+- **FlexLayout instead of LinearLayout.** LinearLayout was the workhorse
+  but its `weight` / `gravity` / `orientation` interaction was awkward,
+  especially for things like space-between or center-aligned rows.
+  FlexLayout (CSS Flexbox-inspired) maps directly onto how UI is actually
+  authored: `Direction`, `JustifyContent`, `AlignItems`, plus per-child
+  `Grow` / `Shrink` / `AlignSelf`.
+- **Cleaned up defaults and friction points** discovered building the editor
+  and real apps on LegacyUI - sensible default measurement modes for common
+  controls, fewer required attributes to get a usable layout, less ceremony
+  around drawable ownership, etc.
+- **Stylesheet-driven theming.** LegacyUI's `ThemeResource` (XML) is
+  replaced by a `StyleSheet` model (`StyleSelector` / `StyleRule` /
+  `StyleValue`) with specificity cascading. Explicit drawable ownership via
+  `StyleSheet.OwnDrawable()`.
 
 The experiment was a success. UI2 has been promoted to Sedulous.UI (old UI became
-Sedulous.LegacyUI). All applications including the editor have been migrated.
+Sedulous.LegacyUI, now under `Code/Deprecated/`). All applications including the
+editor have been migrated.
 
 ---
 

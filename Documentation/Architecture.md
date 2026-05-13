@@ -9,7 +9,7 @@ rendering pipeline, engine subsystems, application models, and how they compose.
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  Applications                                                               │
 │  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌─────────────┐ │
-│  │ Game          │  │ Editor        │  │ LegacyUISandbox     │  │ RHI Sample  │ │
+│  │ Game          │  │ Editor        │  │ UISandbox     │  │ RHI Sample  │ │
 │  │ (Engine.App)  │  │ (Editor.App)  │  │ (Rt.Client)   │  │ (Rt.Client) │ │
 │  │ full engine   │  │ multi-window  │  │ UI framework  │  │ raw GPU     │ │
 │  │ auto-subsys   │  │ viewports     │  │ no engine     │  │ no engine   │ │
@@ -76,7 +76,7 @@ WebGPU-inspired but lower-level. Interface-based - backends are swappable.
 | **Sedulous.Runtime.Client** | Application base class - lightweight app with Shell + RHI + SwapChain. Owns device, window, frame loop. Virtual CreateLogger(). For sandboxes, tools, and editor |
 | **Sedulous.Jobs** | JobSystem singleton - runs jobs immediately, ProcessCompletions called by application |
 | **Sedulous.Resources** | ResourceSystem - async loading, URI-based mount table (Sedulous.VFS), GUID indices, caching, per-type ResourceManagers, hot-reload via per-mount change sources |
-| **Sedulous.VFS** | Virtual filesystem core - IMount and capability interfaces (IEnumerableMount, IWatchableMount, IWritableMount), IChangeSource. Currently under `Code/Experimental/`. See [VFS.md](VFS.md). |
+| **Sedulous.VFS** | Virtual filesystem core - IMount and capability interfaces (IEnumerableMount, IWatchableMount, IWritableMount), IChangeSource. See [VFS.md](VFS.md). |
 | **Sedulous.VFS.Disk** | Disk-backed mount: FileSystemMount + polling FileSystemChangeSource |
 | **Sedulous.VFS.Pak** | Read-only pak archive backend (SPAK format) with pluggable codecs |
 | **Sedulous.VFS.Pak.Tool** | Offline pak builder (`PakBuilder`) - not shipped at runtime |
@@ -111,14 +111,18 @@ WebGPU-inspired but lower-level. Interface-based - backends are swappable.
 
 | Library | Purpose |
 |---------|---------|
-| **Sedulous.LegacyUI** | Android-inspired retained-mode UI: View/ViewGroup/RootView hierarchy, MeasureSpec layout, theme system, input routing, animation, drag-drop, overlays. Renders via VGContext. No engine dependency - runs headless for tests |
-| **Sedulous.LegacyUI.Shell** | Bridge: UIInputHelper (Shell -> UI input routing), InputMapping, ShellClipboardAdapter |
-| **Sedulous.LegacyUI.Runtime** | UISubsystem for standalone apps (owns UIContext + VGRenderer). Used by LegacyUISandbox |
-| **Sedulous.LegacyUI.Toolkit** | Advanced widgets: DockManager, SplitView, MenuBar, StatusBar, Toolbar, PropertyGrid (with transactional editors), TreeView, ColorPicker, TabView (closable), DraggableTreeView, IDockableWindowHost |
-| **Sedulous.LegacyUI.Resources** | ThemeResource, UILayoutResource, ThemeXmlParser |
+| **Sedulous.UI** | Android-inspired retained-mode UI framework: View/ViewGroup/RootView hierarchy with ViewId registry, BoxConstraints + LayoutParams layout (replaces Android's MeasureSpec), containers (FlexLayout instead of LinearLayout, plus Absolute/Dock/Flow/Frame/Grid), drawable system (Color, Gradient, NineSlice, SVG, Atlas, StateList, etc.), stylesheet-driven theming (StyleSelector/StyleRule + Dark/Light/RoundedDark/Textured presets), input/focus/drag-drop/animation/shortcut/tooltip managers, mutation queue. Renders via VGContext. No engine dependency - runs headless for tests. See [Roadmap/UI2_PLAN.md](Roadmap/UI2_PLAN.md) for lineage and design rationale |
+| **Sedulous.UI.Shell** | Bridge: UIInputHelper (Shell -> UI input routing), InputMapping, ShellClipboardAdapter |
+| **Sedulous.UI.Runtime** | UISubsystem for standalone apps (owns UIContext + VGRenderer). Used by UISandbox |
+| **Sedulous.UI.Toolkit** | Advanced widgets: Docking (DockManager, DockablePanel, DockableWindow, zone indicators), SplitView, MenuBar, StatusBar, Toolbar, BreadcrumbBar, PropertyGrid (typed editors for bool/int/float/string/enum/range/color/Vector3), ColorPicker, TabView, DraggableTreeView, IDockableWindowHost |
+| **Sedulous.UI.Viewport** | Shared ViewportView + IViewportInputHandler - render-to-texture viewport host reused by the editor and any tool embedding a 3D view |
 
-> **Sedulous.GUI** (deprecated, moved to `Code/Deprecated/`) -- the original UI
-> framework, replaced by the Sedulous.LegacyUI stack above. Kept for reference only.
+> **Sedulous.LegacyUI** stack (deprecated, moved to `Code/Deprecated/`) -- the
+> earlier Android-inspired UI framework that Sedulous.UI replaces. Includes
+> Sedulous.LegacyUI{,.Shell,.Runtime,.Toolkit,.Resources,.Tests,.Viewport} and
+> Sedulous.Engine.LegacyUI (the matching engine subsystem). Kept for reference
+> only -- no active development. **Sedulous.GUI** is older still, predating
+> LegacyUI; also under `Code/Deprecated/`.
 
 ### Physics, Audio, Animation
 
@@ -157,7 +161,7 @@ Logger (via virtual CreateLogger), ResourceSystem, JobSystem lifecycle.
 - Virtual hooks: OnInitialize, OnUpdate, OnRenderFrame, OnResize, CreateLogger, etc.
 - Can optionally create a Context with subsystems (e.g., UISubsystem)
 
-**Used by:** LegacyUISandbox, VGSandbox, DrawingSandbox, AudioSandbox, FontRendering, RHI samples
+**Used by:** UISandbox, VGSandbox, DrawingSandbox, AudioSandbox, FontRendering, RHI samples
 
 ### EngineApplication - Full Engine
 
