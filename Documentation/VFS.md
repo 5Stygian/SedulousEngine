@@ -497,6 +497,36 @@ The asset browser's tree adapter (`RegistryTreeAdapter`) and content adapter
 uses `FileSystemMount.RootPath` for disk mounts — non-disk mounts would need
 `IEnumerableMount.Enumerate` to feed the tree.
 
+### `MountResolver`
+
+Editor code routinely has an absolute filesystem path in hand (from the OS
+file dialog, the asset browser's `AbsolutePath` field, or
+`SceneEditorPage.FilePath`) and needs to find the mount that owns it.
+`MountResolver` is the canonical helper:
+
+```beef
+// Read access
+IMount mount = null;
+let locator = scope String();
+if (MountResolver.TryResolveAbsolute(context.MountEntries, absolutePath, out mount, locator))
+{
+    let stream = mount.Open(locator).Value;
+    // ...
+}
+
+// Write access (requires IWritableMount)
+IWritableMount writable = null;
+if (MountResolver.TryResolveAbsoluteWritable(context.MountEntries, absolutePath, out writable, locator))
+{
+    writable.Save(locator, stream);
+}
+```
+
+Walks the entries for a `FileSystemMount` whose root prefixes the path; skips
+non-disk mounts implicitly. Code that calls into this is therefore
+disk-only. Used by `SceneEditorPage.Save`, `SceneEditorPageFactory`,
+`PrefabEditorPageFactory`, and `ResourceRefEditor`.
+
 ### Asset Import
 
 `IAssetImporter.Import` receives an `AssetImportContext`:
@@ -645,31 +675,33 @@ Gaps worth filling later if the experiment continues:
 
 ## Worth Knowing (Architecture Quirks)
 
-These are functional today but lean on assumptions worth flagging:
-
-**Editor page factories bypass the VFS for reads.**
-`SceneEditorPageFactory.CreatePage(path, context)` and
-`PrefabEditorPageFactory.CreatePage(path, context)` call
-`File.ReadAllText(path)` directly. They work because the asset browser
-passes resolved `AbsolutePath` values from `FileSystemMount`s. If a non-disk
-mount (pak, remote) feeds the asset browser in the future, these factories
-will need to switch to opening through the mount.
-
-**`ResourceRefEditor.ReadResourceGuid`** has the same shape: peeks at a
-resource header by absolute path to retrieve its GUID. Same caveat.
-
-**`TowerDefenseApp.LoadFromCache`** reads `gamescene.scene` via
-`File.ReadAllText(scenePath)` instead of going through `mProjectMount`. The
-scene loads correctly because the path is absolute, but it bypasses the VFS.
-
 **`ResourceSystem.LoadResource` strictly requires a scheme.** No
 absolute-path fallback. This is intentional — the old behavior of accepting
 either confused the boundary between identity and location. If you need to
 load an arbitrary file, mount its directory under a scheme first.
 
+**Editor code with an absolute path in hand** (page factories, save flows,
+the file-picker callback in `ResourceRefEditor`) routes through
+`MountResolver.TryResolveAbsolute` / `TryResolveAbsoluteWritable` to find
+the owning mount. Files outside any mount are refused — they couldn't load
+later anyway.
+
+**Disk-only editor code is implicit.** `MountResolver` only matches
+`FileSystemMount` entries; the moment a non-disk mount (pak, remote) is in
+play, code that calls `MountResolver` simply won't find it and will refuse
+to open. That's the right behavior — non-disk mounts have no absolute path
+to resolve from.
+
 **Reopen-per-Open** on `PakMount` is fine for typical asset loads but burns
 file handles under heavy concurrent read. If profiles show that's hot, swap
 to a shared FileStream + seek lock — the `IMount` surface doesn't change.
+
+**`Resource.SourcePath`** is now the mount-relative locator, not an absolute
+filesystem path. Anything reading `resource.SourcePath` and feeding it to
+`File.*` is broken — use the mount the resource was loaded from instead.
+`PrefabComponentManager.InstantiatePrefab` shows the canonical pattern:
+parse the URI from `comp.PrefabRef.Path`, look up the mount via
+`ResourceSystem.GetMount(scheme)`, and read through it.
 
 ---
 
