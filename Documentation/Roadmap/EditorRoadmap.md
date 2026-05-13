@@ -597,6 +597,16 @@ The import pipeline already exists in `Sedulous.Geometry.Tooling` +
 `.Tooling.Resources` (ModelImporter -> ResourceImportResult -> ResourceSerializer)
 but is only called from code (EngineSandbox). The editor needs UI and wiring.
 
+> **Note (post-implementation):** The "registry" layer described in this phase
+> was subsequently split into two: a byte-source abstraction (`Sedulous.VFS`,
+> with `IMount` and capability sub-interfaces) and an identity layer
+> (`IResourceIndex` / `InMemoryResourceIndex`) inside `Sedulous.Resources`.
+> The asset browser concepts ("registries" in the tree, Mount/Create/Unmount
+> buttons) are unchanged from the user's perspective, but the underlying
+> types and serialized format below have shifted. See [VFS.md](../VFS.md)
+> for the current shape; this section is preserved as the original design
+> record.
+
 **Existing pipeline (complete):**
 - `ModelLoaderFactory` -> `GltfLoader` / `FbxLoader` -> `Model`
 - `ModelImporter.Import(model, options)` -> `ModelImportResult` (plain data)
@@ -606,17 +616,18 @@ but is only called from code (EngineSandbox). The editor needs UI and wiring.
 - `ImageLoaderFactory` -> STB / SDL loaders for standalone texture import
 - `ModelImportOptions` -- flags, scale, normals, tangents, recenter, max bones
 
-**Registry system (complete):**
-- `ResourceRegistry` -- GUID<->path bidirectional maps, `SaveToFile`/`LoadFromFile`
-- `.registry` text format: `guid=relativePath` per line
-- `ResourceSystem` -- protocol path resolution (`builtin://`, `project://`), hot-reload via FileWatcher
-- Editor already creates `builtin` + `project` registries in `EditorApplication`
+**Registry system (complete, post-VFS):**
+- `IResourceIndex` / `InMemoryResourceIndex` -- GUID<->URI bidirectional maps, `SerializeTo(Stream)`/`DeserializeFrom(Stream)`
+- `.registry` text format: `guid=uri` per line (e.g. `5763a2f1-...=builtin://primitives/cube.mesh`)
+- `IMount` (`Sedulous.VFS`) -- byte source; `FileSystemMount` for disk, `PakMount` for archives
+- `ResourceSystem` -- scheme-keyed mount table (`builtin://`, `project://`, ...); hot-reload via per-mount `IChangeSource`
+- Editor creates `builtin` + `project` mount entries in `EditorApplication` (each pairs a `FileSystemMount` with an `InMemoryResourceIndex`), surfaced as `EditorContext.MountEntries`
 
 **Editor interfaces (defined, redesigned in 4d):**
-- `IAssetImporter` -- **DONE**: redesigned with `CreatePreview`/`Import(preview, outputDir, registry, serializer)` two-phase workflow
+- `IAssetImporter` -- **DONE**: redesigned with `CreatePreview`/`Import(preview, AssetImportContext)` two-phase workflow. `AssetImportContext` bundles `(Mount, BaseLocator, Index, UriPrefix, Serializer)`.
 - `IAssetCreator` -- **DONE**: `Create` returns `Guid` so caller can register without parsing
 - `IAssetThumbnailGenerator` -- `GenerateThumbnail(path, w, h)`
-- `EditorContext` -- `RegisterAssetImporter()`, `RegisterAssetCreator()`, `RegisterThumbnailGenerator()`
+- `EditorContext` -- `RegisterAssetImporter()`, `RegisterAssetCreator()`, `RegisterThumbnailGenerator()`; exposes `MountEntries` for panels.
 
 **UI toolkit (available):**
 - `ListView` -- virtualized, adapter-based, selection, right-click events. **Extended**: `OnBackgroundRightClicked`, zero-items fix
@@ -692,9 +703,9 @@ Initial view mode: list only. Grid/tile view deferred to Phase 4e.
 **4b-1. Registry Toolbar**
 
 Toolbar above the registry tree with buttons:
-- **Mount** -- `IDialogService.ShowOpenFileDialog` for `.registry` files -> creates `ResourceRegistry`, loads file, adds to `ResourceSystem`
-- **Create** -- `IDialogService.ShowFolderDialog` -> creates empty `.registry` file in selected folder, mounts it with user-provided name
-- **Unmount** -- removes selected registry from `ResourceSystem` (disabled for builtin/project)
+- **Mount** -- `IDialogService.ShowOpenFileDialog` for `.registry` files -> creates a `FileSystemMount` over the file's directory, loads its `InMemoryResourceIndex`, calls `ResourceSystem.Mount(scheme, mount)` + `AddIndex`, and appends a `MountEntry` to `EditorContext.MountEntries`
+- **Create** -- `IDialogService.ShowFolderDialog` -> creates an empty `.registry` index in the selected folder, mounts the folder under the folder's name
+- **Unmount** -- removes the selected entry (disabled for builtin/project)
 
 **4b-2. Registry Persistence**
 
@@ -781,9 +792,9 @@ interface IAssetImporter : IDisposable
     Result<ImportPreview> CreatePreview(StringView sourcePath);
 
     /// Import selected items from the preview.
-    /// outputDir is the target directory, registry is for GUID registration.
-    Result<void> Import(ImportPreview preview, StringView outputDir,
-        ResourceRegistry registry, ImportDeduplicationContext dedupContext);
+    /// ctx carries (Mount, BaseLocator, Index, UriPrefix, Serializer); writes
+    /// go through Mount.Save and GUIDs are registered with Index.Register.
+    Result<void> Import(ImportPreview preview, AssetImportContext ctx);
 }
 
 /// One importable item from a source file.
@@ -824,10 +835,13 @@ When the user drops files or clicks "Import...", show a dialog:
 **4d-3. Import Execution - DONE (without dialog, imports all items directly)**
 
 On **Import**:
-1. Call `importer.Import(preview, outputDir, registry, dedupContext)`
-2. Internally: load source, run pipeline, save checked items, register GUIDs
+1. Build an `AssetImportContext` for the active mount (writable mount, base
+   locator, index, URI prefix, serializer).
+2. Call `importer.Import(preview, ctx)` -- writes go through `Mount.Save`;
+   GUIDs are registered via `Index.Register(guid, "scheme://locator")`.
 3. Write `.meta` sidecar file for each imported resource (see 4d-6)
-4. Save registry to disk
+4. `ImportDialog` serializes the index back through the mount after a
+   successful import.
 5. Refresh content view
 
 **4d-4. Importer Implementations - DONE**
@@ -837,10 +851,12 @@ Registered with `EditorContext.RegisterAssetImporter()`:
 - ✅ **ModelAssetImporter** -- handles `.gltf`, `.glb`, `.fbx`, `.obj`
   - `CreatePreview`: loads via `ModelLoaderFactory`, runs `ModelImporter.Import`,
     enumerates all produced meshes/materials/textures/skeletons/animations
-  - `Import`: converts to resources, saves via `ResourceSerializer`, registers GUIDs
+  - `Import`: converts to resources, writes each through `ctx.Mount.Save`
+    (textures get a `.bin` pixel sidecar), registers GUIDs in `ctx.Index`
 - ✅ **TextureAssetImporter** -- handles `.png`, `.jpg`, `.jpeg`, `.tga`, `.bmp`, `.hdr`
   - `CreatePreview`: single item -- the texture resource
-  - `Import`: loads via `ImageLoaderFactory`, wraps as `TextureResource`, saves
+  - `Import`: loads via `ImageLoaderFactory`, wraps as `TextureResource`,
+    writes text metadata + pixel sidecar through `ctx.Mount.Save`
 - **AudioAssetImporter** -- (stub, future: `.wav`, `.ogg` -> `.audioclip`)
 
 **4d-5. Drag-Drop Import - DEFERRED**
@@ -848,7 +864,7 @@ Registered with `EditorContext.RegisterAssetImporter()`:
 Content view implements `IDropTarget`. When files are dropped from OS:
 1. Check extensions against registered importers
 2. If importer found -> call `CreatePreview()` -> show import dialog
-3. If no match -> copy file as-is (raw asset, no registry entry)
+3. If no match -> copy file as-is (raw asset, no index entry)
 4. If multiple files -> batch import dialog (one preview per file)
 
 **4d-6. Import Metadata (.meta sidecar files) - DEFERRED**
@@ -1142,10 +1158,10 @@ with the engine update loop (drains queued messages each frame at UpdateOrder -5
 
 **Editor use cases where MessageBus replaces direct coupling:**
 
-- **Asset hot-reload notifications** -- when FileWatcher detects changes and
-  resources are reloaded, publish `ResourceReloadedMessage { Guid, Type, Path }`
-  so the inspector, viewport, and asset browser all react independently without
-  knowing about each other.
+- **Asset hot-reload notifications** -- when a mount's `IChangeSource` detects
+  changes and resources are reloaded, publish `ResourceReloadedMessage { Guid,
+  Type, Uri }` so the inspector, viewport, and asset browser all react
+  independently without knowing about each other.
 
 - **Selection changed broadcast** -- currently `SceneEditorPage.OnSelectionChanged`
   is an event with direct subscribers. A `SelectionChangedMessage` on the bus
@@ -1186,4 +1202,4 @@ for batch operations like import).
 - **Sedulous.Engine.LegacyUI**: EngineUISubsystem, ScreenUIView - complete
 - **Sedulous.Engine.Render**: RenderSubsystem, render pipeline - complete
 - **Sedulous.Engine.Core**: ComponentManager, Scene serialization - complete
-- **Sedulous.Resources**: ResourceSystem with FileWatcher - complete
+- **Sedulous.Resources**: ResourceSystem with mount table + indices, hot-reload via per-mount change sources - complete

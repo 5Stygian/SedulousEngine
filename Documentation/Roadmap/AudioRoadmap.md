@@ -6,14 +6,16 @@ studying Traktor Engine and Zero Engine audio architectures.
 ## Current State - DONE
 
 ### Original Foundation
-- ~~**IAudioSystem / IAudioSource / IAudioStream**~~ - clean interface abstraction
-- ~~**SDL3 backend**~~ - device management, WAV loading, file streaming
-- ~~**Decoders**~~ - WAV, MP3, OGG Vorbis, FLAC (via dr_libs / stb_vorbis)
+- ~~**IAudioSystem / IAudioSource / IAudioStream / IAudioListener**~~ - clean interface abstraction
+- ~~**SDL3 backend**~~ - device management, WAV streaming via SDL3AudioStream
+- ~~**Decoder framework**~~ - `IAudioDecoder` + `AudioDecoderFactory`, header-sniff dispatch
+- ~~**Decoders**~~ - WAV, MP3, OGG Vorbis, FLAC (via dr_libs / stb_vorbis), all in `Sedulous.Audio.Decoders`
 - ~~**3D audio**~~ - configurable distance attenuation + constant-power stereo panning
-- ~~**Music streaming**~~ - 16KB chunk streaming from disk (WAV only)
+- ~~**Music streaming**~~ - chunked WAV streaming via SDL3AudioStream
 - ~~**Fire-and-forget**~~ - PlayOneShot / PlayOneShot3D / PlayCue / PlayCue3D
 - ~~**Engine integration**~~ - AudioSourceComponent, AudioListenerComponent, AudioSubsystem
-- ~~**Resource system**~~ - AudioClipResource, SoundCueResource with hot-reload support
+- ~~**Resource system**~~ - AudioClipResource (text metadata + PCM sidecar), SoundCueResource, both with hot-reload
+- ~~**Editor import pipeline**~~ - `Sedulous.Audio.Importer.AudioImporter` decodes source files (.wav/.mp3/.ogg/.flac) into AudioClipResource
 
 ### Audio Node Graph (completed)
 - ~~**AudioNode base**~~ - inputs/outputs, mix-version caching, lazy evaluation
@@ -70,7 +72,17 @@ studying Traktor Engine and Zero Engine audio architectures.
 ### Engine Integration (completed)
 - ~~AudioSourceComponent~~ - BusName, CueRef, UseAttenuator, AttenuatorConfig, Direction
 - ~~AudioSourceComponentManager~~ - resolves cue refs, applies attenuator, syncs direction from transform
-- ~~AudioSubsystem~~ - registers SoundCueResourceManager, PlayCue/PlayCue3D convenience methods
+- ~~AudioSubsystem~~ - registers SoundCueResourceManager + AudioClipResourceManager, PlayCue/PlayCue3D convenience methods
+
+### Dedicated Mixer Thread (completed)
+- ~~**Threaded `AudioMixer`**~~ - `EnableThreading()` enables a command queue. Structural changes (node connect/disconnect, bus mutations, source create/destroy) go through `EnqueueCommand`; the mix thread drains the queue at the start of each `Mix()` call.
+- ~~**SDL3 audio callback drives Mix()**~~ - `SDL3AudioMixer.Initialize` calls `EnableThreading` and installs SDL's stream callback; SDL's audio thread invokes `Mix()` whenever the device needs samples. Main thread never calls `Mix()` directly in threaded mode.
+- ~~**Lock-light state updates**~~ - effect parameter changes and source field writes stay on the main thread (single-word atomic writes). Only structural graph mutations route through the command queue.
+- ~~**Graceful shutdown**~~ - callback disabled before teardown; `FlushPendingCommands` drains anything still enqueued before resource deletion.
+
+### Tests (completed)
+- ~~**Sedulous.Audio.Tests**~~ - covers graph nodes, sources, streams, buses, attenuator, sound cues, listener, source state, audio system.
+- ~~**Sedulous.Audio.Effects.Tests**~~ - per-effect unit tests for LowPass, HighPass, Reverb, Delay, Compressor, ParametricEQ, Fade.
 
 ### Ownership Model
 - AudioGraph only owns the OutputNode it creates
@@ -83,26 +95,41 @@ studying Traktor Engine and Zero Engine audio architectures.
 ```
 Sedulous.Audio (core, platform-independent)
   src/
-    Interfaces: IAudioSource, IAudioSystem, IAudioStream, IAudioBus, IAudioBusSystem, IAudioEffect
-    Implementations: AudioSource, AudioBus, AudioBusSystem, AudioMixer (abstract),
-                     AudioClip, AudioListener, SoundCue, AttenuationModel
-    Graph/: AudioGraph, AudioNode, SourceNode, CombineNode, VolumeNode,
-            EffectNode, PanNode, SplitNode, OutputNode
+    Interfaces:      IAudioSource, IAudioSystem, IAudioStream, IAudioListener,
+                     IAudioBus, IAudioBusSystem, IAudioEffect
+    Implementations: AudioSource, AudioBus, AudioBusSystem, AudioMixer (abstract,
+                     threaded via command queue), AudioClip, AudioListener,
+                     SoundCue, SoundAttenuator (in AttenuationModel.bf)
+    Enums:           AudioFormat, AudioSourceState
+    Graph/:          AudioGraph, AudioNode, SourceNode, CombineNode, VolumeNode,
+                     EffectNode, PanNode, SplitNode, OutputNode
+
+Sedulous.Audio.Decoders (format decoders, platform-independent)
+  src/: IAudioDecoder, AudioDecoderFactory, WavDecoder, Mp3Decoder,
+        VorbisDecoder, FlacDecoder
 
 Sedulous.Audio.SDL3 (backend, SDL-specific - 3 files)
-  src/: SDL3AudioMixer, SDL3AudioStream, SDL3AudioSystem
+  src/: SDL3AudioMixer (drives Mix() from SDL's audio thread),
+        SDL3AudioStream, SDL3AudioSystem
 
 Sedulous.Audio.Effects (DSP, platform-independent)
   src/: LowPassFilter, HighPassFilter, ReverbEffect, DelayEffect,
         CompressorEffect, ParametricEQ, FadeEffect, DistanceLowPassFilter
 
+Sedulous.Audio.Importer (editor import pipeline)
+  src/: AudioImporter -- decodes a source file via AudioDecoderFactory and
+        wraps it as an AudioClipResource
+
 Sedulous.Audio.Resources (resource system integration)
-  src/: AudioClipResource, AudioClipResourceManager,
+  src/: AudioClipResource, AudioClipResourceManager (text metadata + PCM sidecar),
         SoundCueResource, SoundCueResourceManager
 
 Sedulous.Engine.Audio (engine subsystem layer)
-  src/: AudioSubsystem, AudioSourceComponent, AudioSourceComponentManager,
-        AudioListenerComponent, AudioListenerComponentManager
+  src/: AudioSubsystem
+  src/Components/: AudioSourceComponent, AudioSourceComponentManager,
+                   AudioListenerComponent, AudioListenerComponentManager
+
+Sedulous.Audio.Tests / Sedulous.Audio.Effects.Tests (BeefTest)
 ```
 
 ---
@@ -110,7 +137,7 @@ Sedulous.Engine.Audio (engine subsystem layer)
 ## Reference Engines
 
 ### What was taken from Traktor
-- Dedicated mixer thread model (architecture ready, not yet threaded)
+- Dedicated mixer thread model with main-thread -> mix-thread command queue
 - Float32 mixing with additive accumulation
 - Category/group volume with handle-based lookup -> bus system
 
@@ -129,14 +156,7 @@ Sedulous.Engine.Audio (engine subsystem layer)
 
 ## Remaining Work
 
-### Phase 5: Dedicated Mixer Thread (not scheduled)
-- Move Mix() into SDL audio callback or dedicated thread
-- Command queue for main thread -> mix thread operations (create/destroy source, connect/disconnect)
-- Double-buffer or lock-free queue for source state updates
-- Effect parameter changes already safe (single-word float writes)
-- Bus hierarchy mutations deferred to start of next mix cycle
-
-### Phase 6: HRTF Spatial Audio (not scheduled)
+### HRTF Spatial Audio (not scheduled)
 
 Binaural 3D audio for headphone users. Replaces stereo panning with
 per-ear FIR convolution based on source direction relative to listener.
@@ -163,18 +183,18 @@ SourceNode -> PanNode  -> bus CombineNode   (speaker mode)
 
 **Dependencies:** libmysofa for SOFA dataset parsing, or raw MIT KEMAR binary
 
-### Phase 7: Additional Effects (not scheduled)
+### Additional Effects (not scheduled)
 - Chorus, Flanger, Phaser, Distortion, Limiter, Pitch Shift
 - Each is a self-contained IAudioEffect implementation
 - Add as needed based on game requirements
 
-### Phase 8: Interactive Music (not scheduled)
+### Interactive Music (not scheduled)
 - Music state machine with branching/transitions
 - Beat-synced crossfading between tracks
 - Tempo and time signature tracking
 - Music timing events (beat, bar, note callbacks)
 
-### Phase 9: Surround Sound (not scheduled)
+### Surround Sound (not scheduled)
 - VBAP (Vector Base Amplitude Panning) for multi-speaker configurations
 - Speaker configuration detection from SDL3
 - Extend AudioNode buffers from stereo to N-channel
@@ -228,10 +248,22 @@ A bus is internally: inputs -> CombineNode -> [EffectNodes] -> VolumeNode -> par
 
 ## Thread Safety Strategy
 
-Current: all on main thread. Design is thread-safety-ready:
+Current: `Mix()` runs on SDL's audio thread via callback in the default
+configuration. Backends that don't have their own thread can fall back to
+main-thread mixing by skipping `EnableThreading()` and calling `Mix()`
+manually from the application's update loop.
 
-- Mix buffers are fixed-size, allocated at init (no dynamic allocation during mixing)
-- Bus hierarchy mutations use two-pass teardown (disconnect all, then delete)
-- Effect parameters are simple float/int32 fields (atomic on aligned modern CPUs)
-- Source/stream lists guarded by single access point
-- Abstract AudioMixer / SDL3AudioMixer split makes threading a backend concern
+How the split works:
+
+- **Structural graph changes** (node connect/disconnect, bus create/destroy,
+  source create/dispose, source route to bus) go through
+  `AudioMixer.EnqueueCommand(delegate void())`. The mix thread drains the
+  queue at the start of every `Mix()` call before evaluating the graph.
+- **Parameter updates** (volume, pan, pitch, effect knobs) stay on the main
+  thread - they're single-word float/int32 field writes, atomic on aligned
+  modern CPUs.
+- **Mix buffers** are fixed-size, allocated at init - no dynamic allocation
+  during mixing.
+- **Shutdown** disables the SDL callback before any state teardown;
+  `FlushPendingCommands` drains anything still enqueued before resource
+  deletion runs.
