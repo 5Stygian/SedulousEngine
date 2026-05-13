@@ -97,7 +97,7 @@ class TowerDefenseApp : EngineApplication
 		Path.InternalCombine(manifestPath, assetsDir, "models.manifest");
 
 		if (File.Exists(registryPath) && File.Exists(scenePath) && File.Exists(manifestPath))
-			LoadFromCache(assetsDir, registryPath, scenePath, manifestPath);
+			LoadFromCache(assetsDir, manifestPath);
 		else
 			BuildFromScratch(assetsDir);
 
@@ -204,21 +204,26 @@ class TowerDefenseApp : EngineApplication
 	}
 
 	/// Subsequent runs: load from cached files, no FBX import.
-	private void LoadFromCache(StringView cacheDir, StringView registryPath, StringView scenePath, StringView manifestPath)
+	private void LoadFromCache(StringView cacheDir, StringView manifestPath)
 	{
 		Console.WriteLine("[Startup] Loading from cache...");
 
 		let sceneSub = Context.GetSubsystem<SceneSubsystem>();
 
 		// Mount the cache directory under "project://" and load its identity index
+		// through the same mount so all reads route through the VFS.
 		mProjectMount = new FileSystemMount(cacheDir);
 		ResourceSystem.Mount("project", mProjectMount);
 
 		mProjectIndex = new InMemoryResourceIndex();
+		if (mProjectMount.Exists("project.registry"))
 		{
-			let regStream = scope FileStream();
-			if (regStream.Open(registryPath, .Read, .Read) case .Ok)
-				mProjectIndex.DeserializeFrom(regStream);
+			let regStream = mProjectMount.Open("project.registry");
+			if (regStream case .Ok(let s))
+			{
+				defer delete s;
+				mProjectIndex.DeserializeFrom(s);
+			}
 		}
 		ResourceSystem.AddIndex(mProjectIndex);
 
@@ -230,10 +235,22 @@ class TowerDefenseApp : EngineApplication
 		// Create scene (triggers ISceneAware - component managers get manifest)
 		mScene = sceneSub.CreateScene("GameScene");
 
-		// Deserialize scene from file
+		// Deserialize scene from file through the project mount.
 		let provider = ResourceSystem.SerializerProvider;
 		let fileText = scope String();
-		File.ReadAllText(scenePath, fileText);
+		{
+			let openResult = mProjectMount.Open("gamescene.scene");
+			if (openResult case .Err) return;
+			let stream = openResult.Value;
+			defer delete stream;
+			let len = (int)stream.Length;
+			if (len > 0)
+			{
+				let buf = scope uint8[len];
+				if (stream.TryRead(.(&buf[0], len)) case .Err) return;
+				fileText.Append((char8*)&buf[0], len);
+			}
+		}
 		let reader = provider.CreateReader(fileText);
 		defer delete reader;
 
