@@ -1,15 +1,15 @@
 uint64 %_type {2260132839145735983}
 int32 %_version {1}
-string %_id {"8c4039b7-80da-4f6c-acbb-67570eb77271"}
+string %_id {"bddfa1df-8384-47cb-aa8e-7dabc50b2bf9"}
 string %_name {"tower_cannon"}
-string %_sourcePath {"D:\\Dev\\Beef\\BeefGFX\\SedulousEngine\\Code\\Projects\\TowerDefense\\assets\\prefabs\\tower_cannon.prefab"}
+string %_sourcePath {"prefabs/tower_cannon.prefab"}
 Arr_ %ExposedParameters {
 	int32 %_count {0}
 }
 Arr_ %Entities {
 	int32 %_count {3}
 	Obj_ {
-		string %Id {"ed6278c3-1fb2-420b-86de-d80fcb4280fa"}
+		string %Id {"f2350b79-96fc-442c-b645-013aaf28c1ac"}
 		string %Name {"TowerBase"}
 		bool %Active {true}
 		string %Parent {"00000000-0000-0000-0000-000000000000"}
@@ -30,7 +30,7 @@ Arr_ %Entities {
 				int32 %Version {1}
 				Obj_ %Data {
 					Obj_ %MeshRef {
-						string %_id {"ee9c14c8-8e93-4a43-a585-8bfcd27d47b5"}
+						string %_id {"c537489e-e14f-408f-9cfa-6336e07a7466"}
 						string %path {"project://resources/tower-square-bottom-a.mesh"}
 					}
 					bool %CastsShadows {true}
@@ -39,7 +39,7 @@ Arr_ %Entities {
 					Arr_ %Materials {
 						int32 %_count {1}
 						Obj_ {
-							string %_id {"68cac547-f4ac-4698-a52f-021a8e4e5cf2"}
+							string %_id {"4f1ae153-3ae9-4cc5-babf-e965efe03762"}
 							string %path {"project://resources/colormap.material"}
 						}
 					}
@@ -48,10 +48,10 @@ Arr_ %Entities {
 		}
 	}
 	Obj_ {
-		string %Id {"d97c50cc-c514-4517-a289-b58e892bfd32"}
+		string %Id {"765e757d-e7c7-49ef-946e-46010c4badb0"}
 		string %Name {"Weapon"}
 		bool %Active {true}
-		string %Parent {"ed6278c3-1fb2-420b-86de-d80fcb4280fa"}
+		string %Parent {"f2350b79-96fc-442c-b645-013aaf28c1ac"}
 		float %PosX {0}
 		float %PosY {0.5}
 		float %PosZ {0}
@@ -69,7 +69,7 @@ Arr_ %Entities {
 				int32 %Version {1}
 				Obj_ %Data {
 					Obj_ %MeshRef {
-						string %_id {"6b4947fd-8ad8-4f65-b5a3-65900d9034d9"}
+						string %_id {"f52ac18d-e8f1-44f1-aaf0-c5db75245774"}
 						string %path {"project://resources/weapon-cannon.mesh"}
 					}
 					bool %CastsShadows {true}
@@ -78,7 +78,7 @@ Arr_ %Entities {
 					Arr_ %Materials {
 						int32 %_count {1}
 						Obj_ {
-							string %_id {"68cac547-f4ac-4698-a52f-021a8e4e5cf2"}
+							string %_id {"4f1ae153-3ae9-4cc5-babf-e965efe03762"}
 							string %path {"project://resources/colormap.material"}
 						}
 					}
@@ -87,38 +87,22 @@ Arr_ %Entities {
 		}
 	}
 	Obj_ {
-		string %Id {"7e413c59-453e-4fda-90c1-8c1661c4fc06"}
+		string %Id {"557961b9-9710-4be2-ab27-53131084ae50"}
 		string %Name {"ProjectileSpawnPoint"}
 		bool %Active {true}
-		string %Parent {"d97c50cc-c514-4517-a289-b58e892bfd32"}
+		string %Parent {"765e757d-e7c7-49ef-946e-46010c4badb0"}
 		float %PosX {0}
-		float %PosY {0.380740613}
+		float %PosY {0.100000001}
 		float %PosZ {0.300000012}
 		float %RotX {0}
 		float %RotY {0}
 		float %RotZ {0}
 		float %RotW {1}
-		float %ScaleX {0.100000001}
-		float %ScaleY {0.100000001}
-		float %ScaleZ {0.100000001}
+		float %ScaleX {1}
+		float %ScaleY {1}
+		float %ScaleZ {1}
 		Arr_ %Components {
-			int32 %_count {1}
-			Obj_ {
-				string %TypeId {"Sedulous.MeshComponent"}
-				int32 %Version {1}
-				Obj_ %Data {
-					Obj_ %MeshRef {
-						string %_id {"afba7128-eec2-4249-90d8-235466fa38de"}
-						string %path {"builtin://primitives/sphere.mesh"}
-					}
-					bool %CastsShadows {false}
-					bool %IsVisible {false}
-					int32 %LayerMask {-1}
-					Arr_ %Materials {
-						int32 %_count {0}
-					}
-				}
-			}
+			int32 %_count {0}
 		}
 	}
 }

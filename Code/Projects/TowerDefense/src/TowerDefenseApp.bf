@@ -10,6 +10,8 @@ using Sedulous.Renderer.Passes;
 using Sedulous.Core.Mathematics;
 using Sedulous.Materials;
 using Sedulous.Resources;
+using Sedulous.VFS;
+using Sedulous.VFS.Disk;
 using Sedulous.Shell.Input;
 using Sedulous.Images.STB;
 using Sedulous.Images.SDL;
@@ -38,8 +40,10 @@ class TowerDefenseApp : EngineApplication
 	// Model manifest (both paths - built from ModelRegistry or loaded from cache)
 	private ModelManifest mManifest ~ delete _;
 
-	// Cached registry (owned by app, registered with ResourceSystem)
-	private ResourceRegistry mCachedRegistry ~ delete _;
+	// Cached project mount + index (owned by app, registered with ResourceSystem
+	// for the "project://" scheme).
+	private FileSystemMount mProjectMount ~ delete _;
+	private InMemoryResourceIndex mProjectIndex ~ delete _;
 
 	// Camera
 	private TDCameraController mCamera = new .() ~ delete _;
@@ -206,10 +210,17 @@ class TowerDefenseApp : EngineApplication
 
 		let sceneSub = Context.GetSubsystem<SceneSubsystem>();
 
-		// Load and register the cached resource registry
-		mCachedRegistry = new ResourceRegistry("project", cacheDir);
-		mCachedRegistry.LoadFromFile(registryPath);
-		ResourceSystem.AddRegistry(mCachedRegistry);
+		// Mount the cache directory under "project://" and load its identity index
+		mProjectMount = new FileSystemMount(cacheDir);
+		ResourceSystem.Mount("project", mProjectMount);
+
+		mProjectIndex = new InMemoryResourceIndex();
+		{
+			let regStream = scope FileStream();
+			if (regStream.Open(registryPath, .Read, .Read) case .Ok)
+				mProjectIndex.DeserializeFrom(regStream);
+		}
+		ResourceSystem.AddIndex(mProjectIndex);
 
 		// Load model manifest and wire to game subsystem
 		mManifest = new ModelManifest();
@@ -261,28 +272,30 @@ class TowerDefenseApp : EngineApplication
 
 		let provider = scope OpenDDLSerializerProvider();
 
-		let resourceDir = scope String();
-		Path.InternalCombine(resourceDir, outputDir, "resources");
-		if (!Directory.Exists(resourceDir))
-			Directory.CreateDirectory(resourceDir);
+		// Writable mount over outputDir for all subsequent saves through the VFS.
+		let mount = scope FileSystemMount(outputDir);
 
-		// Load existing registry and merge new entries (don't overwrite editor-created entries)
-		let registry = scope ResourceRegistry("project", outputDir);
-		let existingRegPath = scope String();
-		Path.InternalCombine(existingRegPath, outputDir, "project.registry");
-		if (File.Exists(existingRegPath))
-			registry.LoadFromFile(existingRegPath);
+		// Load existing index and merge new entries (don't overwrite editor-created entries)
+		let index = scope InMemoryResourceIndex();
+		if (mount.Exists("project.registry"))
+		{
+			let regStream = mount.Open("project.registry");
+			if (regStream case .Ok(let s))
+			{
+				defer delete s;
+				index.DeserializeFrom(s);
+			}
+		}
 
 		// Save meshes - names already have registry protocol from ModelRegistry
 		for (let loaded in mModels.[Friend]mLoadedModels)
 		{
 			if (loaded.MeshResource != null)
 			{
-				let filePath = scope String();
-				Path.InternalCombine(filePath, resourceDir, scope $"{loaded.Name}.mesh");
-				if (loaded.MeshResource.SaveToFile(filePath, provider) case .Ok)
+				let locator = scope String()..AppendF("resources/{}.mesh", loaded.Name);
+				if (SaveResourceText(loaded.MeshResource, mount, locator, provider) case .Ok)
 				{
-					registry.Register(loaded.MeshResource.Id, scope $"resources/{loaded.Name}.mesh");
+					index.Register(loaded.MeshResource.Id, scope $"project://{locator}");
 					Console.WriteLine("[Export] Saved mesh: {}", loaded.Name);
 				}
 			}
@@ -295,11 +308,22 @@ class TowerDefenseApp : EngineApplication
 			let texRes = kv.value;
 			let baseName = scope String();
 			GetBaseResourceName(texRes.Name, baseName);
-			let filePath = scope String();
-			Path.InternalCombine(filePath, resourceDir, scope $"{baseName}.texture");
-			if (texRes.SaveToFile(filePath, provider) case .Ok)
+			let locator = scope String()..AppendF("resources/{}.texture", baseName);
+			let sidecarName = scope String()..AppendF("{}.texture.bin", baseName);
+
+			// Set the sidecar locator on the resource so the text metadata records it.
+			texRes.BinaryPath.Set(sidecarName);
+
+			if (SaveResourceText(texRes, mount, locator, provider) case .Ok)
 			{
-				registry.Register(texRes.Id, scope $"resources/{baseName}.texture");
+				let sidecarLocator = scope String()..AppendF("resources/{}", sidecarName);
+				let memStream = scope MemoryStream();
+				if (texRes.WritePixelsToStream(memStream) case .Ok)
+				{
+					memStream.Position = 0;
+					mount.Save(sidecarLocator, memStream);
+				}
+				index.Register(texRes.Id, scope $"project://{locator}");
 				Console.WriteLine("[Export] Saved texture: {}", baseName);
 			}
 		}
@@ -309,11 +333,10 @@ class TowerDefenseApp : EngineApplication
 			let matRes = kv.value;
 			let baseName = scope String();
 			GetBaseResourceName(matRes.Name, baseName);
-			let filePath = scope String();
-			Path.InternalCombine(filePath, resourceDir, scope $"{baseName}.material");
-			if (matRes.SaveToFile(filePath, provider) case .Ok)
+			let locator = scope String()..AppendF("resources/{}.material", baseName);
+			if (SaveResourceText(matRes, mount, locator, provider) case .Ok)
 			{
-				registry.Register(matRes.Id, scope $"resources/{baseName}.material");
+				index.Register(matRes.Id, scope $"project://{locator}");
 				Console.WriteLine("[Export] Saved material: {}", baseName);
 			}
 		}
@@ -324,20 +347,34 @@ class TowerDefenseApp : EngineApplication
 			let typeReg = scope ComponentTypeRegistry();
 			let sceneManager = scope SceneResourceManager(typeReg, provider);
 
-			let scenePath = scope String();
-			Path.InternalCombine(scenePath, outputDir, "gamescene.scene");
-			if (sceneManager.SaveSceneToFile(mScene, scenePath) case .Ok(let guid))
+			if (sceneManager.SaveScene(mScene, mount, "gamescene.scene") case .Ok(let guid))
 			{
-				registry.Register(guid, "gamescene.scene");
+				index.Register(guid, "project://gamescene.scene");
 				Console.WriteLine("[Export] Saved scene");
 			}
 		}
 
-		// Save registry
-		let regFilePath = scope String();
-		Path.InternalCombine(regFilePath, outputDir, "project.registry");
-		registry.SaveToFile(regFilePath);
-		Console.WriteLine("[Export] Saved registry: {}", regFilePath);
+		// Save index
+		let indexStream = scope MemoryStream();
+		if (index.SerializeTo(indexStream) case .Ok)
+		{
+			indexStream.Position = 0;
+			mount.Save("project.registry", indexStream);
+			Console.WriteLine("[Export] Saved registry");
+		}
+	}
+
+	/// Helper: serializes a Resource's text representation into memory and writes
+	/// it to `mount` at `locator`.
+	private static Result<void> SaveResourceText(Resource resource, IWritableMount mount, StringView locator, Sedulous.Serialization.ISerializerProvider provider)
+	{
+		let memStream = scope MemoryStream();
+		if (resource.WriteToStream(memStream, provider) case .Err)
+			return .Err;
+		memStream.Position = 0;
+		if (mount.Save(locator, memStream) case .Err)
+			return .Err;
+		return .Ok;
 	}
 
 	/// Exports tower prefabs to the project assets directory.
@@ -346,21 +383,25 @@ class TowerDefenseApp : EngineApplication
 	{
 		let outputDir = scope String();
 		Path.InternalCombine(outputDir, RuntimeDirectory, "assets");
-		let prefabDir = scope String();
-		Path.InternalCombine(prefabDir, outputDir, "prefabs");
-		if (!Directory.Exists(prefabDir))
-			Directory.CreateDirectory(prefabDir);
 
 		let provider = scope OpenDDLSerializerProvider();
 		let typeReg = scope ComponentTypeRegistry();
 		let prefabMgr = scope PrefabResourceManager(typeReg, provider);
 
-		// Load existing registry to merge
-		let registryPath = scope String();
-		Path.InternalCombine(registryPath, outputDir, "project.registry");
-		let registry = scope ResourceRegistry("project", outputDir);
-		if (File.Exists(registryPath))
-			registry.LoadFromFile(registryPath);
+		// Writable mount over outputDir; saves create intermediate directories.
+		let mount = scope FileSystemMount(outputDir);
+
+		// Load existing index to merge
+		let index = scope InMemoryResourceIndex();
+		if (mount.Exists("project.registry"))
+		{
+			let regStream = mount.Open("project.registry");
+			if (regStream case .Ok(let s))
+			{
+				defer delete s;
+				index.DeserializeFrom(s);
+			}
+		}
 
 		StringView[4] towerNames = .("ballista", "cannon", "catapult", "turret");
 		TowerType[4] types = .(.Ballista, .Cannon, .Catapult, .Turret);
@@ -370,11 +411,10 @@ class TowerDefenseApp : EngineApplication
 			let towerName = towerNames[ti];
 			let stats = TowerStats.Get(towerType);
 
-			let prefabPath = scope String();
-			Path.InternalCombine(prefabPath, prefabDir, scope $"tower_{towerName}.prefab");
+			let prefabLocator = scope String()..AppendF("prefabs/tower_{}.prefab", towerName);
 
 			// Skip if already exported
-			if (File.Exists(prefabPath))
+			if (mount.Exists(prefabLocator))
 				continue;
 
 			// Create a temporary scene for the prefab
@@ -438,15 +478,20 @@ class TowerDefenseApp : EngineApplication
 
 			// Save prefab
 			let emptyParams = scope List<ExposedParameterDescriptor>();
-			if (prefabMgr.SavePrefabToFile(prefabScene, emptyParams, prefabPath) case .Ok(let guid))
+			if (prefabMgr.SavePrefab(prefabScene, emptyParams, mount, prefabLocator) case .Ok(let guid))
 			{
-				registry.Register(guid, scope $"prefabs/tower_{towerName}.prefab");
+				index.Register(guid, scope $"project://{prefabLocator}");
 				Console.WriteLine("[Export] Saved tower prefab: tower_{}", towerName);
 			}
 		}
 
-		// Save updated registry
-		registry.SaveToFile(registryPath);
+		// Save updated index
+		let indexStream = scope MemoryStream();
+		if (index.SerializeTo(indexStream) case .Ok)
+		{
+			indexStream.Position = 0;
+			mount.Save("project.registry", indexStream);
+		}
 	}
 
 	/// Extracts the base resource name from a registry protocol path.
