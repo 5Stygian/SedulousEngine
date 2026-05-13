@@ -278,18 +278,18 @@ imports will then skip re-creating resources that already exist from prior sessi
 ### Resource GUID Remapping
 
 When baked assets are regenerated (e.g. primitive meshes deleted and recreated),
-they get new GUIDs. Existing scene files reference the old GUIDs which no longer
-match the registry. The ResourceSystem needs a remapping mechanism:
+they get new GUIDs. Existing scene files reference the old GUIDs, which no
+longer match any `IResourceIndex`. The ResourceSystem needs a remapping mechanism:
 
-- Detect GUID mismatch: scene references a GUID not in any registry
-- Fall back to path-based loading (already works via `LoadByRef` cascade)
-- Optionally update the scene's GUIDs to match the current registry (remap)
+- Detect GUID mismatch: scene references a GUID not in any index.
+- Fall back to URI-based loading (already works via `LoadByRef` cascade).
+- Optionally update the scene's GUIDs to match the current index (remap)
 - Could be automatic (remap on load + mark scene dirty) or manual (editor tool)
-- Registry could store a history of previous GUIDs for an asset to assist remapping
+- An index could store a history of previous GUIDs for an asset to assist remapping
 
-For now, path-based fallback in `LoadByRef` provides a degraded workaround --
-if the `ResourceRef` has both a GUID and a path, the path resolves even when
-the GUID doesn't. But this only works if the path hasn't changed.
+For now, URI-based fallback in `LoadByRef` provides a degraded workaround --
+if the `ResourceRef` has both a GUID and a URI, the URI resolves even when
+the GUID doesn't. But this only works if the asset's URI hasn't changed.
 
 ## Hot Reload Resource Lifecycle
 

@@ -29,8 +29,9 @@ rendering pipeline, engine subsystems, application models, and how they compose.
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  Foundation Layer                                                           │
 │  RHI (Vulkan, DX12)  │  Shell (SDL3)  │  VG + Fonts  │  UI + Toolkit      │
-│  Resources  │  Jobs  │  Shaders  │  Physics (Jolt)  │  Audio  │  Animation │
-│  Core.Mathematics  │  Serialization  │  Images  │  Geometry  │  Profiler   │
+│  Resources  │  VFS (Disk, Pak)  │  Jobs  │  Shaders  │  Physics (Jolt)    │
+│  Audio  │  Animation  │  Core.Mathematics  │  Serialization  │  Images    │
+│  Geometry  │  Profiler                                                     │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -74,7 +75,11 @@ WebGPU-inspired but lower-level. Interface-based - backends are swappable.
 | **Sedulous.Runtime** | Context (pure subsystem lifecycle manager - no ResourceSystem/JobSystem ownership), Subsystem base class (UpdateOrder, OnInit/OnReady/OnPrepareShutdown/OnShutdown), interface-based subsystem queries (GetSubsystemByInterface<T>) |
 | **Sedulous.Runtime.Client** | Application base class - lightweight app with Shell + RHI + SwapChain. Owns device, window, frame loop. Virtual CreateLogger(). For sandboxes, tools, and editor |
 | **Sedulous.Jobs** | JobSystem singleton - runs jobs immediately, ProcessCompletions called by application |
-| **Sedulous.Resources** | ResourceSystem - async loading, caching, per-type ResourceManagers, FileWatcher, hot-reload |
+| **Sedulous.Resources** | ResourceSystem - async loading, URI-based mount table (Sedulous.VFS), GUID indices, caching, per-type ResourceManagers, hot-reload via per-mount change sources |
+| **Sedulous.VFS** | Virtual filesystem core - IMount and capability interfaces (IEnumerableMount, IWatchableMount, IWritableMount), IChangeSource. Currently under `Code/Experimental/`. See [VFS.md](VFS.md). |
+| **Sedulous.VFS.Disk** | Disk-backed mount: FileSystemMount + polling FileSystemChangeSource |
+| **Sedulous.VFS.Pak** | Read-only pak archive backend (SPAK format) with pluggable codecs |
+| **Sedulous.VFS.Pak.Tool** | Offline pak builder (`PakBuilder`) - not shipped at runtime |
 | **Sedulous.Profiler** | SProfiler - per-frame scoped profiling (BeginFrame/Begin/End) |
 
 ### Graphics & Rendering
